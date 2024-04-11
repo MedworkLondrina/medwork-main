@@ -45,9 +45,9 @@ function Login() {
           'Content-Type': 'application/json',
         }, body: JSON.stringify(login)
       })
-      console.log(qualquernome);
-      const nomefoda = JSON.stringify(qualquernome)
-      console.log(nomefoda)
+     // Espera e converte a resposta para JSON
+const nomefoda = await qualquernome.json();
+console.log(nomefoda);
       fetch(`${connect}/api/protected`, {
         method: 'GET',
         headers: {
