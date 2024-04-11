@@ -1,7 +1,7 @@
 import { pool } from "../../db.js";
 
 function getNomeByEmail(email, callback) {
-    const query = `SELECT id_usuario, nome_usuario, fk_tenant_code FROM usuarios WHERE email = ?`;
+    const query = `SELECT id_usuario, nome_usuario, tipo, fk_tenant_code FROM usuarios WHERE email = ?`;
   
     pool.getConnection((err, con) => {
       if (err) {
