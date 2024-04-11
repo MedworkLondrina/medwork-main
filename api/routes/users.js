@@ -1,7 +1,7 @@
 import express from "express";
 import { pool } from "../db.js";
 import jwt from "jsonwebtoken";
-
+import getNomeByEmail from "../config.js"
 const router = express.Router();
 
 const SECRET = 'medworkldn';
@@ -1363,25 +1363,24 @@ router.get('/api/protected', verifyToken, (req, res) => {
 
 // Rota para verificar o usuário ao fazer login
 router.post('/login', async (req, res) => {
-  const { usuario, senha } = req.body;
-
+  const { email, senha } = req.body;
+  console.log(req.body)
   try {
-    const query = 'SELECT * FROM usuarios WHERE usuario = ?';
-
-    db.query(query, [usuario], async (err, results) => {
+    // Use a função getNomeByEmail para obter o nome do usuário pelo email
+    getNomeByEmail(email, async (err, userData) => {
       if (err) {
-        console.error('Erro ao verificar usuário', err);
+        console.error('Erro ao buscar usuário pelo email', err);
         return res.status(500).json({ message: 'Erro interno do servidor' });
       }
-
-      const user = results[0];
-
-      if (user && user.senha === senha) {
-        const token = jwt.sign({ usuario: user.usuario, id: user.id }, SECRET, { expiresIn: '1h' });
-        res.status(200).json({ message: 'Autenticação bem-sucedida', user, token });
-      } else {
-        res.status(401).json({ message: 'Usuário ou senha incorretos!' });
+      console.log(userData)
+      // Verifique se o usuário foi encontrado
+      if (!userData) {
+        return res.status(401).json({ message: 'Usuário não encontrado' });
       }
+
+      const user = userData[0];
+     console.log(user)
+      res.status(200).json(user)
     });
   } catch (error) {
     console.log(error);
@@ -1389,9 +1388,9 @@ router.post('/login', async (req, res) => {
   }
 });
 
+
 //Rota para Logout
 router.post("/logout", async (req, res) => {
-
   res.json({ message: 'Logout bem-sucedido!' })
 })
 
