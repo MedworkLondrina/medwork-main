@@ -470,14 +470,13 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const handleSignInUser = async (authToken, email) => {
+  const handleSignInUser = async (authToken, user) => {
     try {
-      await getUsuarios();
-      const findUser = usuarios.find((i) => i.email === email);
-
       const userDefine = {
-        nome_usuario: findUser.nome_usuario,
-        permissao_usuario: findUser.tipo,
+        id_usuario: user.id_usuario,
+        tenant_code: user.fk_tenant_code,
+        nome_usuario: user.nome_usuario,
+        permissao_usuario: user.tipo,
         token_usuario: authToken,
       }
 

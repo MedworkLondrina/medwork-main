@@ -11,7 +11,7 @@ import login_image from '../media/login_image.png'
 
 function Login() {
 
-  const { setUser, usuarios, getUsuarios, setPermissao, handleSignInUser } = useAuth();
+  const { handleSignInUser } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -19,10 +19,6 @@ function Login() {
   const [showpasd, setShowpasd] = useState(false);
 
   const [signInWithEmailAndPassword] = useSignInWithEmailAndPassword(auth);
-
-  useEffect(() => {
-    getUsuarios();
-  }, []);
 
   const signIn = async (email, password) => {
     try {
@@ -33,21 +29,21 @@ function Login() {
         console.log("Erro ao fazer login com o firebase!", res.error.message);
       }
 
-      const findUser = usuarios.find((i) => i.email === email);
       const authToken = res.user.accessToken;
       const login = {
-        email:email,
-        senha:password
+        email: email
       }
-      const qualquernome = await fetch(`${connect}/login`,{
-        method:"POST",
-         headers:{
+
+      const verifyTenant = await fetch(`${connect}/login`, {
+        method: "POST",
+        headers: {
           'Content-Type': 'application/json',
         }, body: JSON.stringify(login)
       })
-     // Espera e converte a resposta para JSON
-const nomefoda = await qualquernome.json();
-console.log(nomefoda);
+
+      const resVerifyTenant = await verifyTenant.json();
+      console.log(resVerifyTenant);
+
       fetch(`${connect}/api/protected`, {
         method: 'GET',
         headers: {
@@ -62,13 +58,13 @@ console.log(nomefoda);
           return response.json();
         })
         .then(data => {
-          toast.success(`Bem-vindo, ${findUser.nome_usuario}!`)
+          toast.success(`Bem-vindo, ${resVerifyTenant.nome_usuario}!`)
         })
         .catch(error => {
           console.error('Erro ao acessar a rota protegida:', error.message);
         });
 
-      await handleSignInUser(res.user.accessToken, email);
+      await handleSignInUser(res.user.accessToken, resVerifyTenant);
 
       setRedirect(true);
     } catch (error) {
