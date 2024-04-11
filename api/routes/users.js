@@ -1,7 +1,7 @@
 import express from "express";
 import { pool } from "../db.js";
 import jwt from "jsonwebtoken";
-import getNomeByEmail from "../config/login/config.js"
+import getNomeByEmail from "../config/login/login.js"
 const router = express.Router();
 
 const SECRET = 'medworkldn';
@@ -1363,8 +1363,7 @@ router.get('/api/protected', verifyToken, (req, res) => {
 
 // Rota para verificar o usuário ao fazer login
 router.post('/login', async (req, res) => {
-  const { email, senha } = req.body;
-  console.log(req.body)
+  const { email } = req.body;
   try {
     // Use a função getNomeByEmail para obter o nome do usuário pelo email
     getNomeByEmail(email, async (err, userData) => {
@@ -1372,13 +1371,11 @@ router.post('/login', async (req, res) => {
         console.error('Erro ao buscar usuário pelo email', err);
         return res.status(500).json({ message: 'Erro interno do servidor' });
       }
-      console.log(userData)
-      // Verifique se o usuário foi encontrado
       if (!userData) {
         return res.status(401).json({ message: 'Usuário não encontrado' });
       }
 
-      console.log("user:", user);
+      const user = userData[0];
       res.status(200).json(user);
     });
   } catch (error) {
