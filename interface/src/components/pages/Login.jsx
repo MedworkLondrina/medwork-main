@@ -35,7 +35,19 @@ function Login() {
 
       const findUser = usuarios.find((i) => i.email === email);
       const authToken = res.user.accessToken;
-
+      const login = {
+        email:email,
+        senha:password
+      }
+      const qualquernome = await fetch(`${connect}/login`,{
+        method:"POST",
+         headers:{
+          'Content-Type': 'application/json',
+        }, body: JSON.stringify(login)
+      })
+      console.log(qualquernome);
+      const nomefoda = JSON.stringify(qualquernome)
+      console.log(nomefoda)
       fetch(`${connect}/api/protected`, {
         method: 'GET',
         headers: {
