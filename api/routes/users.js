@@ -1,7 +1,7 @@
 import express from "express";
 import { pool } from "../db.js";
 import jwt from "jsonwebtoken";
-import getNomeByEmail from "../config.js"
+import getNomeByEmail from "../config/login/config.js"
 const router = express.Router();
 
 const SECRET = 'medworkldn';
@@ -1378,9 +1378,8 @@ router.post('/login', async (req, res) => {
         return res.status(401).json({ message: 'Usuário não encontrado' });
       }
 
-      const user = userData[0];
-     console.log(user)
-      res.status(200).json(user)
+      console.log("user:", user);
+      res.status(200).json(user);
     });
   } catch (error) {
     console.log(error);

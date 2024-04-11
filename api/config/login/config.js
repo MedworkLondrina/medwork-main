@@ -1,4 +1,4 @@
-import { pool } from "../api/db.js";
+import { pool } from "../../db.js";
 
 function getNomeByEmail(email, callback) {
     const query = `SELECT id_usuario, nome_usuario, fk_tenant_code FROM usuarios WHERE email = ?`;
