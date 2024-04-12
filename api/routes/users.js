@@ -8,23 +8,6 @@ const SECRET = 'medworkldn';
 
 //Tabela Empresa
 //Get table
-<<<<<<< HEAD
-router.get("/empresas", async (req, res) => {
-  try {
-    const queryParams = req.query.tenent_code;    
-    // Pass tenant_code as a parameter to getEmpresasHome
-    getEmpresasHome(queryParams, (err, empresasData) => {
-      if (err) {
-        console.error('Erro ao buscar empresas:', err);
-        return res.status(500).json({ message: 'Erro interno do servidor' });
-      }
-      
-      if (!empresasData || empresasData.length === 0) {
-        return res.status(404).json({ message: 'Nenhuma empresa encontrada' });
-      }
-
-      res.status(200).json(empresasData);
-=======
 router.get("/empresas", (req, res) => {
   const queryParams = req.query.tenent_code;
 
@@ -37,13 +20,8 @@ router.get("/empresas", (req, res) => {
       if (err) return res.status(500).json(err);
 
       return res.status(200).json(data);
->>>>>>> ed19131ec6cd120140b26fdc16e9c7cf6ed4729a
     });
-  } catch (error) {
-    console.error('Erro interno do servidor:', error);
-    res.status(500).json({ message: 'Erro interno do servidor' });
-  }
-});
+  } );
 
 
 
