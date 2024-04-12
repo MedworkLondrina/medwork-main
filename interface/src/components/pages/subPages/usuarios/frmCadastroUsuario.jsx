@@ -2,9 +2,12 @@ import { useRef, useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { auth, connect } from "../../../../services/api";
 import { useCreateUserWithEmailAndPassword } from 'react-firebase-hooks/auth';
+import useAuth from '../../../../hooks/useAuth'
 
 function FrmCadastroUsuario({ onEdit, setOnEdit, getUsuario, usuarios }) {
-	// Instanciando a variavel que vai referenciar o formulario
+
+	const { checkSignIn, user } = useAuth(null);
+
 	const ref = useRef(null);
 
 	const [
@@ -18,6 +21,10 @@ function FrmCadastroUsuario({ onEdit, setOnEdit, getUsuario, usuarios }) {
 	const [cpf, setCpf] = useState('');
 	const [emailcheck, setemailcheck] = useState(false);
 	const [pasdCheck, setPasdCheck] = useState(false);
+
+	useEffect(() => {
+		checkSignIn();
+	}, [])
 
 	// Colocando as informações do formulario nas variaveis
 	useEffect(() => {
@@ -58,29 +65,32 @@ function FrmCadastroUsuario({ onEdit, setOnEdit, getUsuario, usuarios }) {
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 
-		const user = ref.current;
+		const tenant = user.tenant_code;
 
-		const res = await signIn(email, password, user.nome_usuario.value);
+		const form = ref.current;
+
+		const res = await signIn(email, password, form.nome_usuario.value);
 
 		if (res === "existe") {
 			handleClear();
 			return;
 		} else {
 			if (
-				!user.nome_usuario.value ||
-				!user.cpf_usuario.value ||
-				!user.email.value ||
-				!user.senha.value ||
-				!user.tipo) {
+				!form.nome_usuario.value ||
+				!form.cpf_usuario.value ||
+				!form.email.value ||
+				!form.senha.value ||
+				!form.tipo) {
 				return toast.warn("Preencha Todos os Campos!")
 			}
 			try {
-				const userData = {
-					nome_usuario: user.nome_usuario.value || "",
+				const formData = {
+					nome_usuario: form.nome_usuario.value || "",
 					cpf_usuario: cpf || "",
-					email: user.email.value || "",
-					password: user.senha.value || "",
+					email: form.email.value || "",
+					password: form.senha.value || "",
 					tipo: tipo || "0",
+					fk_tenant_code: tenant,
 				}
 
 				const url = onEdit
@@ -94,7 +104,7 @@ function FrmCadastroUsuario({ onEdit, setOnEdit, getUsuario, usuarios }) {
 					headers: {
 						'Content-Type': 'application/json',
 					},
-					body: JSON.stringify(userData),
+					body: JSON.stringify(formData),
 				});
 
 				if (!response.ok) {
@@ -151,11 +161,11 @@ function FrmCadastroUsuario({ onEdit, setOnEdit, getUsuario, usuarios }) {
 	}
 
 	const handleSetPassd = (e) => {
-    const inputPasd = e.target.value;
-    const isValid = inputPasd.length < 6;
-    setPasdCheck(isValid);
+		const inputPasd = e.target.value;
+		const isValid = inputPasd.length < 6;
+		setPasdCheck(isValid);
 		setPassword(inputPasd)
-}
+	}
 
 
 	return (

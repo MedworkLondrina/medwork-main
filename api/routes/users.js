@@ -1,7 +1,7 @@
 import express from "express";
 import { pool } from "../db.js";
 import jwt from "jsonwebtoken";
-
+import getNomeByEmail from "../config/login/login.js"
 const router = express.Router();
 
 const SECRET = 'medworkldn';
@@ -9,12 +9,14 @@ const SECRET = 'medworkldn';
 //Tabela Empresa
 //Get table
 router.get("/empresas", (req, res) => {
-  const q = `SELECT * FROM empresas`;
+  const queryParams = req.query.tenent_code;
+
+  const q = `SELECT * FROM empresas WHERE fk_tenant_code = ?`;
 
   pool.getConnection((err, con) => {
     if (err) return next(err);
 
-    con.query(q, (err, data) => {
+    con.query(q, [queryParams], (err, data) => {
       if (err) return res.status(500).json(err);
 
       return res.status(200).json(data);
@@ -106,6 +108,7 @@ router.put("/empresas/:id_empresa", (req, res) => {
 
 });
 
+// Desactivate
 router.put("/empresas/activate/:id_empresa", (req, res) => {
   const id_empresa = req.params.id_empresa;
   const { ativo } = req.body;
@@ -1163,7 +1166,7 @@ router.post("/usuarios", (req, res) => {
 //Update row int table
 router.put("/usuarios/:id_usuario", (req, res) => {
   const id_usuario = req.params.id_usuario;
-  const { nome_usuario, cpf_usuario, email, password, tipo } = req.body;
+  const { nome_usuario, cpf_usuario, email, password, tipo, fk_tenant_code } = req.body;
 
   const q = `
     UPDATE usuarios
@@ -1171,7 +1174,8 @@ router.put("/usuarios/:id_usuario", (req, res) => {
     cpf_usuario = ?,
     email = ?,
     password = ?,
-    tipo = ?
+    tipo = ?,
+    fk_tenant_code,
     WHERE id_usuario = ?
     `;
 
@@ -1181,6 +1185,7 @@ router.put("/usuarios/:id_usuario", (req, res) => {
     email,
     password,
     tipo,
+    fk_tenant_code,
     id_usuario
   ];
 
@@ -1363,25 +1368,20 @@ router.get('/api/protected', verifyToken, (req, res) => {
 
 // Rota para verificar o usuário ao fazer login
 router.post('/login', async (req, res) => {
-  const { usuario, senha } = req.body;
-
+  const { email } = req.body;
   try {
-    const query = 'SELECT * FROM usuarios WHERE usuario = ?';
-
-    db.query(query, [usuario], async (err, results) => {
+    // Use a função getNomeByEmail para obter o nome do usuário pelo email
+    getNomeByEmail(email, async (err, userData) => {
       if (err) {
-        console.error('Erro ao verificar usuário', err);
+        console.error('Erro ao buscar usuário pelo email', err);
         return res.status(500).json({ message: 'Erro interno do servidor' });
       }
-
-      const user = results[0];
-
-      if (user && user.senha === senha) {
-        const token = jwt.sign({ usuario: user.usuario, id: user.id }, SECRET, { expiresIn: '1h' });
-        res.status(200).json({ message: 'Autenticação bem-sucedida', user, token });
-      } else {
-        res.status(401).json({ message: 'Usuário ou senha incorretos!' });
+      if (!userData) {
+        return res.status(401).json({ message: 'Usuário não encontrado' });
       }
+
+      const user = userData[0];
+      res.status(200).json(user);
     });
   } catch (error) {
     console.log(error);
@@ -1389,9 +1389,9 @@ router.post('/login', async (req, res) => {
   }
 });
 
+
 //Rota para Logout
 router.post("/logout", async (req, res) => {
-
   res.json({ message: 'Logout bem-sucedido!' })
 })
 

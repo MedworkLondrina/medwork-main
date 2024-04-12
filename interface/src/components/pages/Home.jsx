@@ -9,20 +9,25 @@ import img from '../media/logo_menu.png'
 
 function Home() {
 
-  const { empresas, getEmpresas, contatos, getContatos, companyId, handleSetCompanyId } = useAuth(null);
+  const { contatos, getContatos, companyId, handleSetCompanyId, fetchEmpresas } = useAuth(null);
 
   //Instanciando o Search
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredEmpresas, setFilteredEmpresas] = useState([]);
   const [visible, setVisible] = useState(false);
+  const [empresas, setEmpresas] = useState([])
 
   useEffect(() => {
     handleSetCompanyId();
   }, []);
 
+  const get = async () => {
+    const data = await fetchEmpresas();
+    setEmpresas(data);
+  }
+
   useEffect(() => {
-    getEmpresas();
-    getContatos();
+    get();
   }, [companyId]);
 
   //Função para Pesquisa
@@ -30,7 +35,6 @@ function Home() {
     const filtered = empresas.filter((emp) => emp.nome_empresa.toLowerCase().includes(searchTerm.toLowerCase()));
     setFilteredEmpresas(filtered);
   }, [searchTerm, empresas]);
-
 
   const handleSearch = (term) => {
     setSearchTerm(term);
