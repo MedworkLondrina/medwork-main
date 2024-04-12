@@ -185,6 +185,30 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const fethUnidades = async () => {
+    try {
+      const queryParams = new URLSearchParams({ companyId: companyId }).toString();
+
+      const response = await fetch(`${connect}/unidades=${queryParams}`);
+
+      if (!response.ok) {
+        throw new Error(`Erro ao buscar unidades. Status: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      data.sort((a, b) => {
+        if (a.ativo < b.ativo) return 1;
+        if (a.ativo > b.ativo) return -1;
+
+        return a.nome_unidade.localeCompare(b.nome_unidade);
+      });
+      return data;
+    } catch (error) {
+      console.log(`Erro ao buscar unidades. ${error}`);
+    }
+  };
+
   const getSetores = async () => {
     try {
       const response = await fetch(`${connect}/setores`);
@@ -614,6 +638,7 @@ export const AuthProvider = ({ children }) => {
         conclusoes,
         getTable,
         fetchEmpresas,
+        fethUnidades,
       }}>
       {children}
     </AuthContext.Provider>
