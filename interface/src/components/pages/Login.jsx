@@ -82,7 +82,6 @@ function Login() {
     e.preventDefault();
     try {
       await signIn(email, password);
-      //Tratar os erros separadamente
     } catch (error) {
       toast.error("Erro ao logar");
       console.log("Erro ao logar", error);

@@ -73,6 +73,25 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const fetchEmpresas = async () => {
+    try {
+      const code = user.tenant_code;
+      const queryParams = new URLSearchParams({ tenent_code: code }).toString();
+
+      const response = await fetch(`${connect}/empresas?${queryParams}`)
+
+      if (!response.ok) {
+        throw new Error(`Erro ao buscar os dados da empresa! Status: ${response.status}`)
+      }
+
+      const data = await response.json();
+      console.log(data)
+      return data;
+    } catch (error) {
+      console.error(`Erro ao buscar os dados da empresa! Status: ${error}`)
+    }
+  };
+
   const getContatos = async () => {
     try {
       const response = await fetch(`${connect}/contatos`);
@@ -589,6 +608,7 @@ export const AuthProvider = ({ children }) => {
         setConclusoes,
         conclusoes,
         getTable,
+        fetchEmpresas,
       }}>
       {children}
     </AuthContext.Provider>
