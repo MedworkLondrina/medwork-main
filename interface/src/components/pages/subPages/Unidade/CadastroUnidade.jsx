@@ -12,7 +12,7 @@ import { IoInformationCircleSharp } from "react-icons/io5";
 function CadastroUnidade() {
 
   const {
-    fetchUnidades,
+    fethUnidades,
     getUnidades,
     loadSelectedCompanyFromLocalStorage,
     companyId,
@@ -39,10 +39,12 @@ function CadastroUnidade() {
   }, []);
 
   const get = async () => {
-    const data = await fetchUnidades();
+    const data = await fethUnidades();
+    setUnidades(data);
   };
-
+ 
   useEffect(() => {
+    get();
     getContatos();
     getEmpresas();
   }, [companyId]);

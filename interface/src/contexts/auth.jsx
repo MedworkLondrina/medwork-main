@@ -90,7 +90,6 @@ export const AuthProvider = ({ children }) => {
       }
 
       const data = await response.json();
-      console.log(data)
       return data;
     } catch (error) {
       console.error(`Erro ao buscar os dados da empresa! Status: ${error}`)
