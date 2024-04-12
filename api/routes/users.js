@@ -9,12 +9,14 @@ const SECRET = 'medworkldn';
 //Tabela Empresa
 //Get table
 router.get("/empresas", (req, res) => {
-  const q = `SELECT * FROM empresas`;
+  const queryParams = req.query.tenent_code;
+
+  const q = `SELECT * FROM empresas WHERE fk_tenant_code = ?`;
 
   pool.getConnection((err, con) => {
     if (err) return next(err);
 
-    con.query(q, (err, data) => {
+    con.query(q, [queryParams], (err, data) => {
       if (err) return res.status(500).json(err);
 
       return res.status(200).json(data);
@@ -106,6 +108,7 @@ router.put("/empresas/:id_empresa", (req, res) => {
 
 });
 
+// Desactivate
 router.put("/empresas/activate/:id_empresa", (req, res) => {
   const id_empresa = req.params.id_empresa;
   const { ativo } = req.body;
@@ -1163,7 +1166,7 @@ router.post("/usuarios", (req, res) => {
 //Update row int table
 router.put("/usuarios/:id_usuario", (req, res) => {
   const id_usuario = req.params.id_usuario;
-  const { nome_usuario, cpf_usuario, email, password, tipo } = req.body;
+  const { nome_usuario, cpf_usuario, email, password, tipo, fk_tenant_code } = req.body;
 
   const q = `
     UPDATE usuarios
@@ -1171,7 +1174,8 @@ router.put("/usuarios/:id_usuario", (req, res) => {
     cpf_usuario = ?,
     email = ?,
     password = ?,
-    tipo = ?
+    tipo = ?,
+    fk_tenant_code,
     WHERE id_usuario = ?
     `;
 
@@ -1181,6 +1185,7 @@ router.put("/usuarios/:id_usuario", (req, res) => {
     email,
     password,
     tipo,
+    fk_tenant_code,
     id_usuario
   ];
 
