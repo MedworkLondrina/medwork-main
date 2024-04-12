@@ -42,7 +42,7 @@ function Login() {
       })
 
       const resVerifyTenant = await verifyTenant.json();
-      console.log(resVerifyTenant);
+      // console.log(resVerifyTenant);
 
       fetch(`${connect}/api/protected`, {
         method: 'GET',

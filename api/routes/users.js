@@ -8,22 +8,46 @@ const SECRET = 'medworkldn';
 
 //Tabela Empresa
 //Get table
-router.get("/empresas", (req, res) => {
-  const q = `SELECT * FROM empresas`;
+router.get("/empresas", async (req, res) => {
+  try {
+    const queryParams = req.query.tenent_code;    
+    // Pass tenant_code as a parameter to getEmpresasHome
+    getEmpresasHome(queryParams, (err, empresasData) => {
+      if (err) {
+        console.error('Erro ao buscar empresas:', err);
+        return res.status(500).json({ message: 'Erro interno do servidor' });
+      }
+      
+      if (!empresasData || empresasData.length === 0) {
+        return res.status(404).json({ message: 'Nenhuma empresa encontrada' });
+      }
 
-  pool.getConnection((err, con) => {
-    if (err) return next(err);
-
-    con.query(q, (err, data) => {
-      if (err) return res.status(500).json(err);
-
-      return res.status(200).json(data);
+      res.status(200).json(empresasData);
     });
-
-    con.release();
-  })
-
+  } catch (error) {
+    console.error('Erro interno do servidor:', error);
+    res.status(500).json({ message: 'Erro interno do servidor' });
+  }
 });
+
+
+
+router.post("/localstorage/empresas",(req,res)=>{
+   // Receba os dados enviados do cliente
+   const localStorageData = req.body.localStorageData;
+   const tc = req.body.tc;
+ 
+   // Faça o que você precisa com os dados recebidos
+   console.log('Dados recebidos do localStorage:', localStorageData);
+   console.log('Tenant code:', tc);
+ 
+   // Envie uma resposta de volta para o cliente
+   res.send('Dados recebidos com sucesso no servidor!');
+ });
+ 
+ 
+ 
+
 
 //Add rows in table
 router.post("/empresas", (req, res) => {
@@ -1324,6 +1348,7 @@ router.post("/laudo_version", (req, res) => {
 
 // Verifica Usuário para Logar
 import admin from 'firebase-admin'
+import getEmpresasHome from "../config/home/home.js";
 
 const serviceAccount = {
   "type": "service_account",
