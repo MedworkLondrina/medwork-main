@@ -57,19 +57,24 @@ export const AuthProvider = ({ children }) => {
 
   const getEmpresas = async () => {
     try {
-      const code = user.tenant_code;
-      const queryParams = new URLSearchParams({ tenent_code: code }).toString();
-
-    const response = await fetch(`${connect}/empresas?${queryParams}`)
+      const response = await fetch(`${connect}/empresas`);
 
       if (!response.ok) {
-        throw new Error("Erro ao buscar os dados da empresa! Status: ${response.status}")
+        throw new Error(`Erro ao buscar empresas. Status: ${response.status}`)
       }
 
       const data = await response.json();
-      console.log(data)
+      data.sort((a, b) => {
+        if (a.ativo < b.ativo) return 1;
+        if (a.ativo > b.ativo) return -1;
+
+        return a.nome_empresa.localeCompare(b.nome_empresa);
+      });
+
+      setEmpresas(data)
     } catch (error) {
-      console.error("Erro ao buscar os dados da empresa! Status: ${error}")
+      toast.warn("Erro ao buscar empresas");
+      console.log(`Erro ao buscar empresas. ${error}`)
     }
   };
 
@@ -175,6 +180,30 @@ export const AuthProvider = ({ children }) => {
         return a.nome_unidade.localeCompare(b.nome_unidade);
       });
       setUnidades(filteredUnidades);
+    } catch (error) {
+      console.log(`Erro ao buscar unidades. ${error}`);
+    }
+  };
+
+  const fethUnidades = async () => {
+    try {
+      const queryParams = new URLSearchParams({ companyId: companyId }).toString();
+
+      const response = await fetch(`${connect}/unidades?${queryParams}`);
+
+      if (!response.ok) {
+        throw new Error(`Erro ao buscar unidades. Status: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      data.sort((a, b) => {
+        if (a.ativo < b.ativo) return 1;
+        if (a.ativo > b.ativo) return -1;
+
+        return a.nome_unidade.localeCompare(b.nome_unidade);
+      });
+      return data;
     } catch (error) {
       console.log(`Erro ao buscar unidades. ${error}`);
     }
@@ -609,6 +638,7 @@ export const AuthProvider = ({ children }) => {
         conclusoes,
         getTable,
         fetchEmpresas,
+        fethUnidades,
       }}>
       {children}
     </AuthContext.Provider>
