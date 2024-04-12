@@ -12,7 +12,6 @@ import { IoInformationCircleSharp } from "react-icons/io5";
 function CadastroUnidade() {
 
   const {
-    fethUnidades,
     getUnidades,
     loadSelectedCompanyFromLocalStorage,
     companyId,
@@ -44,7 +43,6 @@ function CadastroUnidade() {
   };
  
   useEffect(() => {
-    get();
     getContatos();
     getEmpresas();
   }, [companyId]);
