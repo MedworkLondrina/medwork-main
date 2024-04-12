@@ -136,27 +136,22 @@ router.put("/empresas/activate/:id_empresa", (req, res) => {
 //Tabela Unidade
 //Get table
 router.get("/unidades", (req, res) => {
-  const q = `SELECT * FROM unidades`;
+  const queryParams= req.query.companyId;
+  console.log(queryParams)
+
+  const q = `SELECT * FROM unidades WHERE fk_empresa_id=?`;
 
   pool.getConnection((err, con) => {
-    if (err) {
-      // Trate o erro diretamente aqui
-      console.error("Erro ao obter conexão:", err);
-      return res.status(500).json({ error: "Erro ao obter conexão com o banco de dados." });
-    }
+    if (err) return next(err);
 
-    con.query(q, (err, data) => {
-      // Certifique-se de verificar também por erros nesta query
-      if (err) {
-        console.error("Erro ao executar query:", err);
-        con.release(); // Certifique-se de liberar a conexão mesmo em caso de erro
-        return res.status(500).json({ error: "Erro ao executar a query no banco de dados." });
-      }
+    con.query(q, [queryParams], (err, data) => {
+      if (err) return res.status(500).json(err);
 
-      res.status(200).json(data);
-      con.release(); // Não se esqueça de liberar a conexão após o uso bem-sucedido
+      return res.status(200).json(data);
     });
-  });
+
+    con.release();
+  })
 });
 
 //Add rows in table

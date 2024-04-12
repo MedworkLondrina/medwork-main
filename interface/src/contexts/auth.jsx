@@ -189,7 +189,7 @@ export const AuthProvider = ({ children }) => {
     try {
       const queryParams = new URLSearchParams({ companyId: companyId }).toString();
 
-      const response = await fetch(`${connect}/unidades=${queryParams}`);
+      const response = await fetch(`${connect}/unidades?${queryParams}`);
 
       if (!response.ok) {
         throw new Error(`Erro ao buscar unidades. Status: ${response.status}`);
