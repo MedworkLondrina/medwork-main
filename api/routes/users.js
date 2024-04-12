@@ -21,11 +21,26 @@ router.get("/empresas", (req, res) => {
 
       return res.status(200).json(data);
     });
+  } );
 
-    con.release();
-  })
 
-});
+
+router.post("/localstorage/empresas",(req,res)=>{
+   // Receba os dados enviados do cliente
+   const localStorageData = req.body.localStorageData;
+   const tc = req.body.tc;
+ 
+   // Faça o que você precisa com os dados recebidos
+   console.log('Dados recebidos do localStorage:', localStorageData);
+   console.log('Tenant code:', tc);
+ 
+   // Envie uma resposta de volta para o cliente
+   res.send('Dados recebidos com sucesso no servidor!');
+ });
+ 
+ 
+ 
+
 
 //Add rows in table
 router.post("/empresas", (req, res) => {
@@ -1329,6 +1344,7 @@ router.post("/laudo_version", (req, res) => {
 
 // Verifica Usuário para Logar
 import admin from 'firebase-admin'
+import getEmpresasHome from "../config/home/home.js";
 
 const serviceAccount = {
   "type": "service_account",
