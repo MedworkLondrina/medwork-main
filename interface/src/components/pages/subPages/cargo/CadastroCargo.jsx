@@ -10,9 +10,12 @@ import { IoInformationCircleSharp } from "react-icons/io5";
 
 function CadastroCargo() {
 
-  const { cargos, setCargos, getCargos, getSetores, setores, companyId, loadSelectedCompanyFromLocalStorage, unidades, getUnidades } = useAuth(null)
+  const { companyId, loadSelectedCompanyFromLocalStorage, fetchUnidades, fetchSetores, fetchCargos } = useAuth(null)
 
   // Instanciando e Definindo como vazio
+  const [unidades, setUnidades] = useState([]);
+  const [setores, setSetores] = useState([]);
+  const [cargos, setCargos] = useState([]);
   const [setorNome, setSetorNome] = useState(null);
   const [onEdit, setOnEdit] = useState(null);
   const [visible, setVisible] = useState(false);
@@ -25,10 +28,17 @@ function CadastroCargo() {
     loadSelectedCompanyFromLocalStorage();
   }, [])
 
+  const get = async () => {
+    const units = await fetchUnidades();
+    setUnidades(units);
+    const sectors = await fetchSetores();
+    setSetores(sectors);
+    const functions = await fetchCargos();
+    setCargos(functions);
+  };
+
   useEffect(() => {
-    getCargos();
-    getSetores();
-    getUnidades();
+    get();
   }, [companyId]);
 
   const findSetor = (fkSetorId) => {
@@ -119,7 +129,7 @@ function CadastroCargo() {
       <FrmCadastroCargo
         onEdit={onEdit}
         setOnEdit={setOnEdit}
-        getCargo={getCargos}
+        getCargo={fetchCargos}
         set={setorNome}
         setor={setores}
         unidades={unidades}
@@ -136,7 +146,7 @@ function CadastroCargo() {
       <GridCadastroCargo
         cargos={filteredCargo}
         setCargo={setCargos}
-        getCargo={getCargos}
+        getCargo={fetchCargos}
         setOnEdit={handleEdit}
         find={findSetor}
         setor={setores}

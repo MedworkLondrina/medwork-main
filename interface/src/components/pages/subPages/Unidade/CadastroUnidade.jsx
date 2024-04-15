@@ -18,8 +18,7 @@ function CadastroUnidade() {
     companyId,
     getContatos,
     contatos,
-    getEmpresas,
-    empresas,
+    fetchEmpresas,
   } = useAuth(null)
 
   // Instanciando variáveis e definindo como vazio
@@ -33,6 +32,7 @@ function CadastroUnidade() {
   const [filteredUnidade, setFilteredUnidades] = useState([]);
 
   const [unidades, setUnidades] = useState([]);
+  const [empresas, setEmpresas] = useState([]);
 
   useEffect(() => {
     loadSelectedCompanyFromLocalStorage();
@@ -41,12 +41,13 @@ function CadastroUnidade() {
   const get = async () => {
     const data = await fetchUnidades();
     setUnidades(data);
+    const companys = await fetchEmpresas();
+    setEmpresas(companys);
   };
  
   useEffect(() => {
     get();
     getContatos();
-    getEmpresas();
   }, [companyId]);
 
   //Função para Editar

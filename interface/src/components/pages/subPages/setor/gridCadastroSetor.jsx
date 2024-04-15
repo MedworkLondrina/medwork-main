@@ -6,18 +6,12 @@ import { connect } from '../../../../services/api'; //Conexão com o banco de da
 import ModalProcesso from '../components/Modal/ModalSetorProcesso'
 import { FiLink } from "react-icons/fi";
 
-function GridCadastroSetor({ setor, getSetores, setSetor, setOnEdit, unidade }) {
+function GridCadastroSetor({ setor, fetchSetores, setSetor, setOnEdit, unidade }) {
 
   //Instanciando variavel e definindo o estado como null
   const [showModal, setShowModal] = useState(null);
   const [setorName, setSetorName] = useState(null);
   const [setorId, setSetorId] = useState(null);
-  const [unidadesIds, setUnidadesIds] = useState([]);
-
-  useEffect(() => {
-    const unidadesFilter = unidade.map((i) => i.id_unidade);
-    setUnidadesIds(unidadesFilter);
-  }, [unidade]);
 
   //Função para editar item
   const handleEdit = (item) => {
@@ -52,7 +46,7 @@ function GridCadastroSetor({ setor, getSetores, setSetor, setOnEdit, unidade }) 
         item.id_setor === id ? { ...item, ativo: !ativo } : item
       );
       setSetor(novoSetor);
-      getSetores();
+      fetchSetores();
       toast.info(`Setor ${!ativo ? 'ativado' : 'inativado'} com sucesso!`);
     } catch (error) {
       console.error('Erro ao atualizar status do setor:', error);
@@ -95,7 +89,7 @@ function GridCadastroSetor({ setor, getSetores, setSetor, setOnEdit, unidade }) 
           </tr>
         </thead>
         <tbody>
-          {setor && setor.filter((item) => unidadesIds.includes(item.fk_unidade_id))
+          {setor && setor
           .map((item, i) => (
             <tr key={i} className={`border-b bg-white ${!item.ativo ? 'opacity-25' : ''}`}>
               <th scope="row" className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
