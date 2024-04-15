@@ -21,26 +21,11 @@ router.get("/empresas", (req, res) => {
 
       return res.status(200).json(data);
     });
-  } );
 
+    con.release();
+  })
 
-
-router.post("/localstorage/empresas",(req,res)=>{
-   // Receba os dados enviados do cliente
-   const localStorageData = req.body.localStorageData;
-   const tc = req.body.tc;
- 
-   // Faça o que você precisa com os dados recebidos
-   console.log('Dados recebidos do localStorage:', localStorageData);
-   console.log('Tenant code:', tc);
- 
-   // Envie uma resposta de volta para o cliente
-   res.send('Dados recebidos com sucesso no servidor!');
- });
- 
- 
- 
-
+});
 
 //Add rows in table
 router.post("/empresas", (req, res) => {
@@ -151,22 +136,27 @@ router.put("/empresas/activate/:id_empresa", (req, res) => {
 //Tabela Unidade
 //Get table
 router.get("/unidades", (req, res) => {
-  const queryParams= req.query.companyId;
-  console.log(queryParams)
-
-  const q = `SELECT * FROM unidades WHERE fk_empresa_id=?`;
+  const q = `SELECT * FROM unidades`;
 
   pool.getConnection((err, con) => {
-    if (err) return next(err);
+    if (err) {
+      // Trate o erro diretamente aqui
+      console.error("Erro ao obter conexão:", err);
+      return res.status(500).json({ error: "Erro ao obter conexão com o banco de dados." });
+    }
 
-    con.query(q, [queryParams], (err, data) => {
-      if (err) return res.status(500).json(err);
+    con.query(q, (err, data) => {
+      // Certifique-se de verificar também por erros nesta query
+      if (err) {
+        console.error("Erro ao executar query:", err);
+        con.release(); // Certifique-se de liberar a conexão mesmo em caso de erro
+        return res.status(500).json({ error: "Erro ao executar a query no banco de dados." });
+      }
 
-      return res.status(200).json(data);
+      res.status(200).json(data);
+      con.release(); // Não se esqueça de liberar a conexão após o uso bem-sucedido
     });
-
-    con.release();
-  })
+  });
 });
 
 //Add rows in table
@@ -1339,7 +1329,6 @@ router.post("/laudo_version", (req, res) => {
 
 // Verifica Usuário para Logar
 import admin from 'firebase-admin'
-import getEmpresasHome from "../config/home/home.js";
 
 const serviceAccount = {
   "type": "service_account",

@@ -179,7 +179,7 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const fethUnidades = async () => {
+  const fetchUnidades = async () => {
     try {
       const queryParams = new URLSearchParams({ companyId: companyId }).toString();
 
@@ -632,7 +632,7 @@ export const AuthProvider = ({ children }) => {
         conclusoes,
         getTable,
         fetchEmpresas,
-        fethUnidades,
+        fetchUnidades,
       }}>
       {children}
     </AuthContext.Provider>
