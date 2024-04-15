@@ -13,13 +13,15 @@ import { IoInformationCircleSharp } from "react-icons/io5";
 
 
 function CadastroSetor({ }) {
+	
+	const { fetchSetores, fetchUnidades, companyId, loadSelectedCompanyFromLocalStorage } = useAuth(null);
 
 	// Instanciando e Definindo como vazio
 	const [onEdit, setOnEdit] = useState(null);
 	const [nomeUnidade, setNomeUnidade] = useState(null);
 	const [visible, setVisible] = useState(false);
-
-	const { setores, setSetores, getSetores, unidades, getUnidades, companyId, loadSelectedCompanyFromLocalStorage } = useAuth(null);
+	const [setores, setSetores] = useState([]);
+	const [unidades, setUnidades] = useState([]);
 
 	//Instanciando o Search
 	const [searchTerm, setSearchTerm] = useState('');
@@ -29,11 +31,15 @@ function CadastroSetor({ }) {
 		loadSelectedCompanyFromLocalStorage();
 	}, [])
 
+	const get = async () => {
+		const sectors = await fetchSetores();
+		setSetores(sectors);
+		const units = await fetchUnidades();
+		setUnidades(units);
+	}
+
 	useEffect(() => {
-		if (companyId) {
-			getUnidades();
-			getSetores();
-		}
+		get();
 	}, [companyId]);
 
 	//Função para Pesquisa
@@ -107,7 +113,7 @@ function CadastroSetor({ }) {
 			<FrmCadastroSetor
 				onEdit={onEdit}
 				setOnEdit={setOnEdit}
-				getSetor={getSetores}
+				getSetor={fetchSetores}
 				unidades={nomeUnidade}
 				setor={setores}
 				unidade={unidades}
@@ -126,7 +132,7 @@ function CadastroSetor({ }) {
 			<GridCadastroSetor
 				setor={filteredSetor}
 				setSetor={setSetores}
-				getSetores={getSetores}
+				fetchSetores={fetchSetores}
 				setOnEdit={handleEdit}
 				unidade={unidades}
 			/>

@@ -12,14 +12,13 @@ import { IoInformationCircleSharp } from "react-icons/io5";
 function CadastroUnidade() {
 
   const {
-    fethUnidades,
+    fetchUnidades,
     getUnidades,
     loadSelectedCompanyFromLocalStorage,
     companyId,
     getContatos,
     contatos,
-    getEmpresas,
-    empresas,
+    fetchEmpresas,
   } = useAuth(null)
 
   // Instanciando variáveis e definindo como vazio
@@ -33,20 +32,22 @@ function CadastroUnidade() {
   const [filteredUnidade, setFilteredUnidades] = useState([]);
 
   const [unidades, setUnidades] = useState([]);
+  const [empresas, setEmpresas] = useState([]);
 
   useEffect(() => {
     loadSelectedCompanyFromLocalStorage();
   }, []);
 
   const get = async () => {
-    const data = await fethUnidades();
+    const data = await fetchUnidades();
     setUnidades(data);
+    const companys = await fetchEmpresas();
+    setEmpresas(companys);
   };
-
+ 
   useEffect(() => {
-    get()
+    get();
     getContatos();
-    getEmpresas();
   }, [companyId]);
 
   //Função para Editar

@@ -1,7 +1,11 @@
 import express from "express";
 import { pool } from "../db.js";
 import jwt from "jsonwebtoken";
-import getNomeByEmail from "../config/login/login.js"
+
+import getNomeByEmail from "../config/login/login.js";
+import getSetoresFromCompany from '../config/setores/setores.js';
+import getCargosFromCompany from '../config/cargos/cargos.js';
+
 const router = express.Router();
 
 const SECRET = 'medworkldn';
@@ -136,22 +140,29 @@ router.put("/empresas/activate/:id_empresa", (req, res) => {
 //Tabela Unidade
 //Get table
 router.get("/unidades", (req, res) => {
-  const queryParams= req.query.companyId;
-  console.log(queryParams)
+  const queryParams = req.query.companyId;
 
   const q = `SELECT * FROM unidades WHERE fk_empresa_id=?`;
 
   pool.getConnection((err, con) => {
-    if (err) return next(err);
+    if (err) {
+      // Trate o erro diretamente aqui
+      console.error("Erro ao obter conexão:", err);
+      return res.status(500).json({ error: "Erro ao obter conexão com o banco de dados." });
+    }
 
     con.query(q, [queryParams], (err, data) => {
-      if (err) return res.status(500).json(err);
+      // Certifique-se de verificar também por erros nesta query
+      if (err) {
+        console.error("Erro ao executar query:", err);
+        con.release(); // Certifique-se de liberar a conexão mesmo em caso de erro
+        return res.status(500).json({ error: "Erro ao executar a query no banco de dados." });
+      }
 
-      return res.status(200).json(data);
+      res.status(200).json(data);
+      con.release(); // Não se esqueça de liberar a conexão após o uso bem-sucedido
     });
-
-    con.release();
-  })
+  });
 });
 
 //Add rows in table
@@ -269,20 +280,15 @@ router.put("/unidades/activate/:id_unidade", (req, res) => {
 //Tabela Setores
 //Get table
 router.get("/setores", (req, res) => {
-  const q = `SELECT * FROM setores`;
+  const queryParams = req.query.companyId;
 
-  pool.getConnection((err, con) => {
-    if (err) return next(err);
-
-    con.query(q, (err, data) => {
-      if (err) return res.status(500).json(err);
-
+  getSetoresFromCompany(queryParams)
+    .then(data => {
       return res.status(200).json(data);
+    })
+    .catch(error => {
+      return res.status(500).json(error);
     });
-
-    con.release();
-  })
-
 });
 
 //Add rows in table
@@ -376,19 +382,15 @@ router.put("/setores/activate/:id_setor", (req, res) => {
 //Tabela Cargo
 //Get table
 router.get("/cargos", (req, res) => {
-  const q = `SELECT * FROM cargos`;
+  const queryParams = req.query.companyId;
 
-  pool.getConnection((err, con) => {
-    if (err) return next(err);
-
-    con.query(q, (err, data) => {
-      if (err) return res.status(500).json(err);
-
+  getCargosFromCompany(queryParams)
+    .then(data => {
       return res.status(200).json(data);
+    })
+    .catch(error => {
+      return res.status(500).json(error);
     });
-
-    con.release();
-  })
 
 });
 

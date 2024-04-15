@@ -90,7 +90,6 @@ export const AuthProvider = ({ children }) => {
       }
 
       const data = await response.json();
-      console.log(data)
       return data;
     } catch (error) {
       console.error(`Erro ao buscar os dados da empresa! Status: ${error}`)
@@ -185,7 +184,7 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const fethUnidades = async () => {
+  const fetchUnidades = async () => {
     try {
       const queryParams = new URLSearchParams({ companyId: companyId }).toString();
 
@@ -225,6 +224,30 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const fetchSetores = async () => {
+    try {
+      const queryParams = new URLSearchParams({ companyId: companyId }).toString();
+
+      const response = await fetch(`${connect}/setores?${queryParams}`);
+
+      if (!response.ok) {
+        throw new Error(`Erro ao buscar Setores. Status: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      data.sort((a, b) => {
+        if (a.ativo < b.ativo) return 1;
+        if (a.ativo > b.ativo) return -1;
+
+        return a.nome_setor.localeCompare(b.nome_setor);
+      });
+      return data;
+    } catch (error) {
+      console.log(`Erro ao buscar setores. ${error}`);
+    }
+  };
+
   const getCargos = async () => {
     try {
       const response = await fetch(`${connect}/cargos`);
@@ -238,6 +261,30 @@ export const AuthProvider = ({ children }) => {
       setCargos(data)
     } catch (error) {
       console.log(`Erro ao buscar cargos. ${error}`);
+    }
+  };
+
+  const fetchCargos = async () => {
+    try {
+      const queryParams = new URLSearchParams({ companyId: companyId }).toString();
+
+      const response = await fetch(`${connect}/cargos?${queryParams}`);
+
+      if (!response.ok) {
+        throw new Error(`Erro ao buscar Cargos. Status: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      data.sort((a, b) => {
+        if (a.ativo < b.ativo) return 1;
+        if (a.ativo > b.ativo) return -1;
+
+        return a.nome_cargo.localeCompare(b.nome_cargo);
+      });
+      return data;
+    } catch (error) {
+      console.log(`Erro ao buscar Cargos. ${error}`);
     }
   };
 
@@ -638,7 +685,9 @@ export const AuthProvider = ({ children }) => {
         conclusoes,
         getTable,
         fetchEmpresas,
-        fethUnidades,
+        fetchUnidades,
+        fetchSetores,
+        fetchCargos,
       }}>
       {children}
     </AuthContext.Provider>
