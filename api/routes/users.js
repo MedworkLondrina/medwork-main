@@ -136,7 +136,7 @@ router.put("/empresas/activate/:id_empresa", (req, res) => {
 //Tabela Unidade
 //Get table
 router.get("/unidades", (req, res) => {
-  const queryParams= req.query.companyId;
+  const queryParams = req.query.companyId;
   console.log(queryParams)
 
   const q = `SELECT * FROM unidades WHERE fk_empresa_id=?`;
@@ -269,20 +269,15 @@ router.put("/unidades/activate/:id_unidade", (req, res) => {
 //Tabela Setores
 //Get table
 router.get("/setores", (req, res) => {
-  const q = `SELECT * FROM setores`;
 
-  pool.getConnection((err, con) => {
-    if (err) return next(err);
-
-    con.query(q, (err, data) => {
-      if (err) return res.status(500).json(err);
-
-      return res.status(200).json(data);
-    });
-
-    con.release();
-  })
-
+    const companyId = 13; // Se você estiver passando o ID da empresa como parâmetro na rota
+    getSetoresFromCompany(companyId)
+      .then(data => {
+        return res.status(200).json(data);
+      })
+      .catch(error => {
+        return res.status(500).json(error);
+      });
 });
 
 //Add rows in table
@@ -376,19 +371,15 @@ router.put("/setores/activate/:id_setor", (req, res) => {
 //Tabela Cargo
 //Get table
 router.get("/cargos", (req, res) => {
-  const q = `SELECT * FROM cargos`;
-
-  pool.getConnection((err, con) => {
-    if (err) return next(err);
-
-    con.query(q, (err, data) => {
-      if (err) return res.status(500).json(err);
-
+  
+  const companyId = 13; // Se você estiver passando o ID da empresa como parâmetro na rota
+  getCargosFromCompany(companyId)
+    .then(data => {
       return res.status(200).json(data);
+    })
+    .catch(error => {
+      return res.status(500).json(error);
     });
-
-    con.release();
-  })
 
 });
 
@@ -1324,6 +1315,8 @@ router.post("/laudo_version", (req, res) => {
 
 // Verifica Usuário para Logar
 import admin from 'firebase-admin'
+import getSetoresFromCompany from "../config/setores/setores.js";
+import getCargosFromCompany from "../config/cargos/cargos.js";
 
 const serviceAccount = {
   "type": "service_account",
