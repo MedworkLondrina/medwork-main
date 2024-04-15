@@ -136,7 +136,8 @@ router.put("/empresas/activate/:id_empresa", (req, res) => {
 //Tabela Unidade
 //Get table
 router.get("/unidades", (req, res) => {
-  const queryParams = req.query.companyId;
+
+  const queryParams= req.query.companyId;
   console.log(queryParams)
 
   const q = `SELECT * FROM unidades WHERE fk_empresa_id=?`;
