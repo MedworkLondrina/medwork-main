@@ -489,20 +489,14 @@ router.put("/cargos/activate/:id_cargo", (req, res) => {
 //Tabela Contato
 //Get table
 router.get("/contatos", (req, res) => {
-  const q = `SELECT * FROM contatos`;
-
-  pool.getConnection((err, con) => {
-    if (err) return next(err);
-
-    con.query(q, (err, data) => {
-      if (err) return res.status(500).json(err);
-
+  const queryParams = req.query.companyId;
+  contatosGetByEmpresa(queryParams)
+    .then(data => {
       return res.status(200).json(data);
+    })
+    .catch(error => {
+      return res.status(500).json(error);
     });
-
-    con.release();
-  })
-
 });
 
 //Add rows in table
@@ -1326,6 +1320,8 @@ router.post("/laudo_version", (req, res) => {
 
 // Verifica Usuário para Logar
 import admin from 'firebase-admin'
+import contatosGetByEmpresa from "../config/contatos/contatos.js";
+import getElaboradoresfromTenant from "../config/elaboradores/elaboradores.js";
 
 const serviceAccount = {
   "type": "service_account",
@@ -1994,23 +1990,23 @@ router.put("/global_sprm/:id_global_sprm", (req, res) => {
 // Generic Function
 router.route('/:table')
   // Obter Registros
-  .get(async (req, res) => {
-    const table = req.params.table;
-    const q = `SELECT * FROM ${table}`;
+  // .get(async (req, res) => {
+  //   const table = req.params.table;
+  //   const q = `SELECT * FROM ${table}`;
 
-    pool.getConnection((err, con) => {
-      if (err) return next(err);
+  //   pool.getConnection((err, con) => {
+  //     if (err) return next(err);
 
-      con.query(q, (err, data) => {
-        if (err) {
-          console.error(`Erro ao buscar tabela: ${table}. Status: ${err}`)
-          return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
-        }
+  //     con.query(q, (err, data) => {
+  //       if (err) {
+  //         console.error(`Erro ao buscar tabela: ${table}. Status: ${err}`)
+  //         return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
+  //       }
 
-        return res.status(200).json(data);
-      })
-    })
-  })
+  //       return res.status(200).json(data);
+  //     })
+  //   })
+  // })
   // Criar Registros
   .post(async (req, res) => {
     const table = req.params.table;
@@ -2067,7 +2063,20 @@ router.put("/:table/:id", (req, res) => {
     });
   })
 });
-
-
-
 export default router;
+
+//Tabela Elaboradores
+//Get table
+router.get("/elaboradores", (req, res) => {
+  const queryParams = req.query.tenent_code;
+
+  getElaboradoresfromTenant(queryParams)
+    .then(data => {
+      return res.status(200).json(data);
+    })
+    .catch(error => {
+      return res.status(500).json(error);
+    });
+
+
+});

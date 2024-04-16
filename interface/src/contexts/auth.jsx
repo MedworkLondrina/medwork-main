@@ -39,11 +39,11 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const getTable = async (table) => {
+  const getTable = async () => {
     try {
-      const res = await fetch(`${connect}/${table}`, {
-        method: 'GET',
-      });
+      const code = user.tenant_code;
+      const queryParams = new URLSearchParams({ tenent_code: code }).toString();
+      const res = await fetch(`${connect}/elaboradores?${queryParams}`);
 
       if (!res.ok) {
         throw new Error(`Erro ao buscar tabela. Status: ${res.status}`)
@@ -98,7 +98,9 @@ export const AuthProvider = ({ children }) => {
 
   const getContatos = async () => {
     try {
-      const response = await fetch(`${connect}/contatos`);
+      const queryParams = new URLSearchParams({ companyId: companyId }).toString();
+
+      const response = await fetch(`${connect}/contatos?${queryParams}`);
 
       if (!response.ok) {
         throw new Error(`Erro ao buscar contatos. Status: ${response.status}`)

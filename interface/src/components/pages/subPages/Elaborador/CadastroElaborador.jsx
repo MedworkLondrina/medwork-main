@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import useAuth from '../../../../hooks/useAuth';
 import { connect } from "../../../../services/api";
-
 import Back from '../../../layout/Back'
 import FrmElaboador from './FrmElaborador';
 import GridElaborador from './GridElaborador';
@@ -11,7 +10,7 @@ import { IoInformationCircleSharp } from "react-icons/io5";
 
 
 function CadastroElaborador() {
-
+  const { getTable } = useAuth(null);
   const [onEdit, setOnEdit] = useState(null);
   const [visible, setVisible] = useState(false);
   const [data, setData] = useState([]);
@@ -19,8 +18,14 @@ function CadastroElaborador() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredData, setFilteredData] = useState([]);
 
+  const get = async () => {
+    const dados = await getTable();
+    setData(dados);
+    console.log(dados)
+  }
+
   useEffect(() => {
-    getTable();
+    get();
   }, [])
 
   const handleEdit = (selectedContato) => {
@@ -34,23 +39,6 @@ function CadastroElaborador() {
 
   const handleSearch = (term) => {
     setSearchTerm(term);
-  };
-
-  const getTable = async () => {
-    try {
-      const res = await fetch(`${connect}/elaboradores`, {
-        method: 'GET',
-      });
-
-      if (!res.ok) {
-        throw new Error(`Erro ao buscar tabela. Status: ${res.status}`)
-      }
-
-      const response = await res.json();
-      setData(response);
-    } catch (error) {
-      console.error(`Erro ao buscar tabela. Status: ${error}`);
-    }
   };
 
 
