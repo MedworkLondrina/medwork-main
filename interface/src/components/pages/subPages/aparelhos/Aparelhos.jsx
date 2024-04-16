@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import { connect } from "../../../../services/api"; //Conexão com o banco
-
+import useAuth from "../../../../hooks/useAuth"
 //Importando componentes
 import CadastroAparelhos from "./FrmAparelhos";
 import GridAParelhos from './GridAparelhos';
@@ -12,7 +12,7 @@ import Back from '../../../layout/Back'
 import { IoInformationCircleSharp } from "react-icons/io5";
 
 function Aparelhos() {
-
+  const {getAparelhos} = useAuth(null)
   // Instanciando e Definindo como vazio
   const [aparelhos, setAparelhos] = useState([]);
   const [onEdit, setOnEdit] = useState(null);
@@ -23,23 +23,27 @@ function Aparelhos() {
   const [filtered, setFiltered] = useState([]);
 
   // Pegando os dados da tabela Empresa
-  const getAparelhos = async () => {
-    try {
-      const response = await fetch(`${connect}/aparelhos`);
+  // const getAparelhos = async () => {
+  //   try {
+  //     const response = await fetch(`${connect}/aparelhos`);
+  //     if (!response.ok) {
+  //       throw new Error(`Erro ao buscar Aparelhos. Status: ${response.status}`);
+  //     }
 
-      if (!response.ok) {
-        throw new Error(`Erro ao buscar Aparelhos. Status: ${response.status}`);
-      }
+  //     const data = await response.json();
+  //     setAparelhos(data);
+  //   } catch (error) {
+  //     console.log("Erro ao buscar Aparelhos: ", error.message);
+  //   }
+  // };
 
-      const data = await response.json();
-      setAparelhos(data);
-    } catch (error) {
-      console.log("Erro ao buscar Aparelhos: ", error.message);
-    }
-  };
+  const get = async ()=>{
+    const data = await getAparelhos();
+    setAparelhos(data)
+  }
 
   useEffect(() => {
-    getAparelhos();
+    get();
   }, []);
 
   const handleEdit = (selected) => {

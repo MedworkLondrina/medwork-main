@@ -502,17 +502,20 @@ export const AuthProvider = ({ children }) => {
 
   const getAparelhos = async () => {
     try {
-      const response = await fetch(`${connect}/aparelhos`);
+      const code = user.tenant_code;
+      console.log(code)
+      const queryParams = new URLSearchParams({ tenent_code: code }).toString();
+      const response = await fetch(`${connect}/aparelhos?${queryParams}`)
 
       if (!response.ok) {
-        throw new Error(`Erro ao buscar Aparelhos. Status: ${response.status}`)
+        throw new Error(`Erro ao buscar os dados da empresa! Status: ${response.status}`)
       }
 
       const data = await response.json();
-      data.sort((a, b) => a.nome_aparelho.localeCompare(b.nome_aparelho));
-      setAparelhos(data)
+      console.log(data)
+      return data;
     } catch (error) {
-      console.log(`Erro ao buscar Aparelhos. ${error}`);
+      console.error(`Erro ao buscar os dados da empresa! Status: ${error}`)
     }
   };
 
