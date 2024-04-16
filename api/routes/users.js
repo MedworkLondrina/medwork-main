@@ -878,19 +878,17 @@ router.put("/conclusoes/:id_conclusao", (req, res) => {
 //Tabela EPI's
 //Get table
 router.get("/medidas_epi", (req, res) => {
-  const q = `SELECT * FROM medidas_epi`;
+  const queryParams = "MI";
 
-  pool.getConnection((err, con) => {
-    if (err) return next(err);
-
-    con.query(q, (err, data) => {
-      if (err) return res.status(500).json(err);
-
+  getMedidasFromTabela(queryParams)
+    .then(data => {
+      console.log(data)
       return res.status(200).json(data);
+    })
+    .catch(error => {
+      return res.status(500).json(error);
     });
 
-    con.release();
-  })
 
 });
 
@@ -1321,6 +1319,8 @@ import admin from 'firebase-admin'
 import contatosGetByEmpresa from "../config/contatos/contatos.js";
 import getElaboradoresfromTenant from "../config/elaboradores/elaboradores.js";
 import getAparelhosFromTenant from "../config/aparelhos/aparelhos.js";
+import getmedidasfromtabela from "../config/medidas/medidas.js";
+import getMedidasFromTabela from "../config/medidas/medidas.js";
 
 const serviceAccount = {
   "type": "service_account",
