@@ -60,21 +60,23 @@ function Sidebar() {
       <nav className="fixed top-0 z-50 w-full bg-white border-b border-gray-200">
         <div className="px-3 py-3 lg:px-5 lg:pl-3">
           {/* Navbar */}
-          <div className="flex items-center justify-between px-2">
+          <div className="grid grid-cols-3 items-center px-2">
 
-            {/* Logo | Inquilino */}
+            {/* Logo */}
             <div className="flex items-center justify-start">
               <div className="flex items-center gap-2">
                 <div className="cursor-pointer" onClick={() => setShowMenu(!shwoMenu)}>
                   <img src={logo} className="h-8" alt="Medwork Logo" />
                 </div>
-                <div className="rounded py-1 px-2 hover:bg-gray-200">
-                  <h1 className="text-sky-700 text-xl font-bold whitespace-nowrap">Medwork</h1>
-                </div>
               </div>
             </div>
-            <div className="flex items-center">
 
+            {/* Inquilino */}
+            <div className="rounded py-1 px-2 hover:bg-gray-200">
+              <h1 className="text-sky-700 text-xl font-bold whitespace-nowrap">Medwork</h1>
+            </div>
+
+            <div className="flex items-center">
               {/* Empresa */}
               <div className='flex items-center gap-2 cursor-pointer'>
                 <div className='flex items-center gap-2'>
@@ -98,7 +100,7 @@ function Sidebar() {
                     <p className='text-sky-700 font-bold text-base hidden sm:block'>Nome</p>
                   </div>
                   <button className='hidden md:block'>
-                      <img src={icon_logout} alt="icon_logout" />
+                    <img src={icon_logout} alt="icon_logout" />
                   </button>
                 </div>
               </div>
