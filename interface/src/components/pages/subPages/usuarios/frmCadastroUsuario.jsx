@@ -30,12 +30,10 @@ function FrmCadastroUsuario({ onEdit, setOnEdit, getUsuario, usuarios }) {
 	useEffect(() => {
 		if (onEdit) {
 			const user = ref.current;
-
 			//Passando o dado do input para a props
 			user.nome_usuario.value = onEdit.nome_usuario;
 			setCpf(onEdit.cpf_usuario);
 			setEmail(onEdit.email);
-			setPassword(onEdit.password);
 			setTipo(onEdit.tipo)
 		}
 	}, [onEdit]);
@@ -69,7 +67,7 @@ function FrmCadastroUsuario({ onEdit, setOnEdit, getUsuario, usuarios }) {
 
 		const form = ref.current;
 
-		const res = await signIn(email, password, form.nome_usuario.value);
+		const res = await signIn(email,  form.nome_usuario.value);
 
 		if (res === "existe") {
 			handleClear();
@@ -79,7 +77,6 @@ function FrmCadastroUsuario({ onEdit, setOnEdit, getUsuario, usuarios }) {
 				!form.nome_usuario.value ||
 				!form.cpf_usuario.value ||
 				!form.email.value ||
-				!form.senha.value ||
 				!form.tipo) {
 				return toast.warn("Preencha Todos os Campos!")
 			}
@@ -88,7 +85,6 @@ function FrmCadastroUsuario({ onEdit, setOnEdit, getUsuario, usuarios }) {
 					nome_usuario: form.nome_usuario.value || "",
 					cpf_usuario: cpf || "",
 					email: form.email.value || "",
-					password: form.senha.value || "",
 					tipo: tipo || "0",
 					fk_tenant_code: tenant,
 				}
