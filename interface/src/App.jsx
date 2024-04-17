@@ -30,6 +30,7 @@ import LaudoLip from './components/pages/subPages/Laudos/LaudoLip';
 
 // Importando os Componentes
 import Navbar from './components/layout/Navbar';
+import Sidebar from './components/layout/Sidebar';
 import Footer from './components/layout/Footer';
 import LoadingScreen from './components/pages/subPages/components/LoadingScreen';
 import PrivateRoute from './components/pages/subPages/components/PrivateRoute';
@@ -69,6 +70,7 @@ function App() {
           <Route path='/gerar_pgr' element={<PrivateRoute requiredPermission={2}><LaudoPgr /></PrivateRoute>} />
           <Route path='/gerar_ltcat' element={<PrivateRoute requiredPermission={2}><LaudoLtcat /></PrivateRoute>} />
           <Route path='/gerar_lip' element={<PrivateRoute requiredPermission={2}><LaudoLip /></PrivateRoute>} />
+          <Route path='/sidebar' element={<Sidebar />} />
           <Route path='/*' element={<Navigate to='/' />} />
         </Routes>
 

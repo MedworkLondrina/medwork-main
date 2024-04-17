@@ -2077,5 +2077,4 @@ router.get("/elaboradores", (req, res) => {
       return res.status(500).json(error);
     });
 
-
 });
