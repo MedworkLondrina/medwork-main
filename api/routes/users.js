@@ -10,6 +10,28 @@ const router = express.Router();
 
 const SECRET = 'medworkldn';
 
+// Tabela Tenant
+// Get table
+//Get table
+router.get("/tenant", (req, res) => {
+  const queryParams = req.query.tenent_code;
+
+  const q = `SELECT * FROM tenant WHERE tenant_code = ?`;
+
+  pool.getConnection((err, con) => {
+    if (err) return next(err);
+
+    con.query(q, [queryParams], (err, data) => {
+      if (err) return res.status(500).json(err);
+
+      return res.status(200).json(data);
+    });
+
+    con.release();
+  })
+
+});
+
 //Tabela Empresa
 //Get table
 router.get("/empresas", (req, res) => {

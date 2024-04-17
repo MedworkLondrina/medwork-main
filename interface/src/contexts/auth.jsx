@@ -557,8 +557,8 @@ export const AuthProvider = ({ children }) => {
       if (selectedCompanyDataLocal) {
         const parseData = JSON.parse(selectedCompanyDataLocal);
         setCompanyId(parseData.id_empresa);
-        setSelectedCompany(JSON.parse(selectedCompanyDataLocal));
-        return
+        setSelectedCompany(parseData);
+        return parseData;
       }
     } catch (error) {
       console.log("Erro ao carregar empresa do localStorage", error)
@@ -600,20 +600,39 @@ export const AuthProvider = ({ children }) => {
       const storedUser = localStorage.getItem('user');
 
       if (storedUser) {
-        setUser(JSON.parse(storedUser));
-        return
+        const userLogged = JSON.parse(storedUser);
+        setUser(userLogged);
+        return userLogged;
       }
       setUser(null)
     } catch (error) {
       console.log("Erro ao checar usuario!", error)
     }
-  }
+  };
 
   const handleClearLocalStorageCompany = () => {
     localStorage.removeItem('selectedCompanyData');
     localStorage.removeItem(`selectedCompany_${companyId}_unidadesInfo`);
     localStorage.removeItem(`selectedCompany_${companyId}_setoresInfo`);
     localStorage.removeItem(`selectedCompany_${companyId}_cargosInfo`);
+  };
+
+  const getTenant = async (tenant) => {
+    try {
+      const code = tenant;
+      const queryParams = new URLSearchParams({ tenent_code: code }).toString();
+
+      const response = await fetch(`${connect}/tenant?${queryParams}`)
+
+      if (!response.ok) {
+        throw new Error(`Erro ao buscar Inquilino! Status: ${response.status}`)
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Erro ao buscar Inquilino!", error)
+    }
   };
 
   return (
@@ -693,6 +712,7 @@ export const AuthProvider = ({ children }) => {
         fetchUnidades,
         fetchSetores,
         fetchCargos,
+        getTenant,
       }}>
       {children}
     </AuthContext.Provider>
