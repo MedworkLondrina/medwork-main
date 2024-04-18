@@ -24,6 +24,7 @@ function Home() {
   const get = async () => {
     const data = await fetchEmpresas();
     setEmpresas(data);
+    console.log(data);
   }
 
   useEffect(() => {
@@ -58,6 +59,7 @@ function Home() {
         </div>
       </div>
 
+      {/* Titulo */}
       <div className="my-3">
         <div className="md:grid md:grid-cols-3 flex justify-center gap-8">
           <div></div>

@@ -80,7 +80,8 @@ export const AuthProvider = ({ children }) => {
 
   const fetchEmpresas = async () => {
     try {
-      const code = user.tenant_code;
+      const code = await checkTenantCode();
+      if (!code) throw new Error('Tenant code not found');
       const queryParams = new URLSearchParams({ tenent_code: code }).toString();
 
       const response = await fetch(`${connect}/empresas?${queryParams}`)
@@ -98,6 +99,10 @@ export const AuthProvider = ({ children }) => {
 
   const getContatos = async () => {
     try {
+      const idCompany = await loadSelectedCompanyFromLocalStorage();
+      if (!idCompany) throw new Error('Company not found');
+      const companyId = idCompany.id_empresa;
+
       const queryParams = new URLSearchParams({ companyId: companyId }).toString();
 
       const response = await fetch(`${connect}/contatos?${queryParams}`);
@@ -301,6 +306,7 @@ export const AuthProvider = ({ children }) => {
       const data = await response.json();
       data.sort((a, b) => a.nome_processo.localeCompare(b.nome_processo));
       setProcessos(data)
+      return data;
     } catch (error) {
       toast.warn("Erro ao buscar processos");
       console.log(`Erro ao buscar processos. ${error}`)
@@ -396,7 +402,8 @@ export const AuthProvider = ({ children }) => {
       }
 
       const data = await response.json();
-      setSetoresProcessos(data)
+      setSetoresProcessos(data);
+      return data;
     } catch (error) {
       toast.warn("Erro ao buscar Setores Processos");
       console.log(`Erro ao buscar Setores Processos. ${error}`)
@@ -610,11 +617,20 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const checkTenantCode = async () => {
+    try {
+      const user = localStorage.getItem('user');
+      if (!user) return null;
+      const userData = JSON.parse(user);
+      const code = userData.tenant_code;
+      return code;
+    } catch (error) {
+      console.log("Erro ao checar o tenant code!", error)
+    }
+  }
+
   const handleClearLocalStorageCompany = () => {
     localStorage.removeItem('selectedCompanyData');
-    localStorage.removeItem(`selectedCompany_${companyId}_unidadesInfo`);
-    localStorage.removeItem(`selectedCompany_${companyId}_setoresInfo`);
-    localStorage.removeItem(`selectedCompany_${companyId}_cargosInfo`);
   };
 
   const getTenant = async (tenant) => {

@@ -4,6 +4,8 @@ import useAuth from '../../hooks/useAuth';
 
 // Components
 import ProfileTenant from './SidebarComponents/ProfileTenant';
+import ProfileCompany from "./SidebarComponents/ProfileCompany";
+import GridEmpresas from "./SidebarComponents/GridEmpresas";
 
 // Images
 import logo from '../media/logo_menu.png';
@@ -53,14 +55,20 @@ function Sidebar() {
     handleClearLocalStorageCompany,
     getTenant,
     fetchEmpresas,
+    getContatos, contatos,
   } = useAuth(null);
 
   const [company, setCompany] = useState([]);
   const [companyId, setCompanyId] = useState('');
+  const [companyName, setCompanyName] = useState('');
   const [user, setUser] = useState([]);
   const [tenant, setTenant] = useState([]);
   const [tenantName, setTenantName] = useState('');
   const [empresas, setEmpresas] = useState([]);
+
+  // Search
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filteredEmpresas, setFilteredEmpresas] = useState([]);
 
   // Menu
   const [showMenu, setShowMenu] = useState(false);
@@ -74,16 +82,20 @@ function Sidebar() {
   // Porfile
   const [showProfileCompany, setShowProfileCompany] = useState(false);
   const [showProfileTenant, setShowProfileTenant] = useState(false);
+  const [showSearchCompany, setShowSearchCompany] = useState(false);
 
-  const get = async () => {
+  const getCompany = async () => {
     const selectCompany = await loadSelectedCompanyFromLocalStorage();
     setCompany(selectCompany);
     if (selectCompany) {
       setCompanyId(selectCompany.id_empresa);
+      setCompanyName(selectCompany.nome_empresa);
     } else {
       setCompanyId('');
+      setCompanyName('');
     }
-
+  }
+  const get = async () => {
     const userCheck = await checkSignIn();
     setUser(userCheck);
     if (userCheck) {
@@ -98,14 +110,66 @@ function Sidebar() {
   };
 
   useEffect(() => {
+    getContatos();
+    getCompany();
     get();
   }, []);
 
   const clearLocalSotrageCompany = () => {
-    handleClearLocalStorageCompany();
-    setCompany([]);
+    setCompany(null);
     setCompanyId('');
+    setCompanyName('');
+    setShowProfileCompany(false);
+    handleClearLocalStorageCompany();
   };
+
+  const menuOpen = () => {
+    setShowProfileCompany(false);
+    setShowProfileTenant(false);
+    setShowSearchCompany(false);
+    setShowMenu(!showMenu);
+  };
+
+  const companyOpen = async () => {
+    setShowMenu(false);
+    setShowProfileTenant(false);
+    setShowSearchCompany(false);
+    setShowProfileCompany(!showProfileCompany);
+  };
+
+  const tenantOpen = () => {
+    setShowMenu(false);
+    setShowProfileCompany(false);
+    setShowSearchCompany(false);
+    setShowProfileTenant(!showProfileTenant);
+  };
+
+  const openSearchCompany = () => {
+    setShowProfileCompany(false);
+    setShowProfileTenant(false);
+    setShowMenu(false);
+    setShowSearchCompany(!showSearchCompany);
+  };
+
+  // Search
+  useEffect(() => {
+    const filtered = empresas.filter((emp) => emp.nome_empresa.toLowerCase().includes(searchTerm.toLowerCase()));
+    setFilteredEmpresas(filtered);
+  }, [searchTerm, empresas]);
+
+  const handleSearch = (e) => {
+    const term = e.target.value;
+    setSearchTerm(term);
+    openSearchCompany();
+  };
+
+  const onSelect = (idCompany, nameCompany) => {
+    setShowProfileCompany(false);
+    setCompanyId(idCompany);
+    setCompanyName(nameCompany);
+    setSearchTerm('');
+    getCompany();
+  }
 
   return (
     <>
@@ -118,12 +182,12 @@ function Sidebar() {
             <div className="flex items-center justify-start">
               <div className="flex items-center gap-2">
                 {/* Logo */}
-                <div className="cursor-pointer" onClick={() => setShowMenu(!showMenu)}>
+                <div className="cursor-pointer" onClick={menuOpen}>
                   <img src={logo} className="h-10" alt="logo_system" />
                 </div>
 
                 {/* Inquilino */}
-                <div className={`rounded py-1 px-2 w-5/6 cursor-pointer ${showProfileTenant ? 'bg-gray-100 hover:bg-gray-100' : 'hover:bg-gray-100 hover:shadow-sm'}`} onClick={() => setShowProfileTenant(!showProfileTenant)}>
+                <div className={`rounded py-1 px-2 w-5/6 cursor-pointer ${showProfileTenant ? 'bg-gray-100 hover:bg-gray-100' : 'hover:bg-gray-100 hover:shadow-sm'}`} onClick={tenantOpen}>
                   <h1 className="text-center text-sky-700 font-bold truncate cursor-pointer">{tenantName}</h1>
                 </div>
 
@@ -136,12 +200,11 @@ function Sidebar() {
                 <>
                   {/* Empresa Selecionada */}
                   <div className={`space-y-1 cursor-pointer`}>
-                    {/* <p className='font-light text-sm text-gray-800 hidden md:block -mb-1'>Empresa:</p> */}
                     <div className="grid grid-cols-12 items-center gap-2">
                       {/* Company Name */}
                       <div className="col-span-11">
-                        <div className='w-full bg-zinc-50 rounded-md py-2 px-3 hover:bg-zinc-100'>
-                          <p className='text-sky-700 font-bold text-base text-center truncate'>{company.nome_empresa}</p>
+                        <div className='w-full bg-zinc-50 rounded-md py-2 px-3 hover:bg-zinc-100' onClick={companyOpen}>
+                          <p className='text-sky-700 font-bold text-base text-center truncate'>{companyName}</p>
                         </div>
                       </div>
 
@@ -155,6 +218,7 @@ function Sidebar() {
                   </div>
                 </>
               ) : (
+                // Search Company
                 <>
                   <div className="w-full">
                     <div className="relative w-full">
@@ -163,6 +227,7 @@ function Sidebar() {
                         id="default-search"
                         className="w-full p-2 ps-6 text-sm text-gray-900 rounded-full bg-gray-100 shadow-sm"
                         placeholder="Localizar uma empresa"
+                        onChange={handleSearch}
                         required
                       />
                       <button
@@ -497,6 +562,31 @@ function Sidebar() {
               <ProfileTenant
                 tenant={tenant}
               />
+            </aside>
+          </>
+        )}
+
+        {/* Profile Company */}
+        {(searchTerm || showProfileCompany) && (
+          <>
+            <aside id="companyContainer" className="fixed left-0 right-0 mx-auto mt-1 z-40 w-10/12 bg-white shadow-md border border-gray-200 rounded-xl" aria-label="companyContainer">
+              {company ? (
+                <ProfileCompany
+                  companyId={companyId}
+                  empresas={empresas}
+                  contatos={contatos}
+                />
+              ) : (
+                <>
+                  <GridEmpresas
+                    empresas={filteredEmpresas}
+                    contatos={contatos}
+                    searchTerm={setSearchTerm}
+                    setShowProfileCompany={setShowProfileCompany}
+                    onSelect={onSelect}
+                  />
+                </>
+              )}
             </aside>
           </>
         )}
