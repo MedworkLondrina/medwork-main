@@ -176,7 +176,8 @@ function Sidebar() {
       <nav className="w-full bg-white border-b border-gray-200">
         <div className="px-3 py-3 lg:px-5 lg:pl-3 shadow">
           {/* Navbar */}
-          <div className="grid grid-cols-3 items-center px-2">
+          <div className="flex items-center justify-between px-2">
+
 
             {/* Column 1 */}
             <div className="flex items-center justify-start">

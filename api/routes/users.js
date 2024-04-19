@@ -5,7 +5,7 @@ import jwt from "jsonwebtoken";
 import getNomeByEmail from "../config/login/login.js";
 import getSetoresFromCompany from '../config/setores/setores.js';
 import getCargosFromCompany from '../config/cargos/cargos.js';
-
+import registrarLog from "../config/utils/logger.js";
 const router = express.Router();
 
 const SECRET = 'medworkldn';
@@ -1480,6 +1480,7 @@ router.post('/login', async (req, res) => {
       }
 
       const user = userData[0];
+      registrarLog('login', 'login', `login`, `${user.nome_usuario}`, `${user.fk_tenant_code}`, new Date());
       res.status(200).json(user);
     });
   } catch (error) {
