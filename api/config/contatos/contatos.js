@@ -15,7 +15,6 @@ function contatosGetByEmpresa(empresa){
                     reject(err);
                     return;
                 }
-                console.log(data)
                 resolve(data);
             });
         });
