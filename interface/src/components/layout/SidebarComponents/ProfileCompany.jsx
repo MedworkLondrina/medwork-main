@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import useAuth from "../../../hooks/useAuth";
+import icon_alerta from '../../media/icons_sup/icon_alerta.png';
+import icon_perigo from '../../media/icons_sup/icon_perigo.png';
 
 function ProfileCompany({ companyId, empresas, contatos }) {
 
@@ -9,6 +11,10 @@ function ProfileCompany({ companyId, empresas, contatos }) {
     fetchCargos,
     getSetoresProcessos,
     getProcessos,
+    getProcessosRiscos,
+    getRiscos,
+    getRiscosMedidas,
+    fetchMedidas,
   } = useAuth(null);
 
   const [company, setCompany] = useState([]);
@@ -73,6 +79,11 @@ function ProfileCompany({ companyId, empresas, contatos }) {
   };
 
   const handleSelectSetor = async (item) => {
+    if (showSetorData) {
+      setShowSetorData(false);
+      return;
+    }
+    setShowSetorData(!showSetorData);
     try {
       const sector = setoresData.find((i) => i.id_setor === item);
       if (sector) {
@@ -86,8 +97,30 @@ function ProfileCompany({ companyId, empresas, contatos }) {
         const filteredProcessos = proc.filter((i) => procMap.includes(i.id_processo));
         setProcessosData(filteredProcessos);
 
+        const procRisc = await getProcessosRiscos();
+        const risc = await getRiscos();
+        const riscMap = procRisc.map((i) => i.fk_risco_id);
+        const filteredRiscos = risc.filter((i) => riscMap.includes(i.id_risco));
+        setRiscosData(filteredRiscos);
+
+        const riscMed = await getRiscosMedidas();
+        const med = await fetchMedidas('all');
+        const medMap = riscMed.map((i) => i.fk_medida_id);
+        const filteredMedidas = med.filter((i) => medMap.includes(i.id_medida));
+        setMedidasData(filteredMedidas);
+
+        const updatedRiscosData = filteredRiscos.map((risco) => {
+          const riscosMedidasDoRisco = riscMed.filter((riscMed) => riscMed.fk_risco_id === risco.id_risco);
+          const medidasIDsDoRisco = riscosMedidasDoRisco.map((riscMed) => riscMed.fk_medida_id);
+          const medidasDoRisco = filteredMedidas.filter((medida) => medidasIDsDoRisco.includes(medida.id_medida));
+          return {
+            ...risco,
+            medidas: medidasDoRisco
+          };
+        });
+        setRiscosData(updatedRiscosData);
+
         setSelectedSetor(sector);
-        setShowSetorData(!showSetorData);
       } else {
         setSelectedSetor(null);
         setShowSetorData(false);
@@ -97,13 +130,33 @@ function ProfileCompany({ companyId, empresas, contatos }) {
     }
   };
 
+  const typeMedida = (item) => {
+    switch (item) {
+      case 'MI':
+        return "Individual";
+      case 'MA':
+        return 'Administrativa';
+      case 'MC':
+        return 'Coletiva';
+      case 'TR':
+        return 'Treinamento';
+      case 'INS':
+        return 'Inspeção';
+      case 'MG':
+        return 'Geral';
+
+      default:
+        return 'N/A'
+    }
+  }
+
   if (!companyId) {
     return;
   };
 
   return (
     <>
-      <div>
+      <div className="h-fit">
         {/* Company Card */}
         <div className='w-full bg-sky-600 shadow-md px-4 py-4 rounded-xl'>
           <div className='px-4 grid grid-cols-3'>
@@ -211,6 +264,84 @@ function ProfileCompany({ companyId, empresas, contatos }) {
                                   <div className={`bg-gray-50 rounded px-4 py-2`}>
                                     <h2 className="text-sky-700 font-medium truncate hover:whitespace-normal">{item.nome_processo}</h2>
                                     <div className="border-b border-sky-600"></div>
+                                    <h3 className="mt-2">Riscos</h3>
+                                    <ul className="space-y-2">
+                                      {riscosData.map((risco) => (
+                                        <div key={risco.id_risco} className="bg-sky-600 rounded px-3 py-2 mb-4">
+                                          <div className="grid grid-cols-3">
+                                            <div className="col-span-2">
+                                              <p className="text-white font-bold text-lg">{risco.nome_risco}</p>
+                                            </div>
+                                            <div className="col-span-1 flex justify-end">
+                                              <p className="text-white font-bold text-lg">{risco.codigo_esocial_risco}</p>
+                                            </div>
+                                          </div>
+                                          <div>
+                                            <div className="flex items-center gap-1">
+                                              <p className="text-white text-sm">Grupo:</p>
+                                              <p className="text-white font-bold text-sm">{risco.grupo_risco}</p>
+                                            </div>
+                                            <div className="flex items-center gap-1">
+                                              <p className="text-white text-sm">Metodologia:</p>
+                                              <p className="text-white font-bold text-sm">{risco.metodologia_risco}</p>
+                                            </div>
+                                            <div className='flex flex-wrap gap-2 mt-2'>
+                                              <div className='bg-orange-100 px-3 py-1 rounded shadow-sm flex items-center gap-1'>
+                                                <img src={icon_alerta} className='h-4 w-4' />
+                                                <p className='text-sm text-gray-500 truncate'>
+                                                  NA: <span className='text-sm font-medium text-gray-700'>{risco.nivel_acao_risco}</span>
+                                                </p>
+                                              </div>
+                                              <div className='bg-rose-100 px-3 py-1 rounded shadow-sm flex items-center gap-1'>
+                                                <img src={icon_perigo} className='h-4 w-4' />
+                                                <p className='text-sm text-gray-500 truncate'>
+                                                  LT: <span className='text-sm font-medium text-gray-700'>{risco.limite_tolerancia_risco}</span>
+                                                </p>
+                                              </div>
+                                            </div>
+                                          </div>
+                                          <div className="border-b border-white mt-1"></div>
+                                          <h3 className="text-white text-sm mt-2 mb-1">Medidas</h3>
+                                          <ul className="space-y-4">
+                                            {risco.medidas && risco.medidas.length > 0 ? (
+                                              <>
+                                                {risco.medidas.map((medida) => (
+                                                  <li key={medida.id_medida}>
+                                                    <div className="bg-gray-50 rounded p-1">
+                                                      <div className="grid grid-cols-4 items-center">
+                                                        <div className="col-span-3">
+                                                          <p className="text-sky-700 font-medium">{medida.descricao_medida}</p>
+                                                        </div>
+                                                        <div className="col-span-1 flex justify-end pr-2">
+                                                          <p className="text-sky-700 text-sm">{typeMedida(medida.grupo_medida)}</p>
+                                                        </div>
+                                                      </div>
+                                                      {medida.grupo_medida === 'MI' && (
+                                                        <>
+                                                          <div className="border-b border-sky-600"></div>
+                                                          <div className="flex items-center gap-1">
+                                                            <p className="text-gray-600 text-sm">C.A:</p>
+                                                            <p className="text-gray-700 text-sm font-medium">{medida.certificado_medida}</p>
+                                                          </div>
+                                                          <div className="flex items-center gap-1">
+                                                            <p className="text-gray-600 text-sm">Vencimento:</p>
+                                                            <p className="text-gray-700 text-sm font-medium">{medida.vencimento_certificado_medida}</p>
+                                                          </div>
+                                                        </>
+                                                      )}
+                                                    </div>
+                                                  </li>
+                                                ))}
+                                              </>
+                                            ) : (
+                                              <li className="bg-gray-50 p-1 rounded">
+                                                <p className="text-gray-600 text-sm font-medium text-center">Nenhuma medida cadastrada.</p>
+                                              </li>
+                                            )}
+                                          </ul>
+                                        </div>
+                                      ))}
+                                    </ul>
                                   </div>
                                 </li>
                               ))}

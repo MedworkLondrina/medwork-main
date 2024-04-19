@@ -16,5 +16,7 @@ module.exports = {
   fontFamily: {
     body: ['Open Sans']
   },
-  plugins: [],
+  plugins: [
+    require('tailwind-scrollbar')({ nocompatible: true }),
+  ]
 }

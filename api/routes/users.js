@@ -899,6 +899,91 @@ router.put("/conclusoes/:id_conclusao", (req, res) => {
 //Medidas de Proteção
 //Tabela EPI's
 //Get table
+router.get("/medidas", (req, res) => {
+  const queryParams = req.query.grupo;
+
+  getMedidasFromTabela(queryParams)
+    .then(data => {
+      return res.status(200).json(data);
+    })
+    .catch(error => {
+      return res.status(500).json(error);
+    });
+
+
+});
+
+//Add rows in table
+router.post("/medidas", (req, res) => {
+  const data = req.body;
+
+  const q = "INSERT INTO medidas SET ?"
+
+  pool.getConnection((err, con) => {
+    if (err) return next(err);
+
+    con.query(q, data, (err, result) => {
+      if (err) {
+        console.error("Erro ao inserir Medida na tabela", err);
+        return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
+      }
+
+      return res.status(200).json(`Medida cadastrado com sucesso!`);
+    });
+
+    con.release();
+  })
+
+});
+
+router.put("/medidas/:id_medida", (req, res) => {
+  const id_medida = req.params.id_medida;
+  const {
+    nome_medida,
+    certificado_medida,
+    fator_reducao_medida,
+    vencimento_certificado_medida,
+    fabricante_medida,
+  } = req.body;
+
+  const q = `
+    UPDATE medidas_epi
+    SET nome_medida = ?,
+    certificado_medida = ?,
+    fator_reducao_medida = ?,
+    vencimento_certificado_medida = ?,
+    fabricante_medida = ?
+    WHERE id_medida = ?
+    `;
+
+  const values = [
+    nome_medida,
+    certificado_medida,
+    fator_reducao_medida,
+    vencimento_certificado_medida,
+    fabricante_medida,
+    id_medida
+  ];
+
+  pool.getConnection((err, con) => {
+    if (err) return next(err);
+
+    con.query(q, values, (err) => {
+      if (err) {
+        console.error("Erro ao atualizar medida na tabela", err);
+        return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
+      }
+
+      return res.status(200).json("Medida atualizado com sucesso!");
+    });
+
+    con.release();
+  })
+
+});
+
+//Tabela EPI's
+//Get table
 router.get("/medidas_epi", (req, res) => {
   const queryParams = "MI";
 

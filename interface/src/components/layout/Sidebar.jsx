@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, Link } from "react-router-dom";
 import useAuth from '../../hooks/useAuth';
 
 // Components
@@ -88,6 +88,7 @@ function Sidebar() {
     const selectCompany = await loadSelectedCompanyFromLocalStorage();
     setCompany(selectCompany);
     if (selectCompany) {
+      getContatos();
       setCompanyId(selectCompany.id_empresa);
       setCompanyName(selectCompany.nome_empresa);
     } else {
@@ -110,10 +111,9 @@ function Sidebar() {
   };
 
   useEffect(() => {
-    getContatos();
     getCompany();
     get();
-  }, []);
+  }, [companyId]);
 
   const clearLocalSotrageCompany = () => {
     setCompany(null);
@@ -173,7 +173,7 @@ function Sidebar() {
 
   return (
     <>
-      <nav className="fixed top-0 z-40 w-full bg-white border-b border-gray-200">
+      <nav className="w-full bg-white border-b border-gray-200">
         <div className="px-3 py-3 lg:px-5 lg:pl-3 shadow">
           {/* Navbar */}
           <div className="grid grid-cols-3 items-center px-2">
@@ -278,12 +278,14 @@ function Sidebar() {
               <ul className="space-y-2 font-medium cursor-pointer px-3 py-2">
 
                 {/* Home */}
-                <li className="flex items-center p-2 hover:bg-gray-100 rounded-md">
-                  <div>
-                    <img src={icon_home} alt="icon_home" />
-                  </div>
-                  <span className="ms-3">Home</span>
-                </li>
+                <Link to="/home" onClick={() => setShowMenu(!showMenu)}>
+                  <li className="flex items-center p-2 hover:bg-gray-100 rounded-md">
+                    <div>
+                      <img src={icon_home} alt="icon_home" />
+                    </div>
+                    <span className="ms-3">Home</span>
+                  </li>
+                </Link>
 
                 {/* Corporativo */}
                 <li className={`${showCorporativoSubMenu ? 'bg-gray-100 rounded-md' : ''}`} onClick={() => setShowCorporativoSubMenu(!showCorporativoSubMenu)}>
@@ -310,46 +312,56 @@ function Sidebar() {
                         {companyId ? (
                           <>
                             {/* Unidade */}
-                            <li className="hover:bg-sky-100">
-                              <div className={`flex items-center py-2 px-6`}>
-                                <img src={icon_unidade} alt="icon_unidade" />
-                                <span className="ms-3 font-normal">Unidade</span>
-                              </div>
-                            </li>
+                            <Link to="/cadastro_unidade" onClick={() => setShowMenu(!showMenu)}>
+                              <li className="hover:bg-sky-100">
+                                <div className={`flex items-center py-2 px-6`}>
+                                  <img src={icon_unidade} alt="icon_unidade" />
+                                  <span className="ms-3 font-normal">Unidade</span>
+                                </div>
+                              </li>
+                            </Link>
 
                             {/* Setor */}
-                            <li className="hover:bg-sky-100">
-                              <div className={`flex items-center py-2 px-6`}>
-                                <img src={icon_setor} alt="icon_setor" />
-                                <span className="ms-3 font-normal">Setor</span>
-                              </div>
-                            </li>
+                            <Link to="/cadastro_setor" onClick={() => setShowMenu(!showMenu)}>
+                              <li className="hover:bg-sky-100">
+                                <div className={`flex items-center py-2 px-6`}>
+                                  <img src={icon_setor} alt="icon_setor" />
+                                  <span className="ms-3 font-normal">Setor</span>
+                                </div>
+                              </li>
+                            </Link>
 
                             {/* Cargo */}
-                            <li className="hover:bg-sky-100">
-                              <div className={`flex items-center py-2 px-6`}>
-                                <img src={icon_cargo} alt="icon_cargo" />
-                                <span className="ms-3 font-normal">Cargo</span>
-                              </div>
-                            </li>
+                            <Link to="/cadastro_cargo" onClick={() => setShowMenu(!showMenu)}>
+                              <li className="hover:bg-sky-100">
+                                <div className={`flex items-center py-2 px-6`}>
+                                  <img src={icon_cargo} alt="icon_cargo" />
+                                  <span className="ms-3 font-normal">Cargo</span>
+                                </div>
+                              </li>
+                            </Link>
 
                             {/* Contato */}
-                            <li className="hover:bg-sky-100">
-                              <div className={`flex items-center py-2 px-6`}>
-                                <img src={icon_contato} alt="icon_contato" />
-                                <span className="ms-3 font-normal">Contato</span>
-                              </div>
-                            </li>
+                            <Link to="/cadastro_contato" onClick={() => setShowMenu(!showMenu)}>
+                              <li className="hover:bg-sky-100">
+                                <div className={`flex items-center py-2 px-6`}>
+                                  <img src={icon_contato} alt="icon_contato" />
+                                  <span className="ms-3 font-normal">Contato</span>
+                                </div>
+                              </li>
+                            </Link>
                           </>
                         ) : (
                           <>
                             {/* Empresa */}
-                            <li className="hover:bg-sky-100">
-                              <div className={`flex items-center py-2 px-6`}>
-                                <img src={icon_empresa} alt="icon_empresa" />
-                                <span className="ms-3 font-normal">Empresa</span>
-                              </div>
-                            </li>
+                            <Link to="/cadastro_empresa" onClick={() => setShowMenu(!showMenu)}>
+                              <li className="hover:bg-sky-100">
+                                <div className={`flex items-center py-2 px-6`}>
+                                  <img src={icon_empresa} alt="icon_empresa" />
+                                  <span className="ms-3 font-normal">Empresa</span>
+                                </div>
+                              </li>
+                            </Link>
                           </>
                         )}
 
@@ -382,36 +394,44 @@ function Sidebar() {
 
                         <>
                           {/* Processos */}
-                          <li className="hover:bg-sky-100">
-                            <div className={`flex items-center py-2 px-6`}>
-                              <img src={icon_processos} alt="icon_processo" />
-                              <span className="ms-3 font-normal">Processos</span>
-                            </div>
-                          </li>
+                          <Link to="/cadastro_processo" onClick={() => setShowMenu(!showMenu)}>
+                            <li className="hover:bg-sky-100">
+                              <div className={`flex items-center py-2 px-6`}>
+                                <img src={icon_processos} alt="icon_processo" />
+                                <span className="ms-3 font-normal">Processos</span>
+                              </div>
+                            </li>
+                          </Link>
 
                           {/* Riscos */}
-                          <li className="hover:bg-sky-100">
-                            <div className={`flex items-center py-2 px-6`}>
-                              <img src={icon_riscos} alt="icon_riscos" />
-                              <span className="ms-3 font-normal">Riscos</span>
-                            </div>
-                          </li>
+                          <Link to="/cadastro_risco" onClick={() => setShowMenu(!showMenu)}>
+                            <li className="hover:bg-sky-100">
+                              <div className={`flex items-center py-2 px-6`}>
+                                <img src={icon_riscos} alt="icon_riscos" />
+                                <span className="ms-3 font-normal">Riscos</span>
+                              </div>
+                            </li>
+                          </Link>
 
                           {/* Medidas */}
-                          <li className="hover:bg-sky-100">
-                            <div className={`flex items-center py-2 px-6`}>
-                              <img src={icon_medidas} alt="icon_cargo" />
-                              <span className="ms-3 font-normal">Medidas</span>
-                            </div>
-                          </li>
+                          <Link to="/cadastro_medida" onClick={() => setShowMenu(!showMenu)}>
+                            <li className="hover:bg-sky-100">
+                              <div className={`flex items-center py-2 px-6`}>
+                                <img src={icon_medidas} alt="icon_cargo" />
+                                <span className="ms-3 font-normal">Medidas</span>
+                              </div>
+                            </li>
+                          </Link>
 
                           {/* Vinculos */}
-                          <li className="hover:bg-sky-100">
-                            <div className={`flex items-center py-2 px-6`}>
-                              <img src={icon_vinculos} alt="icon_contato" />
-                              <span className="ms-3 font-normal">Vínculos</span>
-                            </div>
-                          </li>
+                          <Link to="/vinculos" onClick={() => setShowMenu(!showMenu)}>
+                            <li className="hover:bg-sky-100">
+                              <div className={`flex items-center py-2 px-6`}>
+                                <img src={icon_vinculos} alt="icon_contato" />
+                                <span className="ms-3 font-normal">Vínculos</span>
+                              </div>
+                            </li>
+                          </Link>
                         </>
 
 
@@ -441,31 +461,38 @@ function Sidebar() {
                     <>
                       <ul className="space-y-2 font-medium cursor-pointer">
                         {/* Usuarios */}
-                        <li className="hover:bg-sky-100">
-                          <div className={`flex items-center py-2 px-6`}>
-                            <img src={icon_usuario} alt="icon_usuario" />
-                            <span className="ms-3 font-normal">Usuários</span>
-                          </div>
-                        </li>
+                        <Link to="/cadastro_usuaio" onClick={() => setShowMenu(!showMenu)}>
+                          <li className="hover:bg-sky-100">
+                            <div className={`flex items-center py-2 px-6`}>
+                              <img src={icon_usuario} alt="icon_usuario" />
+                              <span className="ms-3 font-normal">Usuários</span>
+                            </div>
+                          </li>
+                        </Link>
 
                         {/* Elaboradores */}
-                        <li className="hover:bg-sky-100">
-                          <div className={`flex items-center py-2 px-6`}>
-                            <img src={icon_carteira} alt="icon_carteira" />
-                            <span className="ms-3 font-normal">Elaboradores</span>
-                          </div>
-                        </li>
+                        <Link to="/cadastro_elaboradores" onClick={() => setShowMenu(!showMenu)}>
+                          <li className="hover:bg-sky-100">
+                            <div className={`flex items-center py-2 px-6`}>
+                              <img src={icon_carteira} alt="icon_carteira" />
+                              <span className="ms-3 font-normal">Elaboradores</span>
+                            </div>
+                          </li>
+                        </Link>
 
                         {/* Aparelhos */}
-                        <li className="hover:bg-sky-100">
-                          <div className={`flex items-center py-2 px-6`}>
-                            <img src={icon_aparelho} alt="icon_aparelho" />
-                            <span className="ms-3 font-normal">Aparelhos</span>
-                          </div>
-                        </li>
+                        <Link to="/cadastro_aparelhos" onClick={() => setShowMenu(!showMenu)}>
+                          <li className="hover:bg-sky-100">
+                            <div className={`flex items-center py-2 px-6`}>
+                              <img src={icon_aparelho} alt="icon_aparelho" />
+                              <span className="ms-3 font-normal">Aparelhos</span>
+                            </div>
+                          </li>
+                        </Link>
 
                         {/* Importar Dados */}
-                        <li className="hover:bg-sky-100">
+
+                        <li className="opacity-25 cursor-not-allowed">
                           <div className={`flex items-center py-2 px-6`}>
                             <img src={icon_import} alt="icon_import" />
                             <span className="ms-3 font-normal">Importar Dados</span>
@@ -477,20 +504,24 @@ function Sidebar() {
                 </li>
 
                 {/* Inventário de Riscos */}
-                <li className="flex items-center p-2 hover:bg-gray-100 rounded-md">
-                  <div>
-                    <img src={icon_inventario} alt="icon_inventario" />
-                  </div>
-                  <span className="ms-3">Inventário de Riscos</span>
-                </li>
+                <Link to="/inventario" onClick={() => setShowMenu(!showMenu)}>
+                  <li className="flex items-center p-2 hover:bg-gray-100 rounded-md">
+                    <div>
+                      <img src={icon_inventario} alt="icon_inventario" />
+                    </div>
+                    <span className="ms-3">Inventário de Riscos</span>
+                  </li>
+                </Link>
 
                 {/* Plano de Ação */}
-                <li className="flex items-center p-2 hover:bg-gray-100 rounded-md">
-                  <div>
-                    <img src={icon_plano} alt="icon_plano" />
-                  </div>
-                  <span className="ms-3">Plano de Ação</span>
-                </li>
+                <Link to="plano" onClick={() => setShowMenu(!showMenu)}>
+                  <li className="flex items-center p-2 hover:bg-gray-100 rounded-md">
+                    <div>
+                      <img src={icon_plano} alt="icon_plano" />
+                    </div>
+                    <span className="ms-3">Plano de Ação</span>
+                  </li>
+                </Link>
 
                 {/* Laudos */}
                 <li className={`${showLaudosSubMenu ? 'bg-gray-100 rounded-md' : ''}`} onClick={() => setShowLaudosSubMenu(!showLaudosSubMenu)}>
@@ -513,33 +544,39 @@ function Sidebar() {
                     <>
                       <ul className="space-y-2 font-medium cursor-pointer">
                         {/* PGR */}
-                        <li className="hover:bg-sky-100">
-                          <div className={`flex items-center py-2 px-6`}>
-                            <img src={icon_laudo} alt="icon_pgr" />
-                            <div>
-                              <span className="ms-3 font-normal">PGR</span>
+                        <Link to="/gerar_pgr" onClick={() => setShowMenu(!showMenu)}>
+                          <li className="hover:bg-sky-100">
+                            <div className={`flex items-center py-2 px-6`}>
+                              <img src={icon_laudo} alt="icon_pgr" />
+                              <div>
+                                <span className="ms-3 font-normal">PGR</span>
+                              </div>
                             </div>
-                          </div>
-                        </li>
+                          </li>
+                        </Link>
 
                         {/* LTCAT */}
-                        <li className="hover:bg-sky-100">
-                          <div className={`flex items-center py-2 px-6`}>
-                            <img src={icon_laudo} alt="icon_ltcat" />
-                            <span className="ms-3 font-normal">LTCAT</span>
-                          </div>
-                        </li>
+                        <Link to="/gerar_ltcat" onClick={() => setShowMenu(!showMenu)}>
+                          <li className="hover:bg-sky-100">
+                            <div className={`flex items-center py-2 px-6`}>
+                              <img src={icon_laudo} alt="icon_ltcat" />
+                              <span className="ms-3 font-normal">LTCAT</span>
+                            </div>
+                          </li>
+                        </Link>
 
                         {/* LIP */}
-                        <li className="hover:bg-sky-100">
-                          <div className={`flex items-center py-2 px-6`}>
-                            <img src={icon_laudo} alt="icon_lip" />
-                            <span className="ms-3 font-normal">LIP</span>
-                          </div>
-                        </li>
+                        <Link to="/gerar_lip" onClick={() => setShowMenu(!showMenu)}>
+                          <li className="hover:bg-sky-100">
+                            <div className={`flex items-center py-2 px-6`}>
+                              <img src={icon_laudo} alt="icon_lip" />
+                              <span className="ms-3 font-normal">LIP</span>
+                            </div>
+                          </li>
+                        </Link>
 
                         {/* PCMSO */}
-                        <li className="hover:bg-sky-100">
+                        <li className="opacity-25 cursor-not-allowed">
                           <div className={`flex items-center py-2 px-6`}>
                             <img src={icon_laudo} alt="icon_pcmso" />
                             <span className="ms-3 font-normal">PCMSO</span>
@@ -569,7 +606,7 @@ function Sidebar() {
         {/* Profile Company */}
         {(searchTerm || showProfileCompany) && (
           <>
-            <aside id="companyContainer" className="fixed left-0 right-0 mx-auto mt-1 z-40 w-10/12 bg-white shadow-md border border-gray-200 rounded-xl" aria-label="companyContainer">
+            <aside id="companyContainer" className="fixed left-0 right-0 overflow-y-auto max-h-[89vh] mx-auto mt-1 z-40 w-10/12 bg-white rounded-xl scrollbar-thin shadow scrollbar-thumb-sky-700 scrollbar-track-transparent" aria-label="companyContainer">
               {company ? (
                 <ProfileCompany
                   companyId={companyId}

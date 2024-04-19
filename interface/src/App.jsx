@@ -40,7 +40,7 @@ function App() {
   return (
     <AuthProvider>
       <Router>
-        <Navbar />
+        <Sidebar />
 
         {/* Loading */}
         <LoadingScreen />
@@ -70,7 +70,7 @@ function App() {
           <Route path='/gerar_pgr' element={<PrivateRoute requiredPermission={2}><LaudoPgr /></PrivateRoute>} />
           <Route path='/gerar_ltcat' element={<PrivateRoute requiredPermission={2}><LaudoLtcat /></PrivateRoute>} />
           <Route path='/gerar_lip' element={<PrivateRoute requiredPermission={2}><LaudoLip /></PrivateRoute>} />
-          <Route path='/sidebar' element={<Sidebar />} />
+          <Route path='/navbar' element={<Navbar />} />
           <Route path='/*' element={<Navigate to='/' />} />
         </Routes>
 

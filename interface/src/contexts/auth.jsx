@@ -326,12 +326,29 @@ export const AuthProvider = ({ children }) => {
         return a.nome_risco.localeCompare(b.nome_risco);
       });
 
-      setRiscos(data)
+      setRiscos(data);
+      return data;
     } catch (error) {
       toast.warn("Erro ao buscar riscos");
       console.log(`Erro ao buscar riscos. ${error}`)
     }
   };
+
+  const fetchMedidas = async (params) => {
+    try {
+      const queryParams = new URLSearchParams({ grupo: params });
+      const response = await fetch(`${connect}/medidas?${queryParams}`);
+
+      if (!response.ok) {
+        throw new Error(`Erro ao buscar medidas. Status: ${response.status}`)
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error(`Erro ao buscar medidas. ${error}`)
+    }
+  }
 
   const getMedidasAdm = async () => {
     try {
@@ -419,7 +436,8 @@ export const AuthProvider = ({ children }) => {
       }
 
       const data = await response.json();
-      setProcessosRiscos(data)
+      setProcessosRiscos(data);
+      return data;
     } catch (error) {
       toast.warn("Erro ao buscar Processos Riscos");
       console.log(`Erro ao buscar Processos Riscos. ${error}`)
@@ -435,7 +453,8 @@ export const AuthProvider = ({ children }) => {
       }
 
       const data = await response.json();
-      setRiscosMedidas(data)
+      setRiscosMedidas(data);
+      return data;
     } catch (error) {
       toast.warn("Erro ao buscar Medidas dos riscos");
       console.log(`Erro ao buscar Medidas dos riscos. ${error}`)
@@ -557,6 +576,24 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const getTenant = async (tenant) => {
+    try {
+      const code = tenant;
+      const queryParams = new URLSearchParams({ tenent_code: code }).toString();
+
+      const response = await fetch(`${connect}/tenant?${queryParams}`)
+
+      if (!response.ok) {
+        throw new Error(`Erro ao buscar Inquilino! Status: ${response.status}`)
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Erro ao buscar Inquilino!", error)
+    }
+  };
+
   const loadSelectedCompanyFromLocalStorage = () => {
     try {
       const selectedCompanyDataLocal = localStorage.getItem('selectedCompanyData');
@@ -633,23 +670,7 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('selectedCompanyData');
   };
 
-  const getTenant = async (tenant) => {
-    try {
-      const code = tenant;
-      const queryParams = new URLSearchParams({ tenent_code: code }).toString();
-
-      const response = await fetch(`${connect}/tenant?${queryParams}`)
-
-      if (!response.ok) {
-        throw new Error(`Erro ao buscar Inquilino! Status: ${response.status}`)
-      }
-
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      console.error("Erro ao buscar Inquilino!", error)
-    }
-  };
+ 
 
   return (
     <AuthContext.Provider
@@ -729,6 +750,7 @@ export const AuthProvider = ({ children }) => {
         fetchSetores,
         fetchCargos,
         getTenant,
+        fetchMedidas,
       }}>
       {children}
     </AuthContext.Provider>
