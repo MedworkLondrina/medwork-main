@@ -6,7 +6,7 @@ function Footer() {
 
 	const location = useLocation();
 
-	const isHomePage = location.pathname === '/' || location.pathname === '/sidebar';
+	const isHomePage = location.pathname === '/';
 
 	if (isHomePage) {
 		return null;

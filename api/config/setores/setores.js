@@ -3,8 +3,6 @@ import { pool } from "../../db.js";
 function getSetoresFromCompany(company) {
     return new Promise((resolve, reject) => {
         const query = `SELECT * FROM setores WHERE fk_empresa_id = ?`;
-        console.log(query)
-        console.log(company)
         pool.getConnection((err, con) => {
             if (err) {
                 reject(err);
@@ -16,7 +14,7 @@ function getSetoresFromCompany(company) {
                     reject(err);
                     return;
                 }
-                console.log(data)
+                //console.log(data)
                 resolve(data);
             });
         });

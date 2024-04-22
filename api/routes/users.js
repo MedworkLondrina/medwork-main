@@ -18,7 +18,6 @@ router.get("/empresas", (req, res) => {
   const queryParams = req.query.tenent_code;
   const username = req.query.nome_usuario;
 
-  console.log(username)
   const q = `SELECT * FROM empresas WHERE fk_tenant_code = ?`;
 
   pool.getConnection((err, con) => {
@@ -53,7 +52,6 @@ router.post("/empresas", (req, res) => {
       // Chama a função registrarLog passando o username como parâmetro
       registrarLog('empresas', 'create', `Cadastrou Empresa`, `${nome}`, data.fk_tenant_code, new Date());
       
-      console.log(data);
       return res.status(200).json(`Empresa cadastrada com sucesso!`);
     });
 
@@ -520,7 +518,6 @@ router.post("/contatos", (req, res) => {
   const data = req.body;
 
   const q = "INSERT INTO contatos SET ?"
-  console.log(q)
 
   pool.getConnection((err, con) => {
     if (err) return next(err);
@@ -530,7 +527,7 @@ router.post("/contatos", (req, res) => {
         console.error("Erro ao inserir contato na tabela", err);
         return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
       }
-      registrarLog('cargos', 'create', `Cadastrou Cargo`, `${nome}`, tenant, new Date()); 
+      registrarLog('contatos', 'create', `Cadastrou Cargo`, `${nome}`, tenant, new Date()); 
 
       return res.status(200).json(`Contato cadastrado com sucesso!`);
       

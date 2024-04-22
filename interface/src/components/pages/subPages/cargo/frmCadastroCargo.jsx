@@ -49,7 +49,10 @@ function FrmCadastroCargo({ onEdit, setOnEdit, getCargo, set, setor, unidades })
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    const userData = JSON.parse(localStorage.getItem("user"));
+    const tenant = userData.tenant_code;
+    const nome = userData.nome_usuario;
+    const queryParams = new URLSearchParams({ tenant_code: tenant , nome_usuario:nome}).toString();
     const user = ref.current;
 
     if (
@@ -70,7 +73,7 @@ function FrmCadastroCargo({ onEdit, setOnEdit, getCargo, set, setor, unidades })
 
       const url = onEdit
         ? `${connect}/cargos/${onEdit.id_cargo}`
-        : `${connect}/cargos`;
+        : `${connect}/cargos?${queryParams}`;
 
       const method = onEdit ? 'PUT' : 'POST';
 
