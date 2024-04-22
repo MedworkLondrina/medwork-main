@@ -1,7 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { useEffect, useState } from 'react';
 import useAuth from '../../hooks/useAuth';
-import { useLocation } from 'react-router-dom';
 
 import { FiMenu } from "react-icons/fi";
 import { BiLogIn } from 'react-icons/bi'
@@ -122,14 +121,6 @@ function Navbar() {
 
   const openModalProfileCompany = () => setShowModalProfileCompany(true);
   const closeModalProfileCompany = () => setShowModalProfileCompany(false);
-
-  const location = useLocation();
-
-	const isHomePage = location.pathname === '/sidebar';
-
-	if (isHomePage) {
-		return null;
-	}
 
   return (
     <>

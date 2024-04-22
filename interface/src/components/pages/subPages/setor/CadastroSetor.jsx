@@ -57,7 +57,6 @@ function CadastroSetor({ }) {
 	//Função para edição
 	const handleEdit = (selectedSetor) => {
 		setOnEdit(selectedSetor)
-
 		if (selectedSetor.fk_unidade_id) {
 			const unidadeInfo = unidades.find((c) => c.id_unidade === selectedSetor.fk_unidade_id);
 			if (unidadeInfo) {

@@ -40,7 +40,10 @@ function FrmCadastroSetor({ onEdit, setOnEdit, getSetor, unidades, onCancel, uni
   //Função para adicionar ou atualizar dado
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    const userData = JSON.parse(localStorage.getItem("user"));
+    const tenant = userData.tenant_code;
+    const nome = userData.nome_usuario;
+    const queryParams = new URLSearchParams({ tenant_code: tenant , nome_usuario:nome}).toString();
     const user = ref.current;
 
     //Verificando se todos os campos foram preenchidos
@@ -61,7 +64,7 @@ function FrmCadastroSetor({ onEdit, setOnEdit, getSetor, unidades, onCancel, uni
 
       const url = onEdit
         ? `${connect}/setores/${onEdit.id_setor || ''}`
-        : `${connect}/setores`;
+        : `${connect}/setores?${queryParams}`;
 
       const method = onEdit ? 'PUT' : 'POST';
 
