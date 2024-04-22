@@ -54,7 +54,10 @@ function FrmCadastroUnidade({ onEdit, setOnEdit, getUnidades, contact, company, 
   //Função para adicionar ou atualizar dados
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    const userData = JSON.parse(localStorage.getItem("user"));
+    const tenant = userData.tenant_code;
+    const nome = userData.nome_usuario;
+    const queryParams = new URLSearchParams({ tenant_code: tenant , nome_usuario:nome}).toString();
     //Verificandose todos os campos foram preenchidos
     if (
       !user.nome_unidade.value ||
@@ -80,7 +83,7 @@ function FrmCadastroUnidade({ onEdit, setOnEdit, getUnidades, contact, company, 
 
       const url = onEdit
         ? `${connect}/unidades/${onEdit.id_unidade}`
-        : `${connect}/unidades`
+        : `${connect}/unidades?${queryParams}`
 
       const method = onEdit ? 'PUT' : 'POST';
 

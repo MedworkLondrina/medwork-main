@@ -17,7 +17,8 @@ function FrmCadastroContato({ onEdit, setOnEdit, getContato }) {
   useEffect(() => {
     if (onEdit) {
       const user = ref.current;
-
+     
+  
       //Passando o dado do input para a props
       user.nome_contato.value = onEdit.nome_contato;
       user.telefone_contato.value = onEdit.telefone_contato;
@@ -29,8 +30,11 @@ function FrmCadastroContato({ onEdit, setOnEdit, getContato }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     const user = ref.current;
+    const userData = JSON.parse(localStorage.getItem("user"));
+    const tenant = userData.tenant_code;
+    const nome = userData.nome_usuario;
+    const queryParams = new URLSearchParams({ tenant_code: tenant , nome_usuario:nome}).toString();
 
     if (
       !user.nome_contato.value ||
@@ -55,7 +59,7 @@ function FrmCadastroContato({ onEdit, setOnEdit, getContato }) {
 
       const url = onEdit
         ? `${connect}/contatos/${onEdit.id_contato}`
-        : `${connect}/contatos`;
+        : `${connect}/contatos?${queryParams}`;
 
       const method = onEdit ? 'PUT' : 'POST';
 
