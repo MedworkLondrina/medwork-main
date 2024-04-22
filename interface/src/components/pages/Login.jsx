@@ -6,8 +6,8 @@ import { BsEyeSlashFill } from "react-icons/bs";
 import useAuth from '../../hooks/useAuth'
 import { auth, connect } from '../../services/api';
 import { useSignInWithEmailAndPassword } from 'react-firebase-hooks/auth';
+
 import login_image from '../media/login_image.png'
-import { sendPasswordResetEmail, useSendPasswordResetEmail } from 'react-firebase-hooks/auth';
 
 function Login() {
 
@@ -17,7 +17,7 @@ function Login() {
   const [password, setPassword] = useState("");
   const [redirect, setRedirect] = useState(false);
   const [showpasd, setShowpasd] = useState(false);
-  const [sendPasswordResetEmail]= useSendPasswordResetEmail(auth);
+
   const [signInWithEmailAndPassword] = useSignInWithEmailAndPassword(auth);
 
   const signIn = async (email, password) => {
@@ -98,16 +98,8 @@ function Login() {
   }
 
   const forgotpasd = () => {
-    sendPasswordResetEmail(email)
-      .then(() => {
-        alert("Email enviado com sucesso!");
-      })
-      .catch((error) => {
-        alert("Ocorreu um erro ao enviar o email de redefinição de senha: " + error.message);
-      });
+    toast.info("Fale com um adminitrador!")
   }
-  
-
 
   return (
     <div className="flex flex-col items-center justify-center px-6 py-8 mx-auto md:h-screen lg:py-0">
