@@ -49,7 +49,12 @@ function FrmCadastroCargo({ onEdit, setOnEdit, getCargo, set, setor, unidades })
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    const userData2 = JSON.parse(localStorage.getItem("selectedCompanyData"));
+    const companyId = userData2.id_empresa;
+    const userData = JSON.parse(localStorage.getItem("user"));
+    const tenant = userData.tenant_code;
+    const nome = userData.nome_usuario;
+    const queryParams = new URLSearchParams({ tenant_code: tenant , nome_usuario:nome, companyId:companyId}).toString();
     const user = ref.current;
 
     if (
@@ -70,7 +75,7 @@ function FrmCadastroCargo({ onEdit, setOnEdit, getCargo, set, setor, unidades })
 
       const url = onEdit
         ? `${connect}/cargos/${onEdit.id_cargo}`
-        : `${connect}/cargos`;
+        : `${connect}/cargos?${queryParams}`;
 
       const method = onEdit ? 'PUT' : 'POST';
 
@@ -281,7 +286,7 @@ function FrmCadastroCargo({ onEdit, setOnEdit, getCargo, set, setor, unidades })
             <ModalSearchSetor
               isOpen={showModal}
               onCancel={closeModal}
-              children={filteredSetores}
+              children={setor}
               onContactSelect={handleSetorSelect}
             />
           </div>

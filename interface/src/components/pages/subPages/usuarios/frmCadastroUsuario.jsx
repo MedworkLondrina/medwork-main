@@ -64,6 +64,8 @@ function FrmCadastroUsuario({ onEdit, setOnEdit, getUsuario, usuarios }) {
 		e.preventDefault();
 
 		const tenant = user.tenant_code;
+		const nome = user.nome_usuario;
+		const queryParams = new URLSearchParams({ tenent_code: tenant , nome_usuario:nome}).toString();
 
 		const form = ref.current;
 
@@ -91,7 +93,7 @@ function FrmCadastroUsuario({ onEdit, setOnEdit, getUsuario, usuarios }) {
 
 				const url = onEdit
 					? `${connect}/usuarios/${onEdit.id_usuario}`
-					: `${connect}/usuarios`
+					: `${connect}/usuarios?${queryParams}`
 
 				const method = onEdit ? 'PUT' : 'POST';
 
