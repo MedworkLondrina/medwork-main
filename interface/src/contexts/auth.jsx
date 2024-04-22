@@ -30,6 +30,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState([]);
   const [laudoVersion, setLaudoVersion] = useState([]);
   const [conclusoes, setConclusoes] = useState([]);
+  const [loginUser, setLoginUser] = useState(false);
 
   const handleSetCompanyId = () => {
     try {
@@ -81,7 +82,7 @@ export const AuthProvider = ({ children }) => {
   const fetchEmpresas = async () => {
     try {
       const code = await checkTenantCode();
-      if (!code) throw new Error('Tenant code not found');
+      if (!code) return;
       const queryParams = new URLSearchParams({ tenent_code: code }).toString();
 
       const response = await fetch(`${connect}/empresas?${queryParams}`)
@@ -752,6 +753,8 @@ export const AuthProvider = ({ children }) => {
         fetchCargos,
         getTenant,
         fetchMedidas,
+        loginUser,
+        setLoginUser,
       }}>
       {children}
     </AuthContext.Provider>
