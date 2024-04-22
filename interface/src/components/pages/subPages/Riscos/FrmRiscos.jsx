@@ -283,7 +283,7 @@ function CadastroRisco({ onEdit, setOnEdit, getRiscos, riscos }) {
   };
 
   return (
-    <div className="flex justify-center mt-10">
+    <div className="flex justify-center">
       <form className="w-full max-w-5xl" ref={ref} onSubmit={handleSubmit}>
         {/* Cadastro do Risco */}
         <div className="flex flex-wrap -mx-3 p-3">

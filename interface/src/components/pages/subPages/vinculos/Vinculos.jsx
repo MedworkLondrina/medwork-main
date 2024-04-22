@@ -15,7 +15,7 @@ function Vinculos() {
 
   return (
     <>
-      <div className="flex justify-center items-center mt-12 mb-10">
+      <div className="flex justify-center items-center mt-20 mb-10">
         {/* Botão para voltar */}
         <div className="absolute left-0">
           <Link to="/cadastros">

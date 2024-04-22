@@ -409,8 +409,8 @@ function LaudoPgr() {
     <>
 
       {/* Popover */}
-      <div className="flex w-full mt-6" onMouseLeave={() => setVisible(false)}>
-        <div className="fixed z-50 m-2 -mt-4">
+      <div className="flex w-full" onMouseLeave={() => setVisible(false)}>
+        <div className="fixed z-50 m-2">
           <div className={`bg-gray-700 rounded-lg px-6 py-2 ${visible ? 'block' : 'hidden'} text-white`}>
             <h2 className="font-bold text-xl mb-2 text-gray-100 mt-2">Página para Gerar PGR</h2>
             <div>
@@ -445,7 +445,7 @@ function LaudoPgr() {
       </div>
 
       {/* Form */}
-      <div className="flex justify-center mt-10">
+      <div className="flex justify-center">
         <form className="w-full max-w-7xl">
           <div className="flex flex-wrap -mx-3 mb-6 p-3">
 

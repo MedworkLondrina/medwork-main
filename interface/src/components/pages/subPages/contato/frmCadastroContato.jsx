@@ -145,7 +145,7 @@ function FrmCadastroContato({ onEdit, setOnEdit, getContato }) {
 
 
   return (
-    <div className="flex justify-center mt-10">
+    <div className="flex justify-center">
       <form className="w-full max-w-5xl" ref={ref} onSubmit={(e) => handleSubmit(e)}>
         <div className="flex flex-wrap -mx-3 mb-6">
 
