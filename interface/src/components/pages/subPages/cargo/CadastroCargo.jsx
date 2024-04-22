@@ -54,7 +54,6 @@ function CadastroCargo() {
     try {
       const setor = setores.find((i) => i.id_setor === fkSetorId);
       const setorId = setor ? setor.fk_unidade_id : 'N/A'
-
       const unidade = unidades.find((i) => i.id_unidade === setorId);
       return unidade ? unidade.nome_unidade : 'N/A'
     } catch (error) {

@@ -86,7 +86,10 @@ function CadastroRisco({ onEdit, setOnEdit, getRiscos, riscos }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    const userData = JSON.parse(localStorage.getItem("user"));
+    const tenant = userData.tenant_code;
+    const nome = userData.nome_usuario;
+    const queryParams = new URLSearchParams({ tenant_code: tenant , nome_usuario:nome}).toString();
     const user = ref.current;
 
     if (!user.nome_risco.value ||
@@ -121,7 +124,7 @@ function CadastroRisco({ onEdit, setOnEdit, getRiscos, riscos }) {
 
       const url = onEdit
         ? `${connect}/riscos/${onEdit.id_risco}`
-        : `${connect}/riscos`
+        : `${connect}/riscos?${queryParams}`
 
       const method = onEdit ? 'PUT' : 'POST';
 
