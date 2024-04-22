@@ -86,6 +86,7 @@ export const AuthProvider = ({ children }) => {
       const queryParams = new URLSearchParams({ tenent_code: code }).toString();
 
       const response = await fetch(`${connect}/empresas?${queryParams}`)
+      console.log(`${connect}/empresas?${queryParams}`)
 
       if (!response.ok) {
         throw new Error(`Erro ao buscar os dados da empresa! Status: ${response.status}`)
@@ -627,7 +628,7 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       console.log("Erro ao logar e autenticar usuario!", error)
     }
-  }
+  };
 
   const clearUser = async () => {
     try {
@@ -639,7 +640,7 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       console.log("Erro ao limpar os dados de usuario e empresa!", error)
     }
-  }
+  };
 
   const checkSignIn = async () => {
     try {
@@ -666,7 +667,7 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       console.log("Erro ao checar o tenant code!", error)
     }
-  }
+  };
 
   const handleClearLocalStorageCompany = () => {
     localStorage.removeItem('selectedCompanyData');
