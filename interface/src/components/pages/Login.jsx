@@ -11,7 +11,7 @@ import login_image from '../media/login_image.png'
 
 function Login() {
 
-  const { handleSignInUser } = useAuth();
+  const { handleSignInUser, setLoginUser } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -42,7 +42,6 @@ function Login() {
       })
 
       const resVerifyTenant = await verifyTenant.json();
-      console.log(resVerifyTenant);
 
       fetch(`${connect}/api/protected`, {
         method: 'GET',
@@ -66,6 +65,7 @@ function Login() {
 
       await handleSignInUser(res.user.accessToken, resVerifyTenant);
 
+      setLoginUser(true);
       setRedirect(true);
     } catch (error) {
       if (error.message === "Cannot read properties of undefined (reading 'user')") {
@@ -90,19 +90,19 @@ function Login() {
 
   if (redirect == true) {
     return <Navigate to="/" />
-  }
+  };
 
   const ShowPassword = (e) => {
     e.preventDefault();
     setShowpasd(!showpasd);
-  }
+  };
 
   const forgotpasd = () => {
     toast.info("Fale com um adminitrador!")
-  }
+  };
 
   return (
-    <div className="flex flex-col items-center justify-center px-6 py-8 mx-auto md:h-screen lg:py-0">
+    <div className="flex flex-col items-center justify-center w-full h-screen -mt-16">
       <div className='lg:grid lg:grid-cols-2 w-full md:w-1/2 lg:w-full bg-white rounded-xl shadow dark:border md:mt-0 sm:max-w-4xl xl:p-0'>
         <div className="mx-auto hidden lg:flex items-center justify-center p-10">
           <img src={login_image} alt="" />
