@@ -163,7 +163,7 @@ function FrmElaboador({ onEdit, setOnEdit, getTable }) {
 
   return (
     <>
-      <div className="flex justify-center mt-10">
+      <div className="flex justify-center">
         <form className="w-full max-w-5xl" ref={ref} onSubmit={handleSubmit}>
           <div className="flex flex-wrap -mx-3 mb-6 p-3">
 

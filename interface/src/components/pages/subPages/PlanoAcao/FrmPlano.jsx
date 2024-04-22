@@ -421,7 +421,7 @@ function FrmPlano({
   return (
     <>
       {loading && <LoadingScreen />}
-      <div className="flex justify-center mt-10">
+      <div className="flex justify-center">
         <form className="w-full max-w-7xl" ref={user} onSubmit={handleSubmit}>
           <div className="flex flex-wrap -mx-3 mb-6 p-3">
 
