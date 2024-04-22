@@ -80,7 +80,8 @@ export const AuthProvider = ({ children }) => {
 
   const fetchEmpresas = async () => {
     try {
-      const code = user.tenant_code;
+      const code = await checkTenantCode();
+      if (!code) throw new Error('Tenant code not found');
       const queryParams = new URLSearchParams({ tenent_code: code }).toString();
 
       const response = await fetch(`${connect}/empresas?${queryParams}`)
@@ -99,6 +100,10 @@ export const AuthProvider = ({ children }) => {
 
   const getContatos = async () => {
     try {
+      const idCompany = await loadSelectedCompanyFromLocalStorage();
+      if (!idCompany) throw new Error('Company not found');
+      const companyId = idCompany.id_empresa;
+
       const queryParams = new URLSearchParams({ companyId: companyId }).toString();
 
       const response = await fetch(`${connect}/contatos?${queryParams}`);
@@ -302,6 +307,7 @@ export const AuthProvider = ({ children }) => {
       const data = await response.json();
       data.sort((a, b) => a.nome_processo.localeCompare(b.nome_processo));
       setProcessos(data)
+      return data;
     } catch (error) {
       toast.warn("Erro ao buscar processos");
       console.log(`Erro ao buscar processos. ${error}`)
@@ -321,12 +327,29 @@ export const AuthProvider = ({ children }) => {
         return a.nome_risco.localeCompare(b.nome_risco);
       });
 
-      setRiscos(data)
+      setRiscos(data);
+      return data;
     } catch (error) {
       toast.warn("Erro ao buscar riscos");
       console.log(`Erro ao buscar riscos. ${error}`)
     }
   };
+
+  const fetchMedidas = async (params) => {
+    try {
+      const queryParams = new URLSearchParams({ grupo: params });
+      const response = await fetch(`${connect}/medidas?${queryParams}`);
+
+      if (!response.ok) {
+        throw new Error(`Erro ao buscar medidas. Status: ${response.status}`)
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error(`Erro ao buscar medidas. ${error}`)
+    }
+  }
 
   const getMedidasAdm = async () => {
     try {
@@ -397,7 +420,8 @@ export const AuthProvider = ({ children }) => {
       }
 
       const data = await response.json();
-      setSetoresProcessos(data)
+      setSetoresProcessos(data);
+      return data;
     } catch (error) {
       toast.warn("Erro ao buscar Setores Processos");
       console.log(`Erro ao buscar Setores Processos. ${error}`)
@@ -413,7 +437,8 @@ export const AuthProvider = ({ children }) => {
       }
 
       const data = await response.json();
-      setProcessosRiscos(data)
+      setProcessosRiscos(data);
+      return data;
     } catch (error) {
       toast.warn("Erro ao buscar Processos Riscos");
       console.log(`Erro ao buscar Processos Riscos. ${error}`)
@@ -429,7 +454,8 @@ export const AuthProvider = ({ children }) => {
       }
 
       const data = await response.json();
-      setRiscosMedidas(data)
+      setRiscosMedidas(data);
+      return data;
     } catch (error) {
       toast.warn("Erro ao buscar Medidas dos riscos");
       console.log(`Erro ao buscar Medidas dos riscos. ${error}`)
@@ -551,6 +577,24 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const getTenant = async (tenant) => {
+    try {
+      const code = tenant;
+      const queryParams = new URLSearchParams({ tenent_code: code }).toString();
+
+      const response = await fetch(`${connect}/tenant?${queryParams}`)
+
+      if (!response.ok) {
+        throw new Error(`Erro ao buscar Inquilino! Status: ${response.status}`)
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Erro ao buscar Inquilino!", error)
+    }
+  };
+
   const loadSelectedCompanyFromLocalStorage = () => {
     try {
       const selectedCompanyDataLocal = localStorage.getItem('selectedCompanyData');
@@ -558,8 +602,8 @@ export const AuthProvider = ({ children }) => {
       if (selectedCompanyDataLocal) {
         const parseData = JSON.parse(selectedCompanyDataLocal);
         setCompanyId(parseData.id_empresa);
-        setSelectedCompany(JSON.parse(selectedCompanyDataLocal));
-        return
+        setSelectedCompany(parseData);
+        return parseData;
       }
     } catch (error) {
       console.log("Erro ao carregar empresa do localStorage", error)
@@ -601,21 +645,33 @@ export const AuthProvider = ({ children }) => {
       const storedUser = localStorage.getItem('user');
 
       if (storedUser) {
-        setUser(JSON.parse(storedUser));
-        return
+        const userLogged = JSON.parse(storedUser);
+        setUser(userLogged);
+        return userLogged;
       }
       setUser(null)
     } catch (error) {
       console.log("Erro ao checar usuario!", error)
     }
+  };
+
+  const checkTenantCode = async () => {
+    try {
+      const user = localStorage.getItem('user');
+      if (!user) return null;
+      const userData = JSON.parse(user);
+      const code = userData.tenant_code;
+      return code;
+    } catch (error) {
+      console.log("Erro ao checar o tenant code!", error)
+    }
   }
 
   const handleClearLocalStorageCompany = () => {
     localStorage.removeItem('selectedCompanyData');
-    localStorage.removeItem(`selectedCompany_${companyId}_unidadesInfo`);
-    localStorage.removeItem(`selectedCompany_${companyId}_setoresInfo`);
-    localStorage.removeItem(`selectedCompany_${companyId}_cargosInfo`);
   };
+
+ 
 
   return (
     <AuthContext.Provider
@@ -694,6 +750,8 @@ export const AuthProvider = ({ children }) => {
         fetchUnidades,
         fetchSetores,
         fetchCargos,
+        getTenant,
+        fetchMedidas,
       }}>
       {children}
     </AuthContext.Provider>
