@@ -10,33 +10,15 @@ const router = express.Router();
 
 const SECRET = 'medworkldn';
 
-// Tabela Tenant
-// Get table
-//Get table
-router.get("/tenant", (req, res) => {
-  const queryParams = req.query.tenent_code;
-
-  const q = `SELECT * FROM tenant WHERE tenant_code = ?`;
-
-  pool.getConnection((err, con) => {
-    if (err) return next(err);
-
-    con.query(q, [queryParams], (err, data) => {
-      if (err) return res.status(500).json(err);
-
-      return res.status(200).json(data);
-    });
-
-    con.release();
-  })
-
-});
-
 //Tabela Empresa
 //Get table
+
+
 router.get("/empresas", (req, res) => {
   const queryParams = req.query.tenent_code;
+  const username = req.query.nome_usuario;
 
+  console.log(username)
   const q = `SELECT * FROM empresas WHERE fk_tenant_code = ?`;
 
   pool.getConnection((err, con) => {
@@ -56,8 +38,8 @@ router.get("/empresas", (req, res) => {
 //Add rows in table
 router.post("/empresas", (req, res) => {
   const data = req.body;
-
-  const q = "INSERT INTO empresas SET ?"
+  const nome = req.query.nome_usuario
+  const q = "INSERT INTO empresas SET ?";
 
   pool.getConnection((err, con) => {
     if (err) return next(err);
@@ -68,12 +50,15 @@ router.post("/empresas", (req, res) => {
         return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
       }
 
+      // Chama a função registrarLog passando o username como parâmetro
+      registrarLog('empresas', 'create', `Cadastrou Empresa`, `${nome}`, data.fk_tenant_code, new Date());
+      
+      console.log(data);
       return res.status(200).json(`Empresa cadastrada com sucesso!`);
     });
 
     con.release();
-  })
-
+  });
 });
 
 //Update row in table
@@ -88,7 +73,8 @@ router.put("/empresas/:id_empresa", (req, res) => {
     cnae_empresa,
     grau_risco_cnae,
     descricao_cnae,
-    fk_contato_id } = req.body;
+    fk_contato_id,
+    } = req.body;
 
   const q = `
     UPDATE empresas
@@ -190,6 +176,8 @@ router.get("/unidades", (req, res) => {
 //Add rows in table
 router.post("/unidades", (req, res) => {
   const data = req.body;
+  const nome = req.query.nome_usuario
+  const tenant = req.query.tenant_code
 
   const q = "INSERT INTO unidades SET ?"
 
@@ -201,7 +189,7 @@ router.post("/unidades", (req, res) => {
         console.error("Erro ao inserir Unidade na tabela", err);
         return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
       }
-
+      registrarLog('unidades', 'create', `Cadastrou Unidade`, `${nome}`, tenant, new Date());
       return res.status(200).json(`Unidade cadastrada com sucesso!`);
     });
 
@@ -316,7 +304,8 @@ router.get("/setores", (req, res) => {
 //Add rows in table
 router.post("/setores", (req, res) => {
   const data = req.body;
-
+  const nome = req.query.nome_usuario
+  const tenant = req.query.tenant_code
   const q = "INSERT INTO setores SET ?"
 
   pool.getConnection((err, con) => {
@@ -327,6 +316,7 @@ router.post("/setores", (req, res) => {
         console.error("Erro ao inserir setor na tabela", err);
         return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
       }
+      registrarLog('setores', 'create', `Cadastrou Setor`, `${nome}`, tenant, new Date());
 
       return res.status(200).json(`Setor cadastrada com sucesso!`);
     });
@@ -419,7 +409,8 @@ router.get("/cargos", (req, res) => {
 //Add rows in table
 router.post("/cargos", (req, res) => {
   const data = req.body;
-
+  const nome = req.query.nome_usuario
+  const tenant = req.query.tenant_code
   const q = "INSERT INTO cargos SET ?"
 
   pool.getConnection((err, con) => {
@@ -430,6 +421,7 @@ router.post("/cargos", (req, res) => {
         console.error("Erro ao inserir Cargo na tabela", err);
         return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
       }
+      registrarLog('cargos', 'create', `Cadastrou Cargo`, `${nome}`, tenant, new Date());
 
       return res.status(200).json(`Cargo cadastrada com sucesso!`);
     });
@@ -523,9 +515,12 @@ router.get("/contatos", (req, res) => {
 
 //Add rows in table
 router.post("/contatos", (req, res) => {
+  const nome = req.query.nome_usuario
+  const tenant = req.query.tenant_code
   const data = req.body;
 
   const q = "INSERT INTO contatos SET ?"
+  console.log(q)
 
   pool.getConnection((err, con) => {
     if (err) return next(err);
@@ -535,8 +530,10 @@ router.post("/contatos", (req, res) => {
         console.error("Erro ao inserir contato na tabela", err);
         return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
       }
+      registrarLog('cargos', 'create', `Cadastrou Cargo`, `${nome}`, tenant, new Date()); 
 
       return res.status(200).json(`Contato cadastrado com sucesso!`);
+      
     });
 
     con.release();
@@ -655,7 +652,6 @@ router.post("/processos", (req, res) => {
 router.put("/processos/:id_processo", (req, res) => {
   const id_processo = req.params.id_processo;
   const { nome_processo, ramo_trabalho } = req.body;
-  console.log(req.body)
 
   const q = `
     UPDATE processos
@@ -899,97 +895,11 @@ router.put("/conclusoes/:id_conclusao", (req, res) => {
 //Medidas de Proteção
 //Tabela EPI's
 //Get table
-router.get("/medidas", (req, res) => {
-  const queryParams = req.query.grupo;
-
-  getMedidasFromTabela(queryParams)
-    .then(data => {
-      return res.status(200).json(data);
-    })
-    .catch(error => {
-      return res.status(500).json(error);
-    });
-
-
-});
-
-//Add rows in table
-router.post("/medidas", (req, res) => {
-  const data = req.body;
-
-  const q = "INSERT INTO medidas SET ?"
-
-  pool.getConnection((err, con) => {
-    if (err) return next(err);
-
-    con.query(q, data, (err, result) => {
-      if (err) {
-        console.error("Erro ao inserir Medida na tabela", err);
-        return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
-      }
-
-      return res.status(200).json(`Medida cadastrado com sucesso!`);
-    });
-
-    con.release();
-  })
-
-});
-
-router.put("/medidas/:id_medida", (req, res) => {
-  const id_medida = req.params.id_medida;
-  const {
-    nome_medida,
-    certificado_medida,
-    fator_reducao_medida,
-    vencimento_certificado_medida,
-    fabricante_medida,
-  } = req.body;
-
-  const q = `
-    UPDATE medidas_epi
-    SET nome_medida = ?,
-    certificado_medida = ?,
-    fator_reducao_medida = ?,
-    vencimento_certificado_medida = ?,
-    fabricante_medida = ?
-    WHERE id_medida = ?
-    `;
-
-  const values = [
-    nome_medida,
-    certificado_medida,
-    fator_reducao_medida,
-    vencimento_certificado_medida,
-    fabricante_medida,
-    id_medida
-  ];
-
-  pool.getConnection((err, con) => {
-    if (err) return next(err);
-
-    con.query(q, values, (err) => {
-      if (err) {
-        console.error("Erro ao atualizar medida na tabela", err);
-        return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
-      }
-
-      return res.status(200).json("Medida atualizado com sucesso!");
-    });
-
-    con.release();
-  })
-
-});
-
-//Tabela EPI's
-//Get table
 router.get("/medidas_epi", (req, res) => {
   const queryParams = "MI";
 
   getMedidasFromTabela(queryParams)
     .then(data => {
-      console.log(data)
       return res.status(200).json(data);
     })
     .catch(error => {
@@ -1310,7 +1220,6 @@ router.get("/aparelhos", (req, res) => {
 
   getAparelhosFromTenant(queryParams)
     .then(data => {
-      console.log(data)
       return res.status(200).json(data);
     })
     .catch(error => {
@@ -1480,11 +1389,10 @@ router.post('/login', async (req, res) => {
       }
 
       const user = userData[0];
-      registrarLog('login', 'login', `login`, `${user.nome_usuario}`, `${user.fk_tenant_code}`, new Date());
+      //registrarLog('login', 'login', `login`, `${user.nome_usuario}`, `${user.fk_tenant_code}`, new Date());
       res.status(200).json(user);
     });
   } catch (error) {
-    console.log(error);
     res.status(500).json({ message: 'Erro interno do servidor' });
   }
 });
