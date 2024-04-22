@@ -2,7 +2,6 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import useAuth from '../../../../hooks/useAuth';
-
 //Importando componentes
 import CadastroEmpresa from "./frmCadastroEmpresas";
 import GridCadastroEmpresa from './gridCadastroEmpresa';
@@ -11,27 +10,33 @@ import Back from '../../../layout/Back'
 import { IoInformationCircleSharp } from "react-icons/io5";
 
 function Empresa() {
-
   const {
     getEmpresas,
-    empresas,
-    setEmpresas,
+    fetchEmpresas,
     getContatos,
     contatos
   } = useAuth(null);
+
+  const get = async () => {
+    const response = await fetchEmpresas();
+    setEmpresas (response);
+  }
+
+
 
   // Instanciando e Definindo como vazio
   const [onEdit, setOnEdit] = useState(null);
   const [contactName, setContactName] = useState(null);
   const [visible, setVisible] = useState(false);
+  const [empresas, setEmpresas] = useState([]);
 
   //Instanciando o Search
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredEmpresas, setFilteredEmpresas] = useState([]);
 
   useEffect(() => {
-    getEmpresas();
     getContatos();
+    get()
   }, []);
 
   const handleEdit = (selectedEmpresa) => {
@@ -48,6 +53,7 @@ function Empresa() {
   //Função para Pesquisa
   useEffect(() => {
     const filtered = empresas.filter((emp) => emp.nome_empresa.toLowerCase().includes(searchTerm.toLowerCase()));
+    console.log( `filtered: ${empresas}`)
     setFilteredEmpresas(filtered);
   }, [searchTerm, empresas]);
 
@@ -104,7 +110,7 @@ function Empresa() {
       <CadastroEmpresa
         onEdit={onEdit}
         setOnEdit={setOnEdit}
-        getEmpresa={getEmpresas}
+        fetchEmpresas={fetchEmpresas}
         contact={contactName}
         contatos={contatos}
       />
@@ -120,10 +126,10 @@ function Empresa() {
 
       {/* Tabela Empresa */}
       <GridCadastroEmpresa
-        empresa={filteredEmpresas}
+        empresa={empresas}
         setEmpresa={setEmpresas}
         setOnEdit={handleEdit}
-        getEmpresa={getEmpresas}
+        fetchEmpresas={fetchEmpresas}
         contato={contatos}
       />
     </div>

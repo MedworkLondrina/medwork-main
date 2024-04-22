@@ -62,7 +62,10 @@ function CadastroEmpresa({ onEdit, setOnEdit, getEmpresa, contact, contatos }) {
   //Função para adicionar ou atualizar dados
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    const userData = JSON.parse(localStorage.getItem("user"));
+    const tenant = userData.tenant_code;
+    const nome = userData.nome_usuario;
+    const queryParams = new URLSearchParams({ tenant_code: tenant, nome_usuario:nome}).toString();
     const user = ref.current;
 
     //Verificandose todos os campos foram preenchidos
@@ -85,11 +88,12 @@ function CadastroEmpresa({ onEdit, setOnEdit, getEmpresa, contact, contatos }) {
         grau_risco_cnae: grauRisco || null,
         descricao_cnae: descricao || '',
         ativo: 1,
+        tenant_code_log: tenant
       };
 
       const url = onEdit
         ? `${connect}/empresas/${onEdit.id_empresa}`
-        : `${connect}/empresas`;
+        : `${connect}/empresas${queryParams}`;
 
       const method = onEdit ? 'PUT' : 'POST';
 

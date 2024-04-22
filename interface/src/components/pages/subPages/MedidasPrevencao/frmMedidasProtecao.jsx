@@ -38,7 +38,10 @@ function CadastroMedidas({ onEdit, setOnEdit, get, medidas }) {
   //Função para adicionar ou atualizar dados
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    const userData = JSON.parse(localStorage.getItem("user"));
+    const tenant = userData.tenant_code;
+    const nome = userData.nome_usuario;
+    const queryParams = new URLSearchParams({ tenant_code: tenant , nome_usuario:nome}).toString();
     const user = ref.current;
 
     //Verificandose todos os campos foram preenchidos
@@ -59,7 +62,7 @@ function CadastroMedidas({ onEdit, setOnEdit, get, medidas }) {
 
       const url = onEdit
         ? `${connect}/medidas_adm/${onEdit.id_medida_adm}`
-        : `${connect}/medidas_adm`;
+        : `${connect}/medidas_adm?${queryParams}`;
 
       const method = onEdit ? 'PUT' : 'POST';
 
