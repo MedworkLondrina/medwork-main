@@ -2,9 +2,12 @@ import React from "react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 
-import MedidasAdm from './MedidasPrevencao/MedidasPrevencao';
-import MedidaEpi from './Epi/Epi';
-import MedidaEpc from './Epc/Epc';
+import Adminitrativas from './Medidas/Administrativas/MedidasAdministrativas';
+import Individuais from './Medidas/Individuais/Epi';
+import Coletivas from './Medidas/Coletivas/MedidasColetivas';
+import Treinamentos from './Medidas/Treinamentos/Treinamentos';
+import Inspecao from './Medidas/Inspecao/Inspecao';
+import Gerais from './Medidas/Gerais/MedidasGerais';
 import Back from '../../layout/Back';
 import { IoInformationCircleSharp } from "react-icons/io5";;
 
@@ -20,21 +23,17 @@ function CadastroMedidas() {
   const renderContent = () => {
     switch (activeTab) {
       case 1:
-        return (
-          <MedidasAdm />
-        );
+        return <Adminitrativas />
       case 2:
-        return (
-          <>
-            <MedidaEpi />
-          </>
-        );
+        return <Individuais />
       case 3:
-        return (
-          <>
-            <MedidaEpc />
-          </>
-        );
+        return <Coletivas />
+      case 4:
+        return <Treinamentos />
+      case 5:
+        return <Inspecao />
+      case 6:
+        return <Gerais />
       default:
         return null;
     }
@@ -82,16 +81,25 @@ function CadastroMedidas() {
 
 
       <div>
-        <div className="flex mt-5 xl:w-4/12 ml-5 justify-center">
+        <div className="flex mt-5 xl:w-7/12 ml-5 justify-center">
           <ul className="flex flex-wrap text-sm font-medium text-center text-gray-500 border-b border-gray-200">
             <li className={`me-2 ${activeTab === 1 ? "rounded-t-lg bg-gray-50" : ""}`}>
               <button className="inline-block p-4 rounded-t-lg hover:text-gray-600 hover:bg-gray-100" onClick={() => handleTabClick(1)}>Administrativas</button>
             </li>
             <li className={`me-2 ${activeTab === 2 ? "rounded-t-lg bg-gray-50" : ""}`}>
-              <button className="inline-block p-4 rounded-t-lg hover:text-gray-600 hover:bg-gray-100" onClick={() => handleTabClick(2)}>EPI's</button>
+              <button className="inline-block p-4 rounded-t-lg hover:text-gray-600 hover:bg-gray-100" onClick={() => handleTabClick(2)}>Individuais</button>
             </li>
             <li className={`me-2 ${activeTab === 3 ? "rounded-t-lg bg-gray-50" : ""}`}>
-              <button className="inline-block p-4 rounded-t-lg hover:text-gray-600 hover:bg-gray-100" onClick={() => handleTabClick(3)}>EPC's</button>
+              <button className="inline-block p-4 rounded-t-lg hover:text-gray-600 hover:bg-gray-100" onClick={() => handleTabClick(3)}>Coletivas</button>
+            </li>
+            <li className={`me-2 ${activeTab === 4 ? "rounded-t-lg bg-gray-50" : ""}`}>
+              <button className="inline-block p-4 rounded-t-lg hover:text-gray-600 hover:bg-gray-100" onClick={() => handleTabClick(4)}>Treinamentos</button>
+            </li>
+            <li className={`me-2 ${activeTab === 5 ? "rounded-t-lg bg-gray-50" : ""}`}>
+              <button className="inline-block p-4 rounded-t-lg hover:text-gray-600 hover:bg-gray-100" onClick={() => handleTabClick(5)}>Inspções</button>
+            </li>
+            <li className={`me-2 ${activeTab === 6 ? "rounded-t-lg bg-gray-50" : ""}`}>
+              <button className="inline-block p-4 rounded-t-lg hover:text-gray-600 hover:bg-gray-100" onClick={() => handleTabClick(6)}>Gerais</button>
             </li>
           </ul>
         </div>
