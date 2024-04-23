@@ -42,7 +42,6 @@ function FrmCadastroSetor({ onEdit, setOnEdit, getSetor, unidades, onCancel, uni
     e.preventDefault();
     const userData2 = JSON.parse(localStorage.getItem("selectedCompanyData"));
     const empresa_id = userData2.id_empresa;
-    console.log(empresa_id)
     const userData = JSON.parse(localStorage.getItem("user"));
     const tenant = userData.tenant_code;
     const nome = userData.nome_usuario;

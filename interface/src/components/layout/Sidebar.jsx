@@ -111,7 +111,6 @@ function Sidebar() {
     if (userCheck) {
       const tenantCode = userCheck.tenant_code;
       const tenantCheck = await getTenant(tenantCode);
-      console.log(tenantCode)
       setTenant(tenantCheck);
       tenantCheck ? setTenantName(tenantCheck[0].nome_tenant) : setTenantName('');
     }

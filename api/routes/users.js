@@ -73,7 +73,7 @@ router.post("/empresas", (req, res) => {
 
       // Chama a função registrarLog passando o username como parâmetro
       registrarLog('empresas', 'create', `Cadastrou Empresa`, `${nome}`, data.fk_tenant_code, new Date());
-      
+
       return res.status(200).json(`Empresa cadastrada com sucesso!`);
     });
 
@@ -96,7 +96,7 @@ router.put("/empresas/:id_empresa", (req, res) => {
     grau_risco_cnae,
     descricao_cnae,
     fk_contato_id,
-    } = req.body;
+  } = req.body;
 
   const q = `
     UPDATE empresas
@@ -424,7 +424,7 @@ router.put("/setores/activate/:id_setor", (req, res) => {
 //Get table
 router.get("/cargos", (req, res) => {
   const queryParams = req.query.companyId;
-  
+
 
   getCargosFromCompany(queryParams)
     .then(data => {
@@ -562,10 +562,10 @@ router.post("/contatos", (req, res) => {
         console.error("Erro ao inserir contato na tabela", err);
         return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
       }
-      registrarLog('contatos', 'create', `Cadastrou Cargo`, `${nome}`, tenant, new Date()); 
+      registrarLog('contatos', 'create', `Cadastrou Cargo`, `${nome}`, tenant, new Date());
 
       return res.status(200).json(`Contato cadastrado com sucesso!`);
-      
+
     });
 
     con.release();
@@ -949,8 +949,6 @@ router.get("/medidas", (req, res) => {
     .catch(error => {
       return res.status(500).json(error);
     });
-
-
 });
 
 //Add rows in table
@@ -979,29 +977,32 @@ router.post("/medidas", (req, res) => {
 router.put("/medidas/:id_medida", (req, res) => {
   const id_medida = req.params.id_medida;
   const {
-    nome_medida,
+    descricao_medida,
     certificado_medida,
     fator_reducao_medida,
     vencimento_certificado_medida,
     fabricante_medida,
+    grupo_medida,
   } = req.body;
 
   const q = `
     UPDATE medidas_epi
-    SET nome_medida = ?,
+    SET descricao_medida = ?,
     certificado_medida = ?,
     fator_reducao_medida = ?,
     vencimento_certificado_medida = ?,
-    fabricante_medida = ?
+    fabricante_medida = ?,
+    grupo_medida = ?,
     WHERE id_medida = ?
     `;
 
   const values = [
-    nome_medida,
+    descricao_medida,
     certificado_medida,
     fator_reducao_medida,
     vencimento_certificado_medida,
     fabricante_medida,
+    grupo_medida,
     id_medida
   ];
 
