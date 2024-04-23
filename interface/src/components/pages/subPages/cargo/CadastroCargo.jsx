@@ -34,6 +34,7 @@ function CadastroCargo() {
     const sectors = await fetchSetores();
     setSetores(sectors);
     const functions = await fetchCargos();
+    console.log(functions)
     setCargos(functions);
   };
 

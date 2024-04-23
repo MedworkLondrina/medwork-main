@@ -11,7 +11,7 @@ function GridCadastroCargo({ cargos, setCargo, getCargo, setOnEdit, find, findUn
     const filterunidades = unidades.map((i) => i.id_unidade);
     const filtersetor = setor.filter((i) => filterunidades.includes(i.fk_unidade_id));
     const idSetores = filtersetor.map((i) => i.id_setor);
-    console.log(idSetores)
+    console.log(setor)
     setFilteredSetores(idSetores);
   }, [unidades, setor]);
 
@@ -75,7 +75,6 @@ function GridCadastroCargo({ cargos, setCargo, getCargo, setOnEdit, find, findUn
         </thead>
         <tbody>
           {cargos
-            .filter((i) => filteredSetores.includes(i.fk_setor_id))
             .map((item, i) => (
               <tr key={i} className={`border-b bg-white ${!item.ativo ? 'opacity-25' : ''}`}>
                 <th scope="row" className="px-4 py-4 font-medium text-gray-900 whitespace-nowrap">
