@@ -9,7 +9,7 @@ import icon_lupa from '../../../media/icon_lupa.svg'
 import icon_sair from '../../../media/icon_sair.svg'
 
 
-function CadastroEmpresa({ onEdit, setOnEdit, getEmpresa, contact, contatos }) {
+function CadastroEmpresa({ onEdit, setOnEdit, fetchEmpresas, contact, contatos }) {
 
   //Instanciando as Variáveis
   const ref = useRef(null);
@@ -49,8 +49,8 @@ function CadastroEmpresa({ onEdit, setOnEdit, getEmpresa, contact, contatos }) {
       }
 
       if (contact && onEdit?.fk_contato_id) {
-        setContactName(contact);
-        setContactId(onEdit?.fk_contato_id);
+        setContactName(contact.nome_contato);
+        setContactId(contact.id_contato);
       } else {
         setContactName(null);
         setContactId(null);
@@ -65,7 +65,7 @@ function CadastroEmpresa({ onEdit, setOnEdit, getEmpresa, contact, contatos }) {
     const userData = JSON.parse(localStorage.getItem("user"));
     const tenant = userData.tenant_code;
     const nome = userData.nome_usuario;
-    const queryParams = new URLSearchParams({ tenant_code: tenant, nome_usuario:nome}).toString();
+    const queryParams = new URLSearchParams({ tenant_code: tenant, nome_usuario: nome }).toString();
     const user = ref.current;
 
     //Verificandose todos os campos foram preenchidos
@@ -122,7 +122,7 @@ function CadastroEmpresa({ onEdit, setOnEdit, getEmpresa, contact, contatos }) {
     handleClear();
 
     //Atualiza os dados
-    getEmpresa();
+    fetchEmpresas();
   };
 
   //Função para limpar o formulário
@@ -435,6 +435,7 @@ function CadastroEmpresa({ onEdit, setOnEdit, getEmpresa, contact, contatos }) {
                 <>
                   <button
                     className="flex appearance-none hover:shadow-sm text-sky-600 bg-gray-100 border-gray-200 justify-center mt-1 py-3 px-4 rounded leading-tight focus:outline-none with-text"
+                    type="button"
                     onClick={openModal}
                   >
                     <p name="fk_contato_id" className="px-2 text-sm font-sm text-gray-600">
@@ -444,13 +445,14 @@ function CadastroEmpresa({ onEdit, setOnEdit, getEmpresa, contact, contatos }) {
                       {contactName}
                     </p>
                   </button>
-                  <button className="ml-4" onClick={handleClearContato}>
+                  <button className="ml-4" type="button" onClick={handleClearContato}>
                     <img src={icon_sair} alt="" className="h-9" />
                   </button>
                 </>
               ) : (
                 <button
                   className="flex w-full appearance-none text-gray-400 bg-gray-100 border-gray-200 justify-center mt-1 py-3 px-4 rounded leading-tight focus:outline-none with-text"
+                  type="button"
                   onClick={openModal}
                 >
                   <p className="px-2 text-sm font-medium">
@@ -458,21 +460,15 @@ function CadastroEmpresa({ onEdit, setOnEdit, getEmpresa, contact, contatos }) {
                   </p>
                 </button>
               )}
-
               <button
                 type="button"
                 onClick={openModal}
                 className={`flex cursor-pointer ml-4`}
               >
-                <img src={icon_lupa} className="h-9" alt="Icone adicionar unidade"></img>
+                <img src={icon_lupa} className="h-9" alt="Icone adicionar usuario"></img>
               </button>
             </div>
-            <ModarSearchContato
-              isOpen={showModal}
-              onCancel={closeModal}
-              children={contatos}
-              onContactSelect={handleContactSelect}
-            />
+
           </div>
 
           {/* Botões */}
@@ -491,6 +487,12 @@ function CadastroEmpresa({ onEdit, setOnEdit, getEmpresa, contact, contatos }) {
 
         </div>
       </form>
+      <ModarSearchContato
+        isOpen={showModal}
+        onCancel={closeModal}
+        children={contatos}
+        onContactSelect={handleContactSelect}
+      />
     </div>
   )
 }

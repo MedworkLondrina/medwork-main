@@ -3,10 +3,11 @@ import { BsFillPencilFill } from 'react-icons/bs'; //Icone de Edição
 import { toast } from 'react-toastify';
 import { connect } from '../../../../services/api'; //Conexão com o banco de dados
 
-function GridCadastroEmpresa({ empresa, setEmpresa, setOnEdit, contato, getEmpresa }) {
+function GridCadastroEmpresa({ empresa, setEmpresa, setOnEdit, contato, getEmpresa, setCompanyId }) {
 
   const handleEditClick = (empresa) => () => {
     handleEdit(empresa);
+    setCompanyId(empresa.id_empresa);
   };
 
   //Função para editar Item

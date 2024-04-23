@@ -11,17 +11,9 @@ import { IoInformationCircleSharp } from "react-icons/io5";
 
 function Empresa() {
   const {
-    getEmpresas,
     fetchEmpresas,
-    getContatos,
-    contatos
+    fetchContatos,
   } = useAuth(null);
-
-  const get = async () => {
-    const response = await fetchEmpresas();
-    setEmpresas (response);
-  }
-
 
 
   // Instanciando e Definindo como vazio
@@ -29,31 +21,49 @@ function Empresa() {
   const [contactName, setContactName] = useState(null);
   const [visible, setVisible] = useState(false);
   const [empresas, setEmpresas] = useState([]);
+  const [companyId, setCompanyId] = useState(null);
+  const [contatos, setContatos] = useState([]);
+  const [contactInfo, setContactInfo] = useState([]);
 
   //Instanciando o Search
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredEmpresas, setFilteredEmpresas] = useState([]);
 
+  const get = async () => {
+    const companys = await fetchEmpresas();
+    if (companys) {
+      setEmpresas(companys);
+      getContatos();
+    }
+  };
+
+  const getContatos = async () => {
+    const contact = await fetchContatos(companyId);
+    if (contact) {
+      setContatos(contact);
+    } else {
+      setContatos([]);
+    }
+  }
+
   useEffect(() => {
-    getContatos();
     get()
-  }, []);
+  }, [companyId]);
 
-  const handleEdit = (selectedEmpresa) => {
-    setOnEdit(selectedEmpresa);
-
+  const handleEdit = async (selectedEmpresa) => {
     if (selectedEmpresa.fk_contato_id) {
-      const contactInfo = contatos.find((c) => c.id_contato === selectedEmpresa.fk_contato_id)
-      if (contactInfo) {
-        setContactName(contactInfo.nome_contato)
+      const contacts = await fetchContatos(selectedEmpresa.id_empresa);
+      const contactData = contacts.find((c) => c.id_contato === selectedEmpresa.fk_contato_id)
+      if (contactData) {
+        setContactInfo(contactData)
       }
     }
+    setOnEdit(selectedEmpresa);
   };
 
   //Função para Pesquisa
   useEffect(() => {
     const filtered = empresas.filter((emp) => emp.nome_empresa.toLowerCase().includes(searchTerm.toLowerCase()));
-    console.log( `filtered: ${empresas}`)
     setFilteredEmpresas(filtered);
   }, [searchTerm, empresas]);
 
@@ -111,7 +121,7 @@ function Empresa() {
         onEdit={onEdit}
         setOnEdit={setOnEdit}
         fetchEmpresas={fetchEmpresas}
-        contact={contactName}
+        contact={contactInfo}
         contatos={contatos}
       />
 
@@ -126,11 +136,12 @@ function Empresa() {
 
       {/* Tabela Empresa */}
       <GridCadastroEmpresa
-        empresa={empresas}
+        empresa={filteredEmpresas}
         setEmpresa={setEmpresas}
         setOnEdit={handleEdit}
         fetchEmpresas={fetchEmpresas}
         contato={contatos}
+        setCompanyId={setCompanyId}
       />
     </div>
   )
