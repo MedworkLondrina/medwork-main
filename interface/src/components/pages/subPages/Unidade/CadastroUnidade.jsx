@@ -63,6 +63,7 @@ function CadastroUnidade() {
 
     if (selectUnidade.fk_empresa_id) {
       const companyInfo = empresas.find((c) => c.id_empresa === selectUnidade.fk_empresa_id)
+      console.log(companyInfo)
       if (companyInfo) {
         setCompanyName(companyInfo.nome_empresa)
       }

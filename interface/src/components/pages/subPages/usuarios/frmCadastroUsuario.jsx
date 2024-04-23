@@ -41,10 +41,25 @@ function FrmCadastroUsuario({ onEdit, setOnEdit, getUsuario, usuarios }) {
 	const signIn = async (email, password, displayName) => {
 		try {
 			const users = usuarios.filter((i) => i.email === email);
+			console.log(users)
 
 			if (users.length > 0) {
-				toast.info("Usuário já cadastrado!");
-				return "existe";
+				// Envia os dados para a rota de atualização
+				const response = await fetch(`/usuarios/${users[0].id_usuario}`, {
+					method: 'PUT',
+					headers: {
+						'Content-Type': 'application/json'
+					},
+					body: JSON.stringify({ nome_usuario: displayName, email: email })
+				});
+
+				if (response.ok) {
+					return { status: "atualizado" };
+				} else {
+					console.log("Erro ao atualizar usuário");
+					return { status: "erro" };
+				}
+
 			} else {
 				await createUserWithEmailAndPassword(email, password, displayName);
 
@@ -62,14 +77,13 @@ function FrmCadastroUsuario({ onEdit, setOnEdit, getUsuario, usuarios }) {
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
-
-		const tenant = user.tenant_code;
-		const nome = user.nome_usuario;
-		const queryParams = new URLSearchParams({ tenent_code: tenant , nome_usuario:nome}).toString();
-
+		const userData = JSON.parse(localStorage.getItem("user"));
+		const tenant = userData.tenant_code;
+		const nome = userData.nome_usuario;
+		const queryParams = new URLSearchParams({ tenant_code: tenant, nome_usuario: nome }).toString();
 		const form = ref.current;
 
-		const res = await signIn(email,  form.nome_usuario.value);
+		const res = await signIn(email, form.nome_usuario.value);
 
 		if (res === "existe") {
 			handleClear();
@@ -92,8 +106,9 @@ function FrmCadastroUsuario({ onEdit, setOnEdit, getUsuario, usuarios }) {
 				}
 
 				const url = onEdit
-					? `${connect}/usuarios/${onEdit.id_usuario}`
-					: `${connect}/usuarios?${queryParams}`
+					? `${connect}/usuarios/${onEdit.id_usuario}?${queryParams}`
+					: `${connect}/usuarios?${queryParams}`;
+
 
 				const method = onEdit ? 'PUT' : 'POST';
 

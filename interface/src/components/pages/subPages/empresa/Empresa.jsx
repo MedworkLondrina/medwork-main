@@ -66,7 +66,6 @@ function Empresa() {
 
   return (
     <div className="tab-content mb-10">
-
       {/* Popover */}
       <div className="flex w-full" onMouseLeave={() => setVisible(false)}>
         <div className="fixed z-50 m-2">

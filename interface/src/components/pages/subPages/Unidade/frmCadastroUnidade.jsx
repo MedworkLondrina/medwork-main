@@ -82,7 +82,7 @@ function FrmCadastroUnidade({ onEdit, setOnEdit, getUnidades, contact, company, 
       };
 
       const url = onEdit
-        ? `${connect}/unidades/${onEdit.id_unidade}`
+        ? `${connect}/unidades/${onEdit.id_unidade}?${queryParams}`
         : `${connect}/unidades?${queryParams}`
 
       const method = onEdit ? 'PUT' : 'POST';

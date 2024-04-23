@@ -11,6 +11,7 @@ function GridCadastroCargo({ cargos, setCargo, getCargo, setOnEdit, find, findUn
     const filterunidades = unidades.map((i) => i.id_unidade);
     const filtersetor = setor.filter((i) => filterunidades.includes(i.fk_unidade_id));
     const idSetores = filtersetor.map((i) => i.id_setor);
+    console.log(idSetores)
     setFilteredSetores(idSetores);
   }, [unidades, setor]);
 

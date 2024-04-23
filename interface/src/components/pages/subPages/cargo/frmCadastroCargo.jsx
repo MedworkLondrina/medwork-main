@@ -74,7 +74,7 @@ function FrmCadastroCargo({ onEdit, setOnEdit, getCargo, set, setor, unidades })
       }
 
       const url = onEdit
-        ? `${connect}/cargos/${onEdit.id_cargo}`
+        ? `${connect}/cargos/${onEdit.id_cargo}?${queryParams}`
         : `${connect}/cargos?${queryParams}`;
 
       const method = onEdit ? 'PUT' : 'POST';

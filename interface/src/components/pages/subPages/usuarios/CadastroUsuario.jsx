@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import useAuth from "../../../../hooks/useAuth";
-
 import FrmCadastroUsuario from './frmCadastroUsuario';
 import GridUsuarios from './gridUsuarios';
 import { Link } from "react-router-dom";

@@ -31,7 +31,10 @@ function CadastroMedidas({ onEdit, setOnEdit, get }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    const userData = JSON.parse(localStorage.getItem("user"));
+    const tenant = userData.tenant_code;
+    const nome = userData.nome_usuario;
+    const queryParams = new URLSearchParams({ tenant_code: tenant, nome_usuario:nome}).toString();
     const user = ref.current;
 
     // Verificando se todos os campos foram preenchidos
@@ -49,8 +52,8 @@ function CadastroMedidas({ onEdit, setOnEdit, get }) {
       };
 
       const url = onEdit
-        ? `${connect}/aparelhos/${onEdit.id_aparelho}`
-        : `${connect}/aparelhos`;
+        ? `${connect}/aparelhos/${onEdit.id_aparelho}?${queryParams}`
+        : `${connect}/aparelhos?${queryParams}`;
 
       const method = onEdit ? 'PUT' : 'POST';
 
