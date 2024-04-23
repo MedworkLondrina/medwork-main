@@ -19,7 +19,7 @@ function Navbar() {
     checkSignIn,
     clearUser,
     getUsuarios, usuarios,
-    getEmpresas, empresas,
+    fetchEmpresas, empresas,
     getContatos, contatos,
     getUnidades, unidades,
   } = useAuth();
@@ -71,13 +71,14 @@ function Navbar() {
 
   const handleSetProfile = () => {
     if (companyId) {
-      getEmpresas();
+      fetchEmpresas();
       getUnidades();
       getUsuarios();
       getContatos();
     }
 
     try {
+      console.log(empresas)
       const companyInfo = empresas.find((i) => i.id_empresa === companyId);
 
       if (companyInfo) {

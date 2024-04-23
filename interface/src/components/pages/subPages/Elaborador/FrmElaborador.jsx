@@ -26,6 +26,10 @@ function FrmElaboador({ onEdit, setOnEdit, getTable }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const userData = JSON.parse(localStorage.getItem("user"));
+    const tenant = userData.tenant_code;
+    const nome = userData.nome_usuario;
+    const queryParams = new URLSearchParams({ tenant_code: tenant, nome_usuario: nome }).toString();
     try {
 
       if (!nome || !cpf || !email || !telefone || !cargo || !registro) {
@@ -42,8 +46,10 @@ function FrmElaboador({ onEdit, setOnEdit, getTable }) {
       };
 
       const url = onEdit
-        ? `${connect}/elaboradores/${onEdit.id_elaborador}?idFieldName=id_elaborador`
-        : `${connect}/elaboradores`;
+        ? `${connect}/elaboradores/${onEdit.id_elaborador}?${queryParams}&idFieldName=id_elaborador`
+        : `${connect}/elaboradores?${queryParams}`;
+
+
 
       const method = onEdit ? 'PUT' : 'POST';
 

@@ -224,6 +224,8 @@ router.post("/unidades", (req, res) => {
 //Update row in table
 router.put("/unidades/:id_unidade", (req, res) => {
   const id_unidade = req.params.id_unidade; // Obtém o ID da empresa da URL
+  const nome = req.query.nome_usuario
+  const tenant = req.query.tenant_code
   const {
     nome_unidade,
     cnpj_unidade,
@@ -277,6 +279,7 @@ router.put("/unidades/:id_unidade", (req, res) => {
         console.error("Erro ao atualizar unidade na tabela", err);
         return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
       }
+      registrarLog('unidades', 'put', `Alterou Unidade`, `${nome}`, tenant, new Date());
 
       return res.status(200).json("Unidade atualizada com sucesso!");
     });
@@ -352,6 +355,8 @@ router.post("/setores", (req, res) => {
 //Update row in table
 router.put("/setores/:id_setor", (req, res) => {
   const id_setor = req.params.id_setor; // Obtém o ID da empresa da URL
+  const nome = req.query.nome_usuario
+  const tenant = req.query.tenant_code
   const { nome_setor, ambiente_setor, observacao_setor, fk_unidade_id } = req.body;
 
   const q = `
@@ -379,6 +384,7 @@ router.put("/setores/:id_setor", (req, res) => {
         console.error("Erro ao atualizar setor na tabela", err);
         return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
       }
+      registrarLog('setores', 'put', `Alterou Setor`, `${nome}`, tenant, new Date());
 
       return res.status(200).json("Setor atualizada com sucesso!");
     });
@@ -418,6 +424,7 @@ router.put("/setores/activate/:id_setor", (req, res) => {
 //Get table
 router.get("/cargos", (req, res) => {
   const queryParams = req.query.companyId;
+  
 
   getCargosFromCompany(queryParams)
     .then(data => {
@@ -457,6 +464,8 @@ router.post("/cargos", (req, res) => {
 //Update row in table
 router.put("/cargos/:id_cargo", (req, res) => {
   const id_cargo = req.params.id_cargo; // Obtém o ID da empresa da URL
+  const nome = req.query.nome_usuario
+  const tenant = req.query.tenant_code
   const { nome_cargo, descricao, func_masc, func_fem, func_menor, fk_setor_id } = req.body;
 
   const q = `
@@ -489,6 +498,7 @@ router.put("/cargos/:id_cargo", (req, res) => {
         console.error("Erro ao atualizar cargo na tabela", err);
         return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
       }
+      registrarLog('cargos', 'put', `Alterou Cargo`, `${nome}`, tenant, new Date());
 
       return res.status(200).json("Cargo atualizada com sucesso!");
     });
@@ -1265,6 +1275,8 @@ router.get("/usuarios", (req, res) => {
 //Add rows in table
 router.post("/usuarios", (req, res) => {
   const data = req.body;
+  const nome = req.query.nome_usuario
+  const tenant = req.query.tenant_code
 
   const q = "INSERT INTO usuarios SET ?"
 
@@ -1276,6 +1288,7 @@ router.post("/usuarios", (req, res) => {
         console.error("Erro ao inserir usuário na tabela", err);
         return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
       }
+      registrarLog('usuarios', 'create', `Cadastrou Usuario`, `${nome}`, tenant, new Date());
 
       return res.status(200).json(`Usuário cadastrado com sucesso!`);
     });
@@ -1287,26 +1300,28 @@ router.post("/usuarios", (req, res) => {
 //Update row int table
 router.put("/usuarios/:id_usuario", (req, res) => {
   const id_usuario = req.params.id_usuario;
-  const { nome_usuario, cpf_usuario, email, password, tipo, fk_tenant_code } = req.body;
+  const tenant = req.query.tenant_code;
+  const nome = req.query.nome_usuario
+
+  const { nome_usuario, cpf_usuario, email, tipo, fk_tenant_code } = req.body;
 
   const q = `
     UPDATE usuarios
     SET nome_usuario = ?,
     cpf_usuario = ?,
     email = ?,
-    password = ?,
     tipo = ?,
-    fk_tenant_code,
+    fk_tenant_code = ?
     WHERE id_usuario = ?
-    `;
+  `;
 
+  // Verifica se tenant está definido para atribuir o valor de fk_tenant_code
   const values = [
     nome_usuario,
     cpf_usuario,
     email,
-    password,
     tipo,
-    fk_tenant_code,
+    tenant ? tenant : fk_tenant_code, // atribui tenant a fk_tenant_code se tenant estiver definido
     id_usuario
   ];
 
@@ -1318,13 +1333,15 @@ router.put("/usuarios/:id_usuario", (req, res) => {
         console.error("Erro ao atualizar usuário na tabela", err);
         return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
       }
+      registrarLog('usuarios', 'put', `Alterou Usuario`, `${nome}`, tenant, new Date());
 
       return res.status(200).json("Usuário atualizado com sucesso!");
     });
 
     con.release();
-  })
+  });
 });
+
 
 
 
@@ -1345,7 +1362,8 @@ router.get("/aparelhos", (req, res) => {
 //Add rows in table
 router.post("/aparelhos", (req, res) => {
   const data = req.body;
-
+  const tenant = req.query.tenant_code;
+  const nome = req.query.nome_usuario
   const q = "INSERT INTO aparelhos SET ?"
 
   pool.getConnection((err, con) => {
@@ -1357,6 +1375,7 @@ router.post("/aparelhos", (req, res) => {
         console.error("Erro ao inserir aparelho na tabela", err);
         return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
       }
+      registrarLog('aparelhos', 'create', `Criou Aparelho`, `${nome}`, tenant, new Date());
 
       return res.status(200).json(`Aparelho cadastrado com sucesso!`);
     })
@@ -1368,6 +1387,8 @@ router.post("/aparelhos", (req, res) => {
 router.put("/aparelhos/:id_aparelho", (req, res) => {
   const id_aparelho = req.params.id_aparelho; // Obtém o ID da empresa da URL
   const { nome_aparelho, marca_aparelho, modelo_aparelho, data_calibracao_aparelho } = req.body;
+  const tenant = req.query.tenant_code;
+  const nome = req.query.nome_usuario
 
   const q = `
     UPDATE aparelhos
@@ -1394,6 +1415,7 @@ router.put("/aparelhos/:id_aparelho", (req, res) => {
         console.error("Erro ao atualizar aparelho na tabela", err);
         return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
       }
+      registrarLog('aparelhos', 'put', `Alterou Aparelho`, `${nome}`, tenant, new Date());
 
       return res.status(200).json("Aparelho atualizado com sucesso!");
     });
@@ -2141,6 +2163,8 @@ router.route('/:table')
   .post(async (req, res) => {
     const table = req.params.table;
     const data = req.body;
+    const nome = req.query.nome_usuario
+    const tenant = req.query.tenant_code
 
     const q = `INSERT INTO ${table} SET ?`
 
@@ -2152,6 +2176,7 @@ router.route('/:table')
           console.error(`Erro ao registrar dado na tabela ${table}. Status: ${err}`);
           return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
         }
+        registrarLog('elaboradores', 'create', `Cadastrou Elaborador`, `${nome}`, tenant, new Date());
 
         return res.status(200).json(`Registro concluido com sucesso!`)
       });
@@ -2164,6 +2189,8 @@ router.put("/:table/:id", (req, res) => {
   const table = req.params.table;
   const idName = req.query.idFieldName || 'id';
   const id = req.params.id;
+  const nome = req.query.nome_usuario
+  const tenant = req.query.tenant_code
 
   const columns = Object.keys(req.body);
   const values = Object.values(req.body);
@@ -2188,6 +2215,7 @@ router.put("/:table/:id", (req, res) => {
         console.error(`Erro ao atualizar registro na tabela ${table}:`, err);
         return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
       }
+      registrarLog('elaboradores', 'put', `Alterou Elaborador`, `${nome}`, tenant, new Date());
 
       return res.status(200).json(`${table} atualizado com sucesso!`);
     });
@@ -2200,8 +2228,10 @@ export default router;
 router.get("/elaboradores", (req, res) => {
   const queryParams = req.query.tenent_code;
 
+
   getElaboradoresfromTenant(queryParams)
     .then(data => {
+
       return res.status(200).json(data);
     })
     .catch(error => {

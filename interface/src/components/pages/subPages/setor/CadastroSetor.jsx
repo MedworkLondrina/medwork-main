@@ -33,6 +33,7 @@ function CadastroSetor({ }) {
 
 	const get = async () => {
 		const sectors = await fetchSetores();
+		console.log(sectors)
 		setSetores(sectors);
 		const units = await fetchUnidades();
 		setUnidades(units);
