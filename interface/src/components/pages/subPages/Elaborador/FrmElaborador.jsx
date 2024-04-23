@@ -43,6 +43,7 @@ function FrmElaboador({ onEdit, setOnEdit, getTable }) {
         telefone_elaborador: telefone,
         cargo_elaborador: cargo,
         registro_elaborador: registro,
+        fk_tenant_code: tenant,
       };
 
       const url = onEdit
