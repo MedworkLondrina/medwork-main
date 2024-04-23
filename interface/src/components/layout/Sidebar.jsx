@@ -535,7 +535,7 @@ function Sidebar() {
                         <>
                           <ul className="space-y-2 font-medium cursor-pointer">
                             {/* Usuarios */}
-                            <Link to="/cadastro_usuaio" onClick={() => setShowMenu(!showMenu)}>
+                            <Link to="/cadastro_usuario" onClick={() => setShowMenu(!showMenu)}>
                               <li className="hover:bg-sky-100">
                                 <div className={`flex items-center py-2 px-6`}>
                                   <img src={icon_usuario} alt="icon_usuario" />

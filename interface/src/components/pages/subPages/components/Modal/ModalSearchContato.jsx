@@ -1,9 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import SearchInput from '../SearchInput';
 
+import Contato from '../../contato/CadastroContato';
+import FrmContato from '../../contato/frmCadastroContato';
+import GridContato from '../../contato/gridCadastroContato';
+
 const ModalSearchEmpresa = ({ onCancel, isOpen, children, onContactSelect }) => {
 
   const [searchTerm, setSearchTerm] = useState('');
+  const [showFormularioContato, setShowFormularioContato] = useState(false);
 
   useEffect(() => {
     if (!isOpen) {
@@ -13,7 +18,11 @@ const ModalSearchEmpresa = ({ onCancel, isOpen, children, onContactSelect }) => 
 
   if (!isOpen) {
     return null;
-  }
+  };
+
+  const showFormulario = () => {
+    setShowFormularioContato(!showFormularioContato);
+  };
 
   const handleSearch = (term) => {
     setSearchTerm(term);
@@ -39,43 +48,59 @@ const ModalSearchEmpresa = ({ onCancel, isOpen, children, onContactSelect }) => 
         <div className='border-b border-gray-200'></div>
         <div className='flex justify-center items-center py-2'>
           <p className='text-sm text-gray-500 text-center'>
-            Selecione um Contato para ser o responsável pela Empresa
+            Selecione um Contato para ser o responsável pela Empresa, caso não encontre na lista, adicione um contato clicando no botao abaixo.
           </p>
         </div>
-        <div className="flex justify-center w-full mt-4 mb-4">
-          <div className="w-5/6 flex gap-4">
-            <SearchInput onSearch={handleSearch} placeholder="Buscar Contato..." />
+        <div className='w-full'>
+          <div className='flex justify-end'>
+            <button
+              type="button"
+              className="text-white bg-blue-700 hover:bg-blue-800 rounded text-sm px-4 py-2 font-medium"
+              onClick={showFormulario}>
+              Cadastrar Contato
+            </button>
           </div>
         </div>
-        <ul className='space-y-3 py-3'>
-          {children
-            .filter((contato) =>
-              contato.nome_contato.toLowerCase().includes(searchTerm.toLowerCase()) ||
-              contato.email_contato.toLowerCase().includes(searchTerm.toLowerCase()) ||
-              contato.telefone_contato.toLowerCase().includes(searchTerm.toLowerCase())
-            )
-            .map((contato, i) => (
-              <li
-                key={i}
-                className="py-3 hover:bg-gray-100 hover:shadow-sm shadow-sm bg-gray-50 cursor-pointer px-4 rounded-md"
-                onClick={() => onContactSelect(contato.id_contato, contato.nome_contato)}
-              >
-                <div className="flex items-center gap-12">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-700">
-                      {contato.nome_contato}
-                    </p>
-                    <p className="text-sm text-gray-500 truncate">
-                      {contato.email_contato}
-                    </p>
-                  </div>
-                  <div className="inline-flex items-center text-base font-semibold text-gray-900">
-                    {contato.telefone_contato}
-                  </div>
-                </div>
-              </li>
-            ))}
-        </ul>
+        {showFormularioContato ? (
+          <FrmContato />
+        ) : (
+          <>
+            <div className="flex justify-center w-full mt-4 mb-4">
+              <div className="w-5/6 flex gap-4">
+                <SearchInput onSearch={handleSearch} placeholder="Buscar Contato..." />
+              </div>
+            </div>
+            <ul className='space-y-3 py-3'>
+              {children && children
+                .filter((contato) =>
+                  contato.nome_contato.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                  contato.email_contato.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                  contato.telefone_contato.toLowerCase().includes(searchTerm.toLowerCase())
+                )
+                .map((contato, i) => (
+                  <li
+                    key={i}
+                    className="py-3 hover:bg-gray-100 hover:shadow-sm shadow-sm bg-gray-50 cursor-pointer px-4 rounded-md"
+                    onClick={() => onContactSelect(contato.id_contato, contato.nome_contato)}
+                  >
+                    <div className="flex items-center gap-12">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-700">
+                          {contato.nome_contato}
+                        </p>
+                        <p className="text-sm text-gray-500 truncate">
+                          {contato.email_contato}
+                        </p>
+                      </div>
+                      <div className="inline-flex items-center text-base font-semibold text-gray-900">
+                        {contato.telefone_contato}
+                      </div>
+                    </div>
+                  </li>
+                ))}
+            </ul>
+          </>
+        )}
       </div>
     </div>
   );

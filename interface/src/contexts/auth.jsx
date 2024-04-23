@@ -83,17 +83,15 @@ export const AuthProvider = ({ children }) => {
     try {
       const code = await checkTenantCode();
       if (!code) return;
-      const queryParams = new URLSearchParams({ tenent_code: code }).toString();
 
+      const queryParams = new URLSearchParams({ tenent_code: code }).toString();
       const response = await fetch(`${connect}/empresas?${queryParams}`)
-      console.log(`${connect}/empresas?${queryParams}`)
 
       if (!response.ok) {
         throw new Error(`Erro ao buscar os dados da empresa! Status: ${response.status}`)
       }
 
       const data = await response.json();
-
       return data;
     } catch (error) {
       console.error(`Erro ao buscar os dados da empresa! Status: ${error}`)
@@ -102,13 +100,7 @@ export const AuthProvider = ({ children }) => {
 
   const getContatos = async () => {
     try {
-      const idCompany = await loadSelectedCompanyFromLocalStorage();
-      if (!idCompany) throw new Error('Company not found');
-      const companyId = idCompany.id_empresa;
-
-      const queryParams = new URLSearchParams({ companyId: companyId }).toString();
-
-      const response = await fetch(`${connect}/contatos?${queryParams}`);
+      const response = await fetch(`${connect}/contatos`);
 
       if (!response.ok) {
         throw new Error(`Erro ao buscar contatos. Status: ${response.status}`)
@@ -129,6 +121,27 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const fetchContatos = async (idEmpresa) => {
+    try {
+      let idCompany;
+      if (idEmpresa) {
+        idCompany = idEmpresa
+      } else {
+        idCompany = await checkCompanyId();
+      }
+      if (!idCompany) return;
+
+      const queryParams = new URLSearchParams({ companyId: idCompany }).toString();
+
+      const response = await fetch(`${connect}/contatos?${queryParams}`);
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error(`Erro ao buscar contatos. ${error}`)
+    }
+  };
+
   const handleSelectedCompany = async (id, nameCompany) => {
     try {
       if (!id) {
@@ -143,26 +156,17 @@ export const AuthProvider = ({ children }) => {
           throw new Error(`Erro ao selecionar empresa! Status: ${response.status}`);
         }
 
-        const empresa = await response.json();
-
         const newSelectedCompany = {
           id_empresa: id,
           nome_empresa: nameCompany,
         };
 
-        // Define companyId no estado
         setCompanyId(newSelectedCompany.id_empresa);
 
-        // Adiciona as informações da empresa ao localStorage
         localStorage.removeItem('selectedCompanyData');
         localStorage.setItem('selectedCompanyData', JSON.stringify(newSelectedCompany));
 
         setSelectedCompany(newSelectedCompany);
-
-        await getUnidades();
-        await getSetores();
-        await getCargos();
-
         toast.success(`Empresa ${nameCompany} selecionada!`);
       } catch (error) {
         console.error(error);
@@ -196,7 +200,10 @@ export const AuthProvider = ({ children }) => {
 
   const fetchUnidades = async () => {
     try {
-      const queryParams = new URLSearchParams({ companyId: companyId }).toString();
+      const idCompany = await checkCompanyId();
+      if (!idCompany) throw new Error('Company not found');
+
+      const queryParams = new URLSearchParams({ companyId: idCompany }).toString();
 
       const response = await fetch(`${connect}/unidades?${queryParams}`);
 
@@ -236,7 +243,10 @@ export const AuthProvider = ({ children }) => {
 
   const fetchSetores = async () => {
     try {
-      const queryParams = new URLSearchParams({ companyId: companyId }).toString();
+      const idCompany = await checkCompanyId();
+      if (!idCompany) throw new Error('Company not found');
+
+      const queryParams = new URLSearchParams({ companyId: idCompany }).toString();
 
       const response = await fetch(`${connect}/setores?${queryParams}`);
 
@@ -276,7 +286,10 @@ export const AuthProvider = ({ children }) => {
 
   const fetchCargos = async () => {
     try {
-      const queryParams = new URLSearchParams({ companyId: companyId }).toString();
+      const idCompany = await checkCompanyId();
+      if (!idCompany) throw new Error('Company not found');
+
+      const queryParams = new URLSearchParams({ companyId: idCompany }).toString();
 
       const response = await fetch(`${connect}/cargos?${queryParams}`);
 
@@ -529,6 +542,10 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const fetchUsuarios = async () => {
+
+  }
+
   const getAparelhos = async () => {
     try {
       const code = user.tenant_code;
@@ -547,6 +564,10 @@ export const AuthProvider = ({ children }) => {
       console.error(`Erro ao buscar os dados da empresa! Status: ${error}`)
     }
   };
+
+  const fetchAparelhos = async () => {
+
+  }
 
   const getLaudoVersion = async () => {
     try {
@@ -578,6 +599,10 @@ export const AuthProvider = ({ children }) => {
       console.log(`Erro ao buscar conclusões. ${error}`);
     }
   };
+
+  const fetchConclusoes = async () => {
+
+  }
 
   const getTenant = async (tenant) => {
     try {
@@ -669,11 +694,23 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const checkCompanyId = async () => {
+    try {
+      const company = localStorage.getItem('selectedCompanyData');
+      if (!company) return null;
+      const companyData = JSON.parse(company);
+      const companyId = companyData.id_empresa;
+      return companyId;
+    } catch (error) {
+      console.log("Erro ao checar o tenant code!", error)
+    }
+  }
+
   const handleClearLocalStorageCompany = () => {
     localStorage.removeItem('selectedCompanyData');
   };
 
- 
+
 
   return (
     <AuthContext.Provider
@@ -749,6 +786,7 @@ export const AuthProvider = ({ children }) => {
         conclusoes,
         getTable,
         fetchEmpresas,
+        fetchContatos,
         fetchUnidades,
         fetchSetores,
         fetchCargos,

@@ -17,8 +17,8 @@ function FrmCadastroContato({ onEdit, setOnEdit, getContato }) {
   useEffect(() => {
     if (onEdit) {
       const user = ref.current;
-     
-  
+
+
       //Passando o dado do input para a props
       user.nome_contato.value = onEdit.nome_contato;
       user.telefone_contato.value = onEdit.telefone_contato;
@@ -34,7 +34,7 @@ function FrmCadastroContato({ onEdit, setOnEdit, getContato }) {
     const userData = JSON.parse(localStorage.getItem("user"));
     const tenant = userData.tenant_code;
     const nome = userData.nome_usuario;
-    const queryParams = new URLSearchParams({ tenant_code: tenant , nome_usuario:nome}).toString();
+    const queryParams = new URLSearchParams({ tenant_code: tenant, nome_usuario: nome }).toString();
 
     if (
       !user.nome_contato.value ||
@@ -146,10 +146,11 @@ function FrmCadastroContato({ onEdit, setOnEdit, getContato }) {
 
   return (
     <div className="flex justify-center">
-      <form className="w-full max-w-5xl" ref={ref} onSubmit={(e) => handleSubmit(e)}>
+      <form className="w-full" ref={ref} onSubmit={(e) => handleSubmit(e)}>
         <div className="flex flex-wrap -mx-3 mb-6">
 
-          <div className="w-full md:w-1/3 px-3">
+          {/* Nome */}
+          <div className="w-full md:w-1/2 px-3">
             <label className="tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="nome">
               Nome
             </label>
@@ -162,7 +163,8 @@ function FrmCadastroContato({ onEdit, setOnEdit, getContato }) {
             />
           </div>
 
-          <div className="w-full md:w-1/3 px-3">
+          {/* Telefone */}
+          <div className="w-full md:w-1/2 px-3">
             <label className="tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="telefone">
               Telefone
             </label>
@@ -177,7 +179,8 @@ function FrmCadastroContato({ onEdit, setOnEdit, getContato }) {
             />
           </div>
 
-          <div className="w-full md:w-1/3 px-3">
+          {/* Email */}
+          <div className="w-full md:w-1/2 px-3">
             <label className="tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="email">
               Email
             </label>
@@ -194,7 +197,8 @@ function FrmCadastroContato({ onEdit, setOnEdit, getContato }) {
             <p className={`${showMailError1 ? "text-xs font-medium text-red-600 px-1 mt-1" : "hidden"}`}>*Email Incompleto</p>
           </div>
 
-          <div className="w-full md:w-1/3 px-3">
+          {/* Email Secundario */}
+          <div className="w-full md:w-1/2 px-3">
             <label className="tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="email_sec">
               Email Secundário
             </label>
@@ -217,7 +221,7 @@ function FrmCadastroContato({ onEdit, setOnEdit, getContato }) {
                 Limpar
               </button>
             </div>
-            <div className="px-3 pl-8">
+            <div className="pl-8">
               <button className="shadow mt-4 bg-green-600 hover:bg-green-700 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded" type="submit">
                 Cadastrar
               </button>
