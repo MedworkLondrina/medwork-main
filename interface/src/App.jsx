@@ -40,7 +40,9 @@ function App() {
   return (
     <AuthProvider>
       <Router>
-        <Sidebar />
+        <div className='pt-16'>
+          <Sidebar />
+        </div>
 
         {/* Loading */}
         <LoadingScreen />

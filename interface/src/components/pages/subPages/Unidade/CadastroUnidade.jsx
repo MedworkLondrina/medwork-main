@@ -63,6 +63,7 @@ function CadastroUnidade() {
 
     if (selectUnidade.fk_empresa_id) {
       const companyInfo = empresas.find((c) => c.id_empresa === selectUnidade.fk_empresa_id)
+      console.log(companyInfo)
       if (companyInfo) {
         setCompanyName(companyInfo.nome_empresa)
       }
@@ -87,8 +88,8 @@ function CadastroUnidade() {
   return (
     <div className="tab-content mb-10">
 
-      <div className="flex w-full mt-6" onMouseLeave={() => setVisible(false)}>
-        <div className="fixed z-50 m-2 -mt-4">
+      <div className="flex w-full" onMouseLeave={() => setVisible(false)}>
+        <div className="fixed z-50 m-2">
           <div className={`bg-gray-700 rounded-lg px-6 py-2 ${visible ? 'block' : 'hidden'} text-white`}>
             <h2 className="font-bold text-xl mb-2 text-gray-100 mt-2">Página Cadastro Unidade</h2>
             <div>

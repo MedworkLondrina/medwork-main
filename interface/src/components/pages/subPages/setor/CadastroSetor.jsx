@@ -33,6 +33,7 @@ function CadastroSetor({ }) {
 
 	const get = async () => {
 		const sectors = await fetchSetores();
+		console.log(sectors)
 		setSetores(sectors);
 		const units = await fetchUnidades();
 		setUnidades(units);
@@ -71,8 +72,8 @@ function CadastroSetor({ }) {
 	return (
 		<div className="mb-10">
 
-			<div className="flex w-full mt-6" onMouseLeave={() => setVisible(false)}>
-				<div className="fixed z-50 m-2 -mt-4">
+			<div className="flex w-full" onMouseLeave={() => setVisible(false)}>
+				<div className="fixed z-50 m-2">
 					<div className={`bg-gray-700 rounded-lg px-6 py-2 ${visible ? 'block' : 'hidden'} text-white`}>
 						<h2 className="font-bold text-xl mb-2 text-gray-100 mt-2">Página Cadastro Setor</h2>
 						<div>

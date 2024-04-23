@@ -49,19 +49,12 @@ function FrmCadastroCargo({ onEdit, setOnEdit, getCargo, set, setor, unidades })
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-<<<<<<< HEAD
     const userData2 = JSON.parse(localStorage.getItem("selectedCompanyData"));
     const companyId = userData2.id_empresa;
     const userData = JSON.parse(localStorage.getItem("user"));
     const tenant = userData.tenant_code;
     const nome = userData.nome_usuario;
     const queryParams = new URLSearchParams({ tenant_code: tenant , nome_usuario:nome, companyId:companyId}).toString();
-=======
-    const userData = JSON.parse(localStorage.getItem("user"));
-    const tenant = userData.tenant_code;
-    const nome = userData.nome_usuario;
-    const queryParams = new URLSearchParams({ tenant_code: tenant , nome_usuario:nome}).toString();
->>>>>>> 94ea07c6a2333fd708f889c18b0d7b507e827f4c
     const user = ref.current;
 
     if (
@@ -81,7 +74,7 @@ function FrmCadastroCargo({ onEdit, setOnEdit, getCargo, set, setor, unidades })
       }
 
       const url = onEdit
-        ? `${connect}/cargos/${onEdit.id_cargo}`
+        ? `${connect}/cargos/${onEdit.id_cargo}?${queryParams}`
         : `${connect}/cargos?${queryParams}`;
 
       const method = onEdit ? 'PUT' : 'POST';
@@ -183,7 +176,7 @@ function FrmCadastroCargo({ onEdit, setOnEdit, getCargo, set, setor, unidades })
   }
 
   return (
-    <div className="flex justify-center mt-10">
+    <div className="flex justify-center">
       <form className="w-full max-w-5xl" ref={ref} onSubmit={handleSubmit}>
         <div className="flex flex-wrap -mx-3 mb-6">
           <div className="w-full md:w-2/5 px-3">

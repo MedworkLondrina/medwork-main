@@ -14,6 +14,7 @@ function getCargosFromCompany(company) {
                     reject(err);
                     return;
                 }
+                //console.log(data)
                 resolve(data);
             });
         });

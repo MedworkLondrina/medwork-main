@@ -47,7 +47,7 @@ function ProfileCompany({ companyId, empresas, contatos }) {
   useEffect(() => {
     filter();
     getUnidades();
-  }, [companyId]);
+  }, []);
 
   const handleSelectUnidade = async (item) => {
     try {
@@ -93,32 +93,26 @@ function ProfileCompany({ companyId, empresas, contatos }) {
 
         const setProc = await getSetoresProcessos();
         const proc = await getProcessos();
-        const procMap = setProc.map((i) => i.fk_processo_id);
+        const filterSetProc = setProc.filter((i) => i.fk_setor_id === sector.id_setor);
+        const procMap = filterSetProc.map((i) => i.fk_processo_id);
         const filteredProcessos = proc.filter((i) => procMap.includes(i.id_processo));
         setProcessosData(filteredProcessos);
 
         const procRisc = await getProcessosRiscos();
         const risc = await getRiscos();
-        const riscMap = procRisc.map((i) => i.fk_risco_id);
+        const mapProcFilter = filteredProcessos.map((i) => i.id_processo);
+        const filterProcRisco = procRisc.filter((i) => mapProcFilter.includes(i.fk_processo_id));
+        const riscMap = filterProcRisco.map((i) => i.fk_risco_id);
         const filteredRiscos = risc.filter((i) => riscMap.includes(i.id_risco));
         setRiscosData(filteredRiscos);
 
         const riscMed = await getRiscosMedidas();
         const med = await fetchMedidas('all');
-        const medMap = riscMed.map((i) => i.fk_medida_id);
+        const mapRiscFilter = filteredRiscos.map((i) => i.id_risco);
+        const filterRiscMed = riscMed.filter((i) => mapRiscFilter.includes(i.fk_risco_id));
+        const medMap = filterRiscMed.map((i) => i.fk_medida_id);
         const filteredMedidas = med.filter((i) => medMap.includes(i.id_medida));
         setMedidasData(filteredMedidas);
-
-        const updatedRiscosData = filteredRiscos.map((risco) => {
-          const riscosMedidasDoRisco = riscMed.filter((riscMed) => riscMed.fk_risco_id === risco.id_risco);
-          const medidasIDsDoRisco = riscosMedidasDoRisco.map((riscMed) => riscMed.fk_medida_id);
-          const medidasDoRisco = filteredMedidas.filter((medida) => medidasIDsDoRisco.includes(medida.id_medida));
-          return {
-            ...risco,
-            medidas: medidasDoRisco
-          };
-        });
-        setRiscosData(updatedRiscosData);
 
         setSelectedSetor(sector);
       } else {
@@ -303,9 +297,9 @@ function ProfileCompany({ companyId, empresas, contatos }) {
                                           <div className="border-b border-white mt-1"></div>
                                           <h3 className="text-white text-sm mt-2 mb-1">Medidas</h3>
                                           <ul className="space-y-4">
-                                            {risco.medidas && risco.medidas.length > 0 ? (
+                                            {medidasData && medidasData.length > 0 ? (
                                               <>
-                                                {risco.medidas.map((medida) => (
+                                                {medidasData.map((medida) => (
                                                   <li key={medida.id_medida}>
                                                     <div className="bg-gray-50 rounded p-1">
                                                       <div className="grid grid-cols-4 items-center">

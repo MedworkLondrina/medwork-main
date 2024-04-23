@@ -40,6 +40,9 @@ function FrmCadastroSetor({ onEdit, setOnEdit, getSetor, unidades, onCancel, uni
   //Função para adicionar ou atualizar dado
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const userData2 = JSON.parse(localStorage.getItem("selectedCompanyData"));
+    const empresa_id = userData2.id_empresa;
+    console.log(empresa_id)
     const userData = JSON.parse(localStorage.getItem("user"));
     const tenant = userData.tenant_code;
     const nome = userData.nome_usuario;
@@ -60,10 +63,11 @@ function FrmCadastroSetor({ onEdit, setOnEdit, getSetor, unidades, onCancel, uni
         observacao_setor: user.observacao_setor.value || null,
         ambiente_setor: user.ambiente_setor.value || null,
         ativo: 1,
+        fk_empresa_id: empresa_id
       };
 
       const url = onEdit
-        ? `${connect}/setores/${onEdit.id_setor || ''}`
+        ? `${connect}/setores/${onEdit.id_setor || ''}?${queryParams}`
         : `${connect}/setores?${queryParams}`;
 
       const method = onEdit ? 'PUT' : 'POST';
@@ -134,7 +138,7 @@ function FrmCadastroSetor({ onEdit, setOnEdit, getSetor, unidades, onCancel, uni
 
 
   return (
-    <div className="flex justify-center mt-10">
+    <div className="flex justify-center">
       <form className="w-full max-w-5xl" ref={ref} onSubmit={handleSubmit}>
         <div className="flex flex-wrap -mx-3 mb-6 p-3">
           <div className="w-full md:w-1/3 px-3">
