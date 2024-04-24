@@ -10,6 +10,7 @@ const ModalSearchCnae = ({ onCancel, isOpen, processoNome, onSelect }) => {
   const [cnae, setCnae] = useState([]);
   const [filteredCnae, setFilteredCnae] = useState([]);
   const [cnaeList, setCnaeList] = useState([]);
+  const [filterOption, setFilterOption] = useState('codigo');
 
   useEffect(() => {
     if (!isOpen) {
@@ -26,9 +27,39 @@ const ModalSearchCnae = ({ onCancel, isOpen, processoNome, onSelect }) => {
     get();
   }, [isOpen]);
 
+  // Função para pesquisa de CNAE
+  useEffect(() => {
+    const filtered = cnae.filter((item) => {
+      const normalizeString = (str) => str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase();
+      const normalizedSearchTerm = normalizeString(searchTerm);
+
+      const normalizedSubclasseCnae = normalizeString(item.subclasse_cnae);
+      const normalizedDescricaoCnae = normalizeString(item.descricao_cnae);
+
+      return (
+        normalizedSubclasseCnae.includes(normalizedSearchTerm) ||
+        normalizedDescricaoCnae.includes(normalizedSearchTerm)
+      );
+    });
+
+    setFilteredCnae(filtered);
+  }, [searchTerm, cnae]);
+
   const handleSearch = (term) => {
-    setSearchTerm(term);
+    let search;
+    if (filterOption === 'codigo') {
+      const numericOnly = term.replace(/\D/g, '');
+      if (numericOnly.length <= 5) {
+        search = numericOnly.replace(/(\d{4})(\d{1})/, '$1-$2');
+      } else {
+        search = numericOnly.replace(/(\d{4})(\d{1})(\d{2})/, '$1-$2/$3');
+      }
+    } else {
+      search = term
+    }
+    setSearchTerm(search);
   };
+
 
   const selectCnae = (item) => {
     const list = [...cnaeList, item];
@@ -56,20 +87,10 @@ const ModalSearchCnae = ({ onCancel, isOpen, processoNome, onSelect }) => {
     setCnae(updatedCnaeList);
   }, [cnaeList]);
 
-  useEffect(() => {
-    const filtered = cnae.filter((cnae) => {
-      const normalizeString = (str) => str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase()
-      const normalizedSearchTerm = normalizeString(searchTerm);
-
-      return (
-        normalizeString(cnae.subclasse_cnae).includes(normalizedSearchTerm) ||
-        normalizeString(cnae.descricao_cnae).includes(normalizedSearchTerm)
-      );
-    });
-
-    setFilteredCnae(filtered);
-  }, [searchTerm, cnae]);
-
+  const handleFilterOptionChange = (option) => {
+    setSearchTerm('');
+    setFilterOption(option);
+  };
 
   if (!isOpen) {
     return null;
@@ -141,17 +162,40 @@ const ModalSearchCnae = ({ onCancel, isOpen, processoNome, onSelect }) => {
         ) : (null)}
 
         {/* Search */}
-        <div className="flex justify-center w-full mt-2 mb-6">
-          <div className="w-5/6">
-            <SearchInput onSearch={handleSearch} placeholder="Buscar Cnae..." />
+        <div className='w-full mt-2 mb-6'>
+          <div className="flex justify-center w-full">
+            <div className="w-5/6">
+              <SearchInput onSearch={handleSearch} term={searchTerm} placeholder="Buscar Cnae..." />
+            </div>
           </div>
+
+          <div className='flex w-full justify-center mt-1'>
+            <div className='w-1/2 flex flex-col justify-center'>
+              <h3 className="text-sm font-medium text-gray-700">Filtros</h3>
+              <ul className="items-center w-full text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded sm:flex">
+                <li className={`w-full border-b border-gray-200 sm:border-b-0 sm:border-r cursor-pointer ${filterOption === 'codigo' ? 'bg-gray-100' : ''}`} onClick={() => handleFilterOptionChange('codigo')}>
+                  <div className="flex items-center py-2 px-2 gap-1 cursor-pointer">
+                    <input id="codigo" type="radio" value="codigo" name="list-radio" className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 cursor-pointer" checked={filterOption === 'codigo'} onChange={() => handleFilterOptionChange('codigo')} />
+                    <label htmlFor="codigo" className="w-full text-sm font-medium text-gray-900 cursor-pointer">Código</label>
+                  </div>
+                </li>
+                <li className={`w-full cursor-pointer ${filterOption === 'descricao' ? 'bg-gray-100' : ''}`} onClick={() => handleFilterOptionChange('descricao')}>
+                  <div className="flex items-center py-2 px-2 gap-1 cursor-pointer">
+                    <input id="descricao" type="radio" value="descricao" name="list-radio" className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 cursor-pointer" checked={filterOption === 'descricao'} onChange={() => handleFilterOptionChange('descricao')} />
+                    <label htmlFor="descricao" className="w-full text-sm font-medium text-gray-900 cursor-pointer">Descrição</label>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </div>
+
         </div>
 
         {/* Lista */}
-        {cnae ? (
+        {filteredCnae.length > 0 ? (
           <>
             <ul className='space-y-3'>
-              {cnae
+              {filteredCnae
                 .filter((item) =>
                   !cnaeList.some((selectedItem) => selectedItem.id_cnae === item.id_cnae)
                 )
@@ -184,7 +228,9 @@ const ModalSearchCnae = ({ onCancel, isOpen, processoNome, onSelect }) => {
           </>
         ) : (
           <>
-            <div>Carregando...</div>
+            <div className='flex w-full bg-gray-100 rounded px-4 py-2 justify-center'>
+              <p className='text-center text-sm text-gray-800'>Nenhum CNAE encontrado com o filtro: <span className='text-center text-sm font-semibold text-red-800'>{searchTerm}</span></p>
+            </div>
           </>
         )}
       </div>

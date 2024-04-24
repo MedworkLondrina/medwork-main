@@ -642,8 +642,6 @@ router.put("/contatos/activate/:id_contato", (req, res) => {
 //Get table
 router.get("/processos", (req, res) => {
   const q = `SELECT * FROM processos`;
-  const nome = req.query.nome_usuario
-  const tenant = req.query.tenant_code
   pool.getConnection((err, con) => {
     if (err) return next(err);
 
@@ -674,8 +672,9 @@ router.post("/processos", (req, res) => {
         return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
       }
       registrarLog('processos', 'create', `Cadastrou Processo`, `${nome}`, tenant, new Date());
+      const id = result.insertId;
 
-      return res.status(200).json(`Processo cadastrado com sucesso!`);
+      return res.status(200).json({ message: `Processo cadastrado com sucesso!`, id });
     });
 
     con.release();
@@ -755,10 +754,10 @@ router.post("/processo_cnae", (req, res) => {
       }
       registrarLog('processo_cnae', 'create', `vinculou CNAE ao processo`, `${nome}`, tenant, new Date());
 
+      con.release();
       return res.status(200).json(`Vinculo cadastrado com sucesso!`);
     });
 
-    con.release();
   })
 
 });
@@ -797,7 +796,6 @@ router.put("/processo_cnae/:id_processo_cnae", (req, res) => {
   })
 
 });
-
 
 
 

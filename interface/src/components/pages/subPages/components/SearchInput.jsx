@@ -1,9 +1,18 @@
-function SearchInput({ onSearch, placeholder }) {
+import { useEffect, useState } from "react";
+
+function SearchInput({ onSearch, placeholder, term }) {
+
+  const [searchTerm, setSearchTerm] = useState('');
 
   const handleInputChange = (e) => {
-    const searchTerm = e.target.value;
-    onSearch(searchTerm);
-  }
+    const term = e.target.value;
+    setSearchTerm(term);
+    onSearch(term);
+  };
+
+  useEffect(() => {
+    setSearchTerm(term);
+  }, [term]);
 
   return (
     <>
@@ -15,6 +24,7 @@ function SearchInput({ onSearch, placeholder }) {
           className="w-full p-4 ps-10 text-sm text-gray-900 rounded-full bg-gray-100 shadow-sm"
           placeholder={placeholder}
           onChange={handleInputChange}
+          value={searchTerm}
           required
         />
         <button

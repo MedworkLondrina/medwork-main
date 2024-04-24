@@ -5,7 +5,6 @@ import { connect } from "../../../../services/api";
 
 import ModalSearchCnae from "../components/Modal/ModalSearchCnae";
 import icon_lupa from '../../../media/icon_lupa.svg';
-import icon_sair from '../../../media/icon_sair.svg';
 
 function CadastroProcesso({ onEdit, getProcessos, setOnEdit, setSearchTerm, processos }) {
 
@@ -30,16 +29,15 @@ function CadastroProcesso({ onEdit, getProcessos, setOnEdit, setSearchTerm, proc
 
   }, [onEdit]);
 
-  const verifyProcessRegister = async (processo, ramo) => {
+  const verifyProcessRegister = async (processo) => {
     const normalizeString = (str) => str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase();
     getProcessos();
 
     try {
       const process = processos.filter((proc) => normalizeString(proc.nome_processo) === normalizeString(processo));
-      const procRam = process.filter((ram) => normalizeString(ram.ramo_trabalho) === normalizeString(ramo));
 
-      if (procRam.length > 0) {
-        return procRam;
+      if (process.length > 0) {
+        return process;
       }
     } catch (error) {
       console.error(`Erro ao verificar registro do processo ${processo}!`, error)
@@ -57,21 +55,19 @@ function CadastroProcesso({ onEdit, getProcessos, setOnEdit, setSearchTerm, proc
 
     //Verificandose todos os campos foram preenchidos
     if (
-      !user.nome_processo.value ||
-      !user.ramo_trabalho.value) {
+      !processo || selectedCnaes.length === 0) {
       return toast.warn("Preencha Todos os Campos!")
     }
     try {
 
-      const resVerify = await verifyProcessRegister(user.nome_processo.value, user.ramo_trabalho.value);
+      // const resVerify = await verifyProcessRegister(user.nome_processo.value);
 
-      if (resVerify) {
-        return toast.warn(`Já existem processos cadastrados com esse nome: ${user.nome_processo.value} nesse ramo: ${user.ramo_trabalho.value}`);
-      }
+      // if (resVerify) {
+      //   return toast.warn(`Já existem processos cadastrados com esse nome: ${user.nome_processo.value}!`);
+      // }
 
       const processoData = {
-        nome_processo: user.nome_processo.value || null,
-        ramo_trabalho: user.ramo_trabalho.value || null,
+        nome_processo: processo || null,
       };
 
       const url = onEdit
@@ -93,20 +89,41 @@ function CadastroProcesso({ onEdit, getProcessos, setOnEdit, setSearchTerm, proc
       }
 
       const responseData = await response.json();
+      const processoId = responseData.id;
 
-      toast.success(responseData);
+      toast.success("Processo cadastrado com sucesso!");
+
+      // Vincular os cnaes
+      for (const cnae of selectedCnaes) {
+        const cnaeData = {
+          fk_processo_id: processoId,
+          fk_cnae_id: cnae.id_cnae,
+        };
+
+        const cnaeResponse = await fetch(`${connect}/processo_cnae?${queryParams}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(cnaeData),
+        });
+
+        if (!cnaeResponse.ok) {
+          throw new Error(`Erro ao cadastrar cnae. Status: ${cnaeResponse.status}`);
+        }
+
+        toast.success(`Cnae ${cnae.subclasse_cnae} vinculado com sucesso!`);
+        //Limpa os campos e reseta o estaodo de edição
+        handleClear();
+
+        //Atualiza os dados
+        getProcessos();
+      }
     } catch (error) {
       toast.error("Erro ao cadastrar ou editar processo!")
       console.log("Erro ao cadastrar ou editar processo: ", error);
     }
 
-    //Limpa os campos e reseta o estaodo de edição
-    user.nome_processo.value = "";
-    user.ramo_trabalho.value = "";
-    setOnEdit(null);
-    setSearchTerm('');
-    //Atualiza os dados
-    getProcessos();
   };
 
   //Função para limpar o formulário
@@ -123,19 +140,14 @@ function CadastroProcesso({ onEdit, getProcessos, setOnEdit, setSearchTerm, proc
     if (!term) {
       setSearchTerm('');
     }
-    setSearchTerm(term)
+    setSearchTerm(term);
   };
 
   const openModal = () => setShowModal(true);
   const closeModal = () => setShowModal(false);
 
   const onSelectedCnaes = (cnaes) => {
-    console.log(cnaes);
     setSelectedCnaes(cnaes);
-  };
-
-  const handleClearCnae = () => {
-    setSelectedCnaes([]);
   };
 
   return (
@@ -155,6 +167,7 @@ function CadastroProcesso({ onEdit, getProcessos, setOnEdit, setSearchTerm, proc
                 name="nome_processo"
                 placeholder="Nome do Processo"
                 onChange={handleSearchProcesso}
+                value={processo}
               />
             </div>
             {/* Cnae */}

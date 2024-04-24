@@ -44,8 +44,7 @@ function Processos() {
       const normalizedSearchTerm = normalizeString(searchTerm);
 
       return (
-        normalizeString(proc.nome_processo).includes(normalizedSearchTerm) ||
-        normalizeString(proc.ramo_trabalho).includes(normalizedSearchTerm)
+        normalizeString(proc.nome_processo).includes(normalizedSearchTerm)
       );
     });
 
@@ -70,7 +69,7 @@ function Processos() {
                 A página de cadastro de processo foi meticulosamente desenvolvida para oferecer uma maneira eficaz de registrar e gerenciar informações essenciais sobre os processos.
               </p>
               <p className="mb-2 text-justify font-light text-gray-300 flex">
-                No canto superior esquerdo da tela, um botão estrategicamente posicionado permite um retorno rápido à página principal de cadastros, garantindo uma navegação fluida e direta. No centro da tela, um formulário claro e de fácil compreensão está disponível para o cadastro do processo. Esse formulário segue o mesmo padrão intuitivo das demais páginas, tornando a inserção e modificação de dados uma tarefa simples, no campo de ramo de trabalho, deve ser inserido qual o ramo da atividade desenvolvida nesse processo por exemplo, um processo de limpeza de peças automotivas e desenvolvida no ramo de trabalho automotivo. Abaixo do formulário, implementamos um campo de pesquisa para facilitar a localização rápida de processos específicos, proporcionando uma experiência eficiente ao usuário. Complementando a página, uma tabela organizada exibe os dados dos processos, incluindo informações relevantes como nome e ramo de trabalho. Nessa tabela, são apresentados dois botões distintos para cada processo: um ícone de lápis para edição e um botão de vinculação para associar riscos ao processo selecionado. Ao clicar no botão de vinculação, os usuários podem abrir um modal dedicado para vincular riscos específicos ao processo, permitindo uma gestão integrada e eficaz dessas informações.
+                No canto superior esquerdo da tela, um botão estrategicamente posicionado permite um retorno rápido à página principal de cadastros, garantindo uma navegação fluida e direta. No centro da tela, um formulário claro e de fácil compreensão está disponível para o cadastro do processo. Esse formulário segue o mesmo padrão intuitivo das demais páginas, tornando a inserção e modificação de dados uma tarefa simples. Abaixo do formulário, implementamos um campo de pesquisa para facilitar a localização rápida de processos específicos, proporcionando uma experiência eficiente ao usuário. Complementando a página, uma tabela organizada exibe os dados dos processos. Nessa tabela, são apresentados dois botões distintos para cada processo: um ícone de lápis para edição e um botão de vinculação para associar riscos ao processo selecionado. Ao clicar no botão de vinculação, os usuários podem abrir um modal dedicado para vincular riscos específicos ao processo, permitindo uma gestão integrada e eficaz dessas informações.
               </p>
               <p className="mb-2 text-justify font-light text-gray-300 flex">
                 Essa abordagem visa oferecer uma página de cadastro de processos que atenda às necessidades dos usuários, proporcionando uma experiência intuitiva e eficiente na organização e gestão das informações relacionadas aos processos de trabalho.
