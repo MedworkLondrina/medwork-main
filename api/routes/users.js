@@ -642,8 +642,7 @@ router.put("/contatos/activate/:id_contato", (req, res) => {
 //Get table
 router.get("/processos", (req, res) => {
   const q = `SELECT * FROM processos`;
-  const nome = req.query.nome_usuario
-  const tenant = req.query.tenant_code
+  
   pool.getConnection((err, con) => {
     if (err) return next(err);
 
@@ -686,6 +685,8 @@ router.post("/processos", (req, res) => {
 //Update row int table
 router.put("/processos/:id_processo", (req, res) => {
   const id_processo = req.params.id_processo;
+  const nome = req.query.nome_usuario
+  const tenant = req.query.tenant_code
   const { nome_processo, ramo_trabalho } = req.body;
 
   const q = `
@@ -709,6 +710,7 @@ router.put("/processos/:id_processo", (req, res) => {
         console.error("Erro ao atualizar processo na tabela", err);
         return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
       }
+      registrarLog('processos', 'put', `Alterou Processo`, `${nome}`, tenant, new Date());
 
       return res.status(200).json("Processo atualizado com sucesso!");
     });
@@ -767,6 +769,8 @@ router.post("/riscos", (req, res) => {
 
 //Update row int table
 router.put("/riscos/:id_risco", (req, res) => {
+  const nome = req.query.nome_usuario
+  const tenant = req.query.tenant_code
   const id_risco = req.params.id_risco;
   const {
     nome_risco,
@@ -830,6 +834,8 @@ router.put("/riscos/:id_risco", (req, res) => {
         console.error("Erro ao atualizar risco na tabela", err);
         return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
       }
+      registrarLog('riscos', 'put', `Alterou Risco`, `${nome}`, tenant, new Date());
+
       return res.status(200).json({ message: `Risco cadastrado com sucesso!` });
     });
 
@@ -1148,6 +1154,8 @@ router.post("/medidas_adm", (req, res) => {
 });
 
 router.put("/medidas_adm/:id_medida_adm", (req, res) => {
+  const nome = req.query.nome_usuario
+  const tenant = req.query.tenant_code
   const id_medida_adm = req.params.id_medida_adm;
   const {
     descricao_medida_adm,
@@ -1168,6 +1176,7 @@ router.put("/medidas_adm/:id_medida_adm", (req, res) => {
         console.error("Erro ao atualizar medida na tabela", err);
         return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
       }
+      registrarLog('medidas', 'put', `Alterou Medida`, `${nome}`, tenant, new Date());
 
       return res.status(200).json("Medida atualizado com sucesso!");
     });

@@ -70,7 +70,7 @@ function CadastroProcesso({ onEdit, getProcessos, setOnEdit, setSearchTerm, proc
       };
 
       const url = onEdit
-        ? `${connect}/processos/${onEdit.id_processo}`
+        ? `${connect}/processos/${onEdit.id_processo}?${queryParams}`
         : `${connect}/processos?${queryParams}`
 
       const method = onEdit ? 'PUT' : 'POST'
