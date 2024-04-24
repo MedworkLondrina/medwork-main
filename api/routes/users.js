@@ -720,6 +720,107 @@ router.put("/processos/:id_processo", (req, res) => {
 
 
 
+//Tabela Processos
+//Get table
+router.get("/processo_cnae", (req, res) => {
+  const q = `SELECT * FROM processo_cnae`;
+  pool.getConnection((err, con) => {
+    if (err) return next(err);
+
+    con.query(q, (err, data) => {
+      if (err) return res.status(500).json(err);
+
+      return res.status(200).json(data);
+    });
+
+    con.release();
+  })
+
+});
+
+//Add rows in table
+router.post("/processo_cnae", (req, res) => {
+  const data = req.body;
+  const nome = req.query.nome_usuario
+  const tenant = req.query.tenant_code
+  const q = "INSERT INTO processo_cnae SET ?"
+
+  pool.getConnection((err, con) => {
+    if (err) return next(err);
+
+    con.query(q, data, (err, result) => {
+      if (err) {
+        console.error("Erro ao vincular cnae no processo", err);
+        return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
+      }
+      registrarLog('processo_cnae', 'create', `vinculou CNAE ao processo`, `${nome}`, tenant, new Date());
+
+      return res.status(200).json(`Vinculo cadastrado com sucesso!`);
+    });
+
+    con.release();
+  })
+
+});
+
+//Update row int table
+router.put("/processo_cnae/:id_processo_cnae", (req, res) => {
+  const id_processo_cnae = req.params.id_processo_cnae;
+  const { fk_processo_id, fk_cnae_id } = req.body;
+
+  const q = `
+    UPDATE processos
+    SET fk_processo_id = ?,
+    fk_cnae_id = ?
+    WHERE id_processo_cnae = ?
+    `;
+
+  const values = [
+    fk_processo_id,
+    fk_cnae_id,
+    id_processo_cnae
+  ];
+
+  pool.getConnection((err, con) => {
+    if (err) return next(err);
+
+    con.query(q, values, (err) => {
+      if (err) {
+        console.error("Erro ao atualizar vinculo de cnae no processo", err);
+        return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
+      }
+
+      return res.status(200).json("Vinculo atualizado com sucesso!");
+    });
+
+    con.release();
+  })
+
+});
+
+
+
+
+//Tabela Processos
+//Get table
+router.get("/cnae", (req, res) => {
+  const q = `SELECT * FROM cnae`;
+  pool.getConnection((err, con) => {
+    if (err) return next(err);
+
+    con.query(q, (err, data) => {
+      if (err) return res.status(500).json(err);
+
+      return res.status(200).json(data);
+    });
+
+    con.release();
+  })
+
+});
+
+
+
 //Tabela Riscos
 //Get table
 router.get("/riscos", (req, res) => {

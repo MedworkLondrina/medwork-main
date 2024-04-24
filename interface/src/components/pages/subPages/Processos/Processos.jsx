@@ -12,20 +12,25 @@ function Processos() {
 
   const [onEdit, setOnEdit] = useState(null);
 
-  const { processos, setProcessos, getProcessos, handleSetCompanyId, companyId } = useAuth(null);
+  const { getProcessos, handleSetCompanyId, companyId } = useAuth(null);
 
   //Instanciando o Search
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredProcessos, setFilteredProcessos] = useState([]);
   const [visible, setVisible] = useState(false);
+  const [processos, setProcessos] = useState([]);
 
   useEffect(() => {
     handleSetCompanyId();
   }, [])
 
+  const get = async () => {
+    const proc = await getProcessos();
+    setProcessos(proc);
+  };
 
   useEffect(() => {
-    getProcessos();
+    get();
   }, [companyId])
 
   const handleEdit = (selectedProcesso) => {
@@ -49,7 +54,6 @@ function Processos() {
 
 
   const handleSearch = (term) => {
-    // Atualizar o estado do termo de pesquisa com o valor fornecido
     setSearchTerm(term);
   }
 
@@ -98,7 +102,7 @@ function Processos() {
       <FrmProcessos
         onEdit={onEdit}
         setOnEdit={setOnEdit}
-        getProcessos={getProcessos}
+        getProcessos={get}
         setSearchTerm={setSearchTerm}
         processos={processos}
       />
