@@ -12,13 +12,15 @@ function Processos() {
 
   const [onEdit, setOnEdit] = useState(null);
 
-  const { getProcessos, handleSetCompanyId, companyId } = useAuth(null);
+  const { getProcessos, handleSetCompanyId, companyId, fetchProcessoCnae, fetchCnae } = useAuth(null);
 
   //Instanciando o Search
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredProcessos, setFilteredProcessos] = useState([]);
   const [visible, setVisible] = useState(false);
   const [processos, setProcessos] = useState([]);
+  const [processoCnae, setProcessoCnae] = useState([]);
+  const [cnae, setCnae] = useState([]);
 
   useEffect(() => {
     handleSetCompanyId();
@@ -27,6 +29,16 @@ function Processos() {
   const get = async () => {
     const proc = await getProcessos();
     setProcessos(proc);
+  };
+
+  const getProcessoCnaes = async () => {
+    const proc = await fetchProcessoCnae();
+    setProcessoCnae(proc);
+  };
+
+  const getCnae = async () => {
+    const cnae = await fetchCnae();
+    setCnae(cnae);
   };
 
   useEffect(() => {
@@ -104,6 +116,10 @@ function Processos() {
         getProcessos={get}
         setSearchTerm={setSearchTerm}
         processos={processos}
+        processoCnae={processoCnae}
+        getProcessoCnaes={fetchProcessoCnae}
+        getCnae={fetchCnae}
+        cnae={cnae}
       />
 
       {/* Barra de pesquisa */}

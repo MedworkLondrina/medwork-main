@@ -6,27 +6,34 @@ import { connect } from "../../../../services/api";
 import ModalSearchCnae from "../components/Modal/ModalSearchCnae";
 import icon_lupa from '../../../media/icon_lupa.svg';
 
-function CadastroProcesso({ onEdit, getProcessos, setOnEdit, setSearchTerm, processos }) {
+function CadastroProcesso({ onEdit, getProcessos, setOnEdit, setSearchTerm, processos, getProcessoCnaes, getCnae }) {
 
   //Instanciando as Variáveis
-  const ref = useRef(null); // Referência do formulario
+  const ref = useRef(null);
   const [processo, setProcesso] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [selectedCnaes, setSelectedCnaes] = useState([]);
+  const [processoCnae, setProcessoCnae] = useState([]);
+  const [cnae, setCnae] = useState([]);
+
+  const get = async () => {
+    const resProcessoCnae = await getProcessoCnaes();
+    setProcessoCnae(resProcessoCnae);
+    const resCnae = await getCnae();
+    setCnae(resCnae);
+  };
 
   // Colocando as informações do formulario nas variaveis
   useEffect(() => {
-    const user = ref.current;
-
+    get();
     if (onEdit) {
-      const { nome_processo, ramo_trabalho } = user;
-
-      nome_processo.value = onEdit.nome_processo || "";
-      ramo_trabalho.value = onEdit.ramo_trabalho || "";
-
+      setProcesso(onEdit.nome_processo || "");
+      const cnaes = processoCnae.filter((proc) => proc.fk_processo_id === onEdit.id_processo);
+      const mapCnae = cnaes.map((proc) => proc.fk_cnae_id);
+      const filterCnaes = cnae.filter((cnae) => mapCnae.includes(cnae.id_cnae));
+      setSelectedCnaes(filterCnaes);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-
   }, [onEdit]);
 
   const verifyProcessRegister = async (processo) => {
@@ -44,6 +51,10 @@ function CadastroProcesso({ onEdit, getProcessos, setOnEdit, setSearchTerm, proc
     }
   };
 
+  const verifyCnaeRegister = async (mapCnae) => {
+
+  }
+
   //Função para adicionar ou atualizar dados
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -51,7 +62,6 @@ function CadastroProcesso({ onEdit, getProcessos, setOnEdit, setSearchTerm, proc
     const tenant = userData.tenant_code;
     const nome = userData.nome_usuario;
     const queryParams = new URLSearchParams({ tenant_code: tenant, nome_usuario: nome }).toString();
-    const user = ref.current;
 
     //Verificandose todos os campos foram preenchidos
     if (
@@ -60,11 +70,15 @@ function CadastroProcesso({ onEdit, getProcessos, setOnEdit, setSearchTerm, proc
     }
     try {
 
-      // const resVerify = await verifyProcessRegister(user.nome_processo.value);
+      const resVerify = await verifyProcessRegister(processo);
 
-      // if (resVerify) {
-      //   return toast.warn(`Já existem processos cadastrados com esse nome: ${user.nome_processo.value}!`);
-      // }
+      if (resVerify) {
+        return toast.warn(`Já existem processos cadastrados com esse nome: ${processo}!`);
+      }
+
+
+      const mapCnae = selectedCnaes.map((proc) => proc.id_cnae);
+      const verifyCnaes = await verifyCnaeRegister(mapCnae);
 
       const processoData = {
         nome_processo: processo || null,
@@ -192,7 +206,7 @@ function CadastroProcesso({ onEdit, getProcessos, setOnEdit, setSearchTerm, proc
                         >
                           {selectedCnaes.map((item, i) => (
                             <>
-                              <div className="col-span-1 shadow-md rounded px-3 py-2">
+                              <div className="col-span-1 shadow border border-gray-100 rounded px-3 py-2">
                                 <div className='grid grid-cols-12'>
                                   <div className="col-span-11">
                                     <p className="font-bold text-left text-sky-700">
