@@ -480,6 +480,37 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const fetchProcessoCnae = async () => {
+    try {
+      const response = await fetch(`${connect}/processo_cnae`);
+
+      if (!response.ok) {
+        throw new Error(`Erro ao buscar vinculos entre processo e CNAE. Status: ${response.status}`)
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error(`Erro ao buscar vinculos entre processo e CNAE. ${error}`);
+    }
+  };
+
+  const fetchCnae = async () => {
+    try {
+      const response = await fetch(`${connect}/cnae`);
+
+      if (!response.ok) {
+        throw new Error(`Erro ao buscar CNAE. Status: ${response.status}`)
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error(`Erro ao buscar CNAE. ${error}`);
+    }
+  }
+
+
   const getPlano = async () => {
     try {
       const response = await fetch(`${connect}/plano`);
@@ -797,6 +828,8 @@ export const AuthProvider = ({ children }) => {
         fetchMedidas,
         loginUser,
         setLoginUser,
+        fetchCnae,
+        fetchProcessoCnae,
       }}>
       {children}
     </AuthContext.Provider>

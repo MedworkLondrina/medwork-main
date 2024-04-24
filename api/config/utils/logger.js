@@ -37,7 +37,7 @@ const mysqlTransport = new MySQLTransport({
          tenant_code_log: dataToInsert.tenantCode,
          data_log: dataToInsert.data
        };
-       console.log(adjustedData)
+       console.log("Ajuste data", adjustedData)
        connection.query(
          'INSERT INTO logs SET ?',
          adjustedData,
