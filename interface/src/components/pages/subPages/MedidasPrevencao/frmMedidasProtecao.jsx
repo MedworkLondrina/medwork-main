@@ -61,7 +61,7 @@ function CadastroMedidas({ onEdit, setOnEdit, get, medidas }) {
       };
 
       const url = onEdit
-        ? `${connect}/medidas_adm/${onEdit.id_medida_adm}`
+        ? `${connect}/medidas_adm/${onEdit.id_medida_adm}?${queryParams}`
         : `${connect}/medidas_adm?${queryParams}`;
 
       const method = onEdit ? 'PUT' : 'POST';

@@ -123,7 +123,7 @@ function CadastroRisco({ onEdit, setOnEdit, getRiscos, riscos }) {
       };
 
       const url = onEdit
-        ? `${connect}/riscos/${onEdit.id_risco}`
+        ? `${connect}/riscos/${onEdit.id_risco}?${queryParams}`
         : `${connect}/riscos?${queryParams}`
 
       const method = onEdit ? 'PUT' : 'POST';

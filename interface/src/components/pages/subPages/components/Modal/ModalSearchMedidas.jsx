@@ -1,10 +1,30 @@
 import React, { useEffect, useState } from 'react';
 import SearchInput from '../SearchInput';
+import useAuth from '../../../../../hooks/useAuth';
+
 
 const ModalSearchMedidas = ({ onCancel, isOpen, medidasAdm, medidasEpi, medidasEpc, onSelect }) => {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState(0);
+  const [medidas, setMedidas] = useState([]);
+  const {
+    fetchMedidas,
+    params
+  } = useAuth(null);
+
+  useEffect(() => {
+    const carregarMedidas = async (grupo) => {
+      try {
+        // Implemente a função fetchMedidas de acordo com sua lógica
+        const medidas = await fetchMedidas(grupo);
+        setMedidas(medidas);
+      } catch (error) {
+        console.error('Erro ao carregar medidas:', error);
+      }
+    };
+
+  }, []);
 
   useEffect(() => {
     if (!isOpen) {
@@ -19,25 +39,46 @@ const ModalSearchMedidas = ({ onCancel, isOpen, medidasAdm, medidasEpi, medidasE
   const handleSearch = (term) => {
     setSearchTerm(term);
   }
-
-  const handleTabClick = (index) => {
+  const determinarGrupoComBaseNoIndice = (index) => {
+    switch (index) {
+      case 1:
+        return 'MA';
+      case 2:
+        return 'MC';
+      case 3:
+        return 'MI';
+      case 4:
+        return 'TR';
+      case 5:
+        return 'IN';
+      default:
+        return 'all';
+    }
+  };
+  
+  const handleTabClick = async (index) => {
     setActiveTab(index);
-  }
+    try {
+      const grupo = determinarGrupoComBaseNoIndice(index); // Implemente esta função para determinar o grupo com base no índice da aba
+      const medidas = await fetchMedidas(grupo);
+      setMedidas(medidas);
+    } catch (error) {
+      console.error('Erro ao carregar medidas:', error);
+    }
+  };
 
   const renderContent = () => {
     switch (activeTab) {
       case 1:
         return (
           <ul className='space-y-3 py-3'>
-            {medidasAdm.filter((medida) =>
-              medida.descricao_medida_adm.toLowerCase().includes(searchTerm.toLowerCase())
-            )
+            {medidas
               .map((item, i) => (
                 <li
                   key={i}
                   className="py-3 hover:bg-gray-100 hover:shadow-sm shadow-sm bg-gray-50 cursor-pointer px-4 rounded-md"
                   onClick={() => {
-                    onSelect(item.id_medida_adm, 1);
+                    onSelect(item.id_medida, 1);
                     setActiveTab(0);
                   }}
                 >
@@ -45,10 +86,10 @@ const ModalSearchMedidas = ({ onCancel, isOpen, medidasAdm, medidasEpi, medidasE
                     <div className="flex-1 min-w-0">
                       <div className='flex justify-between font-medium text-gray-800'>
                         <p>
-                          {item.descricao_medida_adm}
+                          {item.descricao_medida}
                         </p>
                         <p>
-                          {item.id_medida_adm}
+                          {item.id_medida}
                         </p>
                       </div>
                     </div>
@@ -57,21 +98,45 @@ const ModalSearchMedidas = ({ onCancel, isOpen, medidasAdm, medidasEpi, medidasE
               ))}
           </ul>
         );
-      case 2:
+        case 2:
+        return (
+          <ul className='space-y-3 py-3'>
+            {medidas
+              .map((item, i) => (
+                <li
+                  key={i}
+                  className="py-3 hover:bg-gray-100 hover:shadow-sm shadow-sm bg-gray-50 cursor-pointer px-4 rounded-md"
+                  onClick={() => {
+                    onSelect(item.id_medida, 2);
+                    setActiveTab(0);
+                  }}
+                >
+                  <div className="flex items-center text-sm font-light text-gray-500">
+                    <div className="flex-1 min-w-0">
+                      <div className='flex justify-between font-medium text-gray-800'>
+                        <p>
+                          {item.descricao_medida}
+                        </p>
+                        <p>
+                          {item.id_medida}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </li>
+              ))}
+          </ul>
+        );      case 3:
         return (
           <>
             <ul className='space-y-3 py-3'>
-              {medidasEpi
-                .filter((medida) =>
-                  medida.nome_medida.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                  medida.certificado_medida.toString().toLowerCase().includes(searchTerm.toLowerCase())
-                )
+              {medidas
                 .map((item, i) => (
                   <li
                     key={i}
                     className="py-3 hover:bg-gray-100 hover:shadow-sm shadow-sm bg-gray-50 cursor-pointer px-4 rounded-md"
                     onClick={() => {
-                      onSelect(item.id_medida, 2);
+                      onSelect(item.id_medida,3);
                       setActiveTab(0);
                     }}
                   >
@@ -79,7 +144,7 @@ const ModalSearchMedidas = ({ onCancel, isOpen, medidasAdm, medidasEpi, medidasE
                       <div className="flex-1 min-w-0">
                         <div className='flex justify-between text-lg font-bold text-gray-800'>
                           <p>
-                            {item.nome_medida}
+                            {item.descricao_medida}
                           </p>
                           <p>
                             {item.certificado_medida}
@@ -99,38 +164,63 @@ const ModalSearchMedidas = ({ onCancel, isOpen, medidasAdm, medidasEpi, medidasE
             </ul>
           </>
         );
-      case 3:
+        case 4:
         return (
-          <>
-            <ul className='space-y-3 py-3'>
-              {medidasEpc.filter((medida) =>
-                medida.descricao_medida.toLowerCase().includes(searchTerm.toLowerCase())
-              )
-                .map((item, i) => (
-                  <li
-                    key={i}
-                    className="py-3 hover:bg-gray-100 hover:shadow-sm shadow-sm bg-gray-50 cursor-pointer px-4 rounded-md"
-                    onClick={() => {
-                      onSelect(item.id_medida, 3);
-                      setActiveTab(0);
-                    }}
-                  >
-                    <div className="flex items-center text-sm font-light text-gray-500">
-                      <div className="flex-1 min-w-0">
-                        <div className='flex justify-between font-medium text-gray-800'>
-                          <p>
-                            {item.descricao_medida}
-                          </p>
-                          <p>
-                            {item.id_medida}
-                          </p>
-                        </div>
+          <ul className='space-y-3 py-3'>
+            {medidas
+              .map((item, i) => (
+                <li
+                  key={i}
+                  className="py-3 hover:bg-gray-100 hover:shadow-sm shadow-sm bg-gray-50 cursor-pointer px-4 rounded-md"
+                  onClick={() => {
+                    onSelect(item.id_medida, 4);
+                    setActiveTab(0);
+                  }}
+                >
+                  <div className="flex items-center text-sm font-light text-gray-500">
+                    <div className="flex-1 min-w-0">
+                      <div className='flex justify-between font-medium text-gray-800'>
+                        <p>
+                          {item.descricao_medida}
+                        </p>
+                        <p>
+                          {item.id_medida}
+                        </p>
                       </div>
                     </div>
-                  </li>
-                ))}
-            </ul>
-          </>
+                  </div>
+                </li>
+              ))}
+          </ul>
+        );
+        case 5:
+        return (
+          <ul className='space-y-3 py-3'>
+            {medidas
+              .map((item, i) => (
+                <li
+                  key={i}
+                  className="py-3 hover:bg-gray-100 hover:shadow-sm shadow-sm bg-gray-50 cursor-pointer px-4 rounded-md"
+                  onClick={() => {
+                    onSelect(item.id_medida, 5);
+                    setActiveTab(0);
+                  }}
+                >
+                  <div className="flex items-center text-sm font-light text-gray-500">
+                    <div className="flex-1 min-w-0">
+                      <div className='flex justify-between font-medium text-gray-800'>
+                        <p>
+                          {item.descricao_medida}
+                        </p>
+                        <p>
+                          {item.id_medida}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </li>
+              ))}
+          </ul>
         );
       default:
         return null;
@@ -140,7 +230,7 @@ const ModalSearchMedidas = ({ onCancel, isOpen, medidasAdm, medidasEpi, medidasE
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50">
       <div className="modal-overlay absolute inset-0 backdrop-blur-[1px] bg-black bg-opacity-10" onClick={onCancel}></div>
-      <div className="modal-container w-4/12 max-w-lg bg-white mx-auto rounded-xl z-50 overflow-y-auto px-8 py-4 max-h-[80vh]">
+      <div className="modal-container w-6/12 max-w-lg bg-white mx-auto rounded-xl z-50 overflow-y-auto px-8 py-4 max-h-[80vh]">
         <div className='flex justify-between items-center py-2'>
           <h1 className='text-xl font-bold text-sky-800'>Selecione uma Medida de Proteção</h1>
           <div className="flex justify-end">
@@ -168,13 +258,22 @@ const ModalSearchMedidas = ({ onCancel, isOpen, medidasAdm, medidasEpi, medidasE
         <div className='flex items-center justify-center'>
           <ul className='flex gap-4'>
             <li className='bg-sky-600 py-2 px-4 rounded-md shadow-sm hover:bg-sky-900 font-medium text-white' onClick={() => handleTabClick(1)}>
-              <button>Administrativas</button>
+              <button>M.A</button>
             </li>
             <li className='bg-sky-600 py-2 px-4 rounded-md shadow-sm hover:bg-sky-900 font-medium text-white' onClick={() => handleTabClick(2)}>
-              <button>EPI's</button>
+              <button>M.C</button>
             </li>
             <li className='bg-sky-600 py-2 px-4 rounded-md shadow-sm hover:bg-sky-900 font-medium text-white' onClick={() => handleTabClick(3)}>
-              <button>EPC's</button>
+              <button>M.I</button>
+
+            </li>
+            <li className='bg-sky-600 py-2 px-4 rounded-md shadow-sm hover:bg-sky-900 font-medium text-white' onClick={() => handleTabClick(4)}>
+              <button>T.R </button>
+
+            </li>
+            <li className='bg-sky-600 py-2 px-4 rounded-md shadow-sm hover:bg-sky-900 font-medium text-white' onClick={() => handleTabClick(5)}>
+              <button>I.N</button>
+
             </li>
           </ul>
         </div>

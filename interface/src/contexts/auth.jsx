@@ -15,6 +15,7 @@ export const AuthProvider = ({ children }) => {
   const [cargos, setCargos] = useState([]);
   const [processos, setProcessos] = useState([]);
   const [riscos, setRiscos] = useState([]);
+  const [medidas, setMedidas] = useState([]);
   const [medidasAdm, setMedidasAdm] = useState([]);
   const [medidasEpi, setMedidasEpi] = useState([]);
   const [medidasEpc, setMedidasEpc] = useState([]);
@@ -426,6 +427,8 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+
+  
   const getSetoresProcessos = async () => {
     try {
       const response = await fetch(`${connect}/setores_processos`);
