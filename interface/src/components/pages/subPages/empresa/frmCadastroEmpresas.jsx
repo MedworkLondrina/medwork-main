@@ -5,8 +5,8 @@ import { connect } from "../../../../services/api"; //Conexão com o banco de da
 import { IoIosHelpCircle } from "react-icons/io";
 
 import ModarSearchContato from "../components/Modal/ModalSearchContato";
-import icon_lupa from '../../../media/icon_lupa.svg';
-import icon_sair from '../../../media/icon_sair.svg';
+import icon_lupa from '../../../media/icon_lupa.svg'
+import icon_sair from '../../../media/icon_sair.svg'
 
 
 function CadastroEmpresa({ onEdit, setOnEdit, fetchEmpresas, contact, contatos }) {

@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect, useState, useCallback  } from "react";
 import { toast } from "react-toastify";
 import { connect } from "../../../../services/api"; //Conexão com o banco de dados
 
@@ -22,6 +22,8 @@ function FrmCadastroUnidade({ onEdit, setOnEdit, getUnidades, contact, company, 
   const [complemento, setComplemento] = useState('');
   const [bairro, setBairro] = useState(null);
   const [numero, setNumero] = useState('');
+  const [ContatoModal, setContatoModal] = useState([]);
+
 
   const user = ref.current
 
@@ -80,7 +82,11 @@ function FrmCadastroUnidade({ onEdit, setOnEdit, getUnidades, contact, company, 
         fk_empresa_id: companyId || null,
         ativo: 1,
       };
-
+      const juncao = { 
+        unidade_data:unidadesData,
+        contato_data:ContatoModal,
+      }
+    
       const url = onEdit
         ? `${connect}/unidades/${onEdit.id_unidade}?${queryParams}`
         : `${connect}/unidades?${queryParams}`
@@ -92,12 +98,12 @@ function FrmCadastroUnidade({ onEdit, setOnEdit, getUnidades, contact, company, 
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(unidadesData),
+        body: JSON.stringify(juncao),
       });
-
       if (!response.ok) {
         throw new Error(`Erro ao cadastrar/Editar unidade. Status: ${response.status}`);
       }
+      console.log(ContatoModal)
 
       const responseData = await response.json();
 
@@ -122,7 +128,6 @@ function FrmCadastroUnidade({ onEdit, setOnEdit, getUnidades, contact, company, 
     setOnEdit(null);
 
     //Atualiza os dados
-    getUnidades();
   };
 
   //Função para limpar os campos
@@ -148,11 +153,13 @@ function FrmCadastroUnidade({ onEdit, setOnEdit, getUnidades, contact, company, 
   const closeModalContato = () => setShowModalContato(false);
 
   // Função para atualizar o Id Contato
-  const handleContactSelect = (contactId, contactName) => {
-    closeModalContato();
-    setContatoId(contactId);
-    setNomeContato(contactName);
-  };
+  const handleContactSelect = useCallback((contato) => {
+    if (contato) {
+      closeModalContato();
+      setContatoModal(contato);
+    }
+  }, [closeModalContato, setContatoModal]);
+  
 
   //Função para limpar o campo Contato
   const handleClearContato = () => {
@@ -436,7 +443,8 @@ function FrmCadastroUnidade({ onEdit, setOnEdit, getUnidades, contact, company, 
                 <>
                   <button
                     className="flex appearance-none hover:shadow-sm text-sky-600 bg-gray-100 border-gray-200 justify-center mt-1 py-3 px-4 rounded leading-tight focus:outline-none with-text"
-                    onClick={openModalContato}
+                    onClick={openModalContato} 
+                    type="button"
                   >
                     <p className="px-2 text-sm font-sm text-gray-600">
                       Contato:
@@ -445,13 +453,14 @@ function FrmCadastroUnidade({ onEdit, setOnEdit, getUnidades, contact, company, 
                       {nomeContato}
                     </p>
                   </button>
-                  <button className="ml-4" onClick={handleClearContato}>
+                  <button className="ml-4" onClick={handleClearContato} type="button">
                     <img src={icon_sair} alt="" className="h-9" />
                   </button>
                 </>
               ) : (
                 <button
                   className="flex w-full appearance-none text-gray-400 bg-gray-100 border-gray-200 justify-center mt-1 py-3 px-4 rounded leading-tight focus:outline-none with-text"
+                  type="button"
                   onClick={openModalContato}
                 >
                   <p className="px-2 text-sm font-medium">
@@ -463,16 +472,12 @@ function FrmCadastroUnidade({ onEdit, setOnEdit, getUnidades, contact, company, 
                 type="button"
                 onClick={openModalContato}
                 className={`flex cursor-pointer ml-4`}
+                
               >
                 <img src={icon_lupa} className="h-9" alt="Icone adicionar unidade"></img>
               </button>
             </div>
-            <ModalSearchContato
-              isOpen={showModalContato}
-              onCancel={closeModalContato}
-              children={contato}
-              onContactSelect={handleContactSelect}
-            />
+         
           </div>
 
           <div className="w-full px-3 pl-8 flex justify-end">
@@ -489,6 +494,12 @@ function FrmCadastroUnidade({ onEdit, setOnEdit, getUnidades, contact, company, 
           </div>
         </div>
       </form>
+      <ModalSearchContato
+              isOpen={showModalContato}
+              onCancel={closeModalContato}
+              children={contato}
+              onContactSelect={handleContactSelect}
+            />
     </div>
   )
 }
