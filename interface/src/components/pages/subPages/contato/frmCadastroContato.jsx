@@ -1,102 +1,53 @@
 import { useRef, useEffect, useState } from "react";
 import { toast } from "react-toastify";
-import { connect } from "../../../../services/api";
 
 
-function FrmCadastroContato({ setContatoData}) {
+function FrmCadastroContato({ setContatoData, onEdit }) {
 
-  // Instanciando a variavel que vai referenciar o formulario
   const ref = useRef(null);
 
-  const [mailCompleted1, setMailCompleted1] = useState(false);
   const [showMailError1, setShowMailError1] = useState(false);
-  const [mailCompleted2, setMailCompleted2] = useState(false);
   const [showMailError2, setShowMailError2] = useState(false);
 
-  // Colocando as informações do formulario nas variaveis
-  // useEffect(() => {
-  //   if (onEdit) {
-  //     const user = ref.current;
+  useEffect(() => {
+    if (onEdit) {
+      const user = ref.current;
 
-
-  //     //Passando o dado do input para a props
-  //     user.nome_contato.value = onEdit.nome_contato;
-  //     user.telefone_contato.value = onEdit.telefone_contato;
-  //     user.email_contato.value = onEdit.email_contato;
-  //     user.email_secundario_contato.value = onEdit.email_secundario_contato
-  //   }
-  //   window.scrollTo({ top: 0, behavior: 'smooth' });
-  // }, [onEdit]);
+      user.nome_contato.value = onEdit.nome_contato;
+      user.telefone_contato.value = onEdit.telefone_contato;
+      user.email_contato.value = onEdit.email_contato;
+      user.email_secundario_contato.value = onEdit.email_secundario_contato
+    }
+  }, [onEdit]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     const user = ref.current;
-    const userData = JSON.parse(localStorage.getItem("user"));
-    const tenant = userData.tenant_code;
-    const nome = userData.nome_usuario;
-    const queryParams = new URLSearchParams({ tenant_code: tenant, nome_usuario: nome }).toString();
 
     if (
-      !user.nome_contato.value ||
-      !user.telefone_contato.value ||
-      !user.email_contato.value) {
+      !user.nome_contato.value) {
       return toast.warn("Preencha Todos os Campos!")
     }
 
-    if (showMailError1 === true || showMailError2 === true) {
+    if (showMailError1 || showMailError2) {
       return toast.warn("Preencha os emails corretamente")
     };
 
     try {
-
       const contatoData = {
         nome_contato: user.nome_contato.value || '',
         telefone_contato: user.telefone_contato.value || '',
         email_contato: user.email_contato.value || '',
-        email_secundario_contato: user.email_secundario_contato.value || 'N/A',
+        email_secundario_contato: user.email_secundario_contato.value || '',
         ativo: 1,
-
       }
-
       setContatoData(contatoData);
-
-      // const url = onEdit
-      //   ? `${connect}/contatos/${onEdit.id_contato}`
-      //   : `${connect}/contatos?${queryParams}`;
-
-      // const method = onEdit ? 'PUT' : 'POST';
-
-      // const response = await fetch(url, {
-      //   method,
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //   },
-      //   body: JSON.stringify(contatoData),
-      // })
-
-      // if (!response.ok) {
-      //   throw new Error(`Erro ao cadastrar/editar contato. Status: ${response.status}`);
-      // }
-
-      // const responseData = await response.json();
-
-      // toast.success(responseData);
-
     } catch (error) {
       console.log("Erro ao inserir ou atualizar contato!", error);
       toast.error("Erro ao inserir ou editar o contato. Verifique o console!");
     }
 
-
-    user.nome_contato.value = "";
-    user.telefone_contato.value = "";
-    user.email_contato.value = "";
-    user.email_secundario_contato.value = "";
-    //setOnEdit(null);
-    setShowMailError1(false);
-    setShowMailError2(false);
-
-    //getContato();
+    handleClear();
   };
 
   const handleClear = () => {
@@ -108,7 +59,7 @@ function FrmCadastroContato({ setContatoData}) {
     user.email_secundario_contato.value = "";
     setShowMailError1(false);
     setShowMailError2(false);
-   // setOnEdit(null);
+    // setOnEdit(null);
   };
 
   const handleInputChangePhone = (e) => {
@@ -120,40 +71,36 @@ function FrmCadastroContato({ setContatoData}) {
 
   const handleInputChangeMail1 = (e) => {
     const inputValue = e.target.value;
-    const isValid = inputValue.includes('@') && inputValue.includes('.');
-
-    setMailCompleted1(isValid);
-    setShowMailError1(!isValid);
+    if (inputValue !== '') {
+      const isValid = inputValue.includes('@') && inputValue.includes('.');
+      setShowMailError1(!isValid);
+      return
+    }
+    if (inputValue === '') {
+      setShowMailError1(false);
+    }
   };
 
   const handleInputChangeMail2 = (e) => {
     const inputValue = e.target.value;
-    const isValid = inputValue.includes('@') && inputValue.includes('.');
-
-    setMailCompleted2(isValid);
-    setShowMailError2(!isValid);
-  };
-
-  const handleClickMail1 = () => {
-    if (!mailCompleted1) {
-      setShowMailError1(true);
+    if (inputValue !== '') {
+      const isValid = inputValue.includes('@') && inputValue.includes('.');
+      setShowMailError2(!isValid);
+      return
     }
-  };
-
-  const handleClickMail2 = () => {
-    if (!mailCompleted2) {
-      setShowMailError2(true);
+    if (inputValue === '') {
+      setShowMailError2(false);
     }
   };
 
 
   return (
     <div className="flex justify-center">
-      <form className="w-full" ref={ref} onSubmit={(e) => handleSubmit(e)}>
-        <div className="flex flex-wrap -mx-3 mb-6">
+      <form className="w-full" ref={ref} onSubmit={handleSubmit}>
+        <div className="flex flex-wrap py-2 px-3">
 
           {/* Nome */}
-          <div className="w-full md:w-1/2 px-3">
+          <div className="w-full">
             <label className="tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="nome">
               Nome
             </label>
@@ -167,7 +114,7 @@ function FrmCadastroContato({ setContatoData}) {
           </div>
 
           {/* Telefone */}
-          <div className="w-full md:w-1/2 px-3">
+          <div className="w-full">
             <label className="tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="telefone">
               Telefone
             </label>
@@ -183,50 +130,56 @@ function FrmCadastroContato({ setContatoData}) {
           </div>
 
           {/* Email */}
-          <div className="w-full md:w-1/2 px-3">
+          <div className="w-full">
             <label className="tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="email">
               Email
             </label>
             <input
-              className="apperance-none block w-full bg-gray-100 rounded py-3 px-4 mt-1 leading-tight focus:outline-gray-100 focus:bg-white"
+              className={`apperance-none block w-full bg-gray-100 rounded py-3 px-4 mt-1 leading-tight focus:outline-gray-100 focus:bg-white ${showMailError1 ? "" : "mb-3"}`}
               type="text"
               id="email"
               name="email_contato"
-              onBlur={handleInputChangeMail1}
-              onClick={handleClickMail1}
+              onChange={handleInputChangeMail1}
               placeholder="Email para Contato"
               autoComplete="email"
             />
-            <p className={`${showMailError1 ? "text-xs font-medium text-red-600 px-1 mt-1" : "hidden"}`}>*Email Incompleto</p>
+            <p className={`text-xs font-medium text-red-600 px-1 mt-1 ${showMailError1 ? "block" : "hidden"}`}>*Email Incompleto</p>
           </div>
 
           {/* Email Secundario */}
-          <div className="w-full md:w-1/2 px-3">
+          <div className="w-full">
             <label className="tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="email_sec">
               Email Secundário
             </label>
             <input
-              className="apperance-none block w-full bg-gray-100 rounded py-3 px-4 mt-1 leading-tight focus:outline-gray-100 focus:bg-white"
+              className={`apperance-none block w-full bg-gray-100 rounded py-3 px-4 mt-1 leading-tight focus:outline-gray-100 focus:bg-white ${showMailError2 ? "" : "mb-3"}`}
               type="text"
               id="email_sec"
               autoComplete="email"
               name="email_secundario_contato"
-              onBlur={handleInputChangeMail2}
-              onClick={handleClickMail2}
+              onChange={handleInputChangeMail2}
               placeholder="Email para Contato"
             />
-            <p className={`${showMailError2 ? "text-xs font-medium text-red-600 px-1 mt-1" : "hidden"}`}>*Email Incompleto</p>
+            <p className={`text-xs font-medium text-red-600 px-1 mt-1 ${showMailError2 ? "block" : "hidden"}`}>*Email Incompleto</p>
           </div>
 
-          <div className="w-full px-3 pl-8 flex justify-end">
+          {/* Botões */}
+          <div className="w-full flex justify-end gap-2">
+            {/* Limpar */}
             <div>
               <button onClick={handleClear} className="shadow mt-4 bg-red-600 hover:bg-red-700 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded" type="button">
                 Limpar
               </button>
             </div>
-            <div className="pl-8">
-              <button className="shadow mt-4 bg-green-600 hover:bg-green-700 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded" type="submit">
-                Cadastrar
+
+            {/* Salvar */}
+            <div>
+              <button
+                className={`shadow mt-4 bg-green-600  focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded ${showMailError1 || showMailError2 ? "cursor-not-allowed opacity-25" : "hover:bg-green-700"}`}
+                type="submit"
+                disabled={showMailError1 && showMailError2}
+              >
+                Salvar
               </button>
             </div>
           </div>

@@ -157,7 +157,7 @@ function Sidebar() {
     setShowProfileCompany(false);
     setShowProfileTenant(false);
     setShowMenu(false);
-    setShowSearchCompany(!showSearchCompany);
+    setShowSearchCompany(true);
   };
 
   // Search
@@ -178,7 +178,6 @@ function Sidebar() {
     closeMenu();
     setCompanyId(idCompany);
     setCompanyName(nameCompany);
-    setSearchTerm('');
     getCompany();
   };
 
@@ -186,6 +185,8 @@ function Sidebar() {
     setShowMenu(false);
     setShowProfileCompany(false);
     setShowProfileTenant(false);
+    setSearchTerm('');
+    setShowSearchCompany(false);
     closeSubMenus();
   };
 
@@ -242,7 +243,7 @@ function Sidebar() {
       {user ? (
         <div>
           {/* Camada de fundo */}
-          <div className={`modal-overlay absolute inset-0 backdrop-blur-[1px] bg-black bg-opacity-10 z-50 ${showMenu || showProfileCompany || showProfileTenant || showSearchCompany ? 'block' : 'hidden'}`} onClick={closeMenu}></div>
+          <div className={`modal-overlay absolute inset-0 backdrop-blur-[1px] bg-black bg-opacity-5 z-50 ${showMenu || showProfileCompany || showProfileTenant || showSearchCompany ? 'block' : 'hidden'}`} onClick={closeMenu}></div>
           {/* Barra de navegação */}
           <nav className="fixed top-0 w-full z-50 h-16 bg-white border-b border-gray-200">
             <div className="px-3 py-3 lg:px-5 lg:pl-3 shadow">
@@ -299,6 +300,8 @@ function Sidebar() {
                             className="w-full p-2 ps-6 text-sm text-gray-900 rounded-full bg-gray-100 shadow-sm"
                             placeholder="Localizar uma empresa"
                             onChange={handleSearch}
+                            onClick={() => setShowSearchCompany(true)}
+                            onBlur={handleSearch}
                             required
                           />
                           <button
