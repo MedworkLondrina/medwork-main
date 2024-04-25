@@ -688,18 +688,16 @@ router.put("/processos/:id_processo", (req, res) => {
   const id_processo = req.params.id_processo;
   const nome = req.query.nome_usuario
   const tenant = req.query.tenant_code
-  const { nome_processo, ramo_trabalho } = req.body;
+  const { nome_processo } = req.body;
 
   const q = `
     UPDATE processos
     SET nome_processo = ?,
-    ramo_trabalho = ?
     WHERE id_processo = ?
     `;
 
   const values = [
     nome_processo,
-    ramo_trabalho,
     id_processo
   ];
 
@@ -758,10 +756,10 @@ router.post("/processo_cnae", (req, res) => {
       }
       registrarLog('processo_cnae', 'create', `vinculou CNAE ao processo`, `${nome}`, tenant, new Date());
 
-      con.release();
       return res.status(200).json(`Vinculo cadastrado com sucesso!`);
     });
-
+    
+    con.release();
   })
 
 });
