@@ -256,28 +256,81 @@ router.get("/unidades", (req, res) => {
 
 //Add rows in table
 router.post("/unidades", (req, res) => {
-  const data = req.body;
-  const nome = req.query.nome_usuario
-  const tenant = req.query.tenant_code
+  const { unidade_data, contato_data } = req.body;
+  const nomeUsuario = req.query.nome_usuario;
+  const tenant = req.query.tenant_code;
 
-  const q = "INSERT INTO unidades SET ?"
+  const insertUnidadeQuery = "INSERT INTO unidades SET ?";
+  const insertContatoQuery = "INSERT INTO contatos SET ?";
+  const updateUnidadeQuery = "UPDATE unidades SET fk_contato_id = ? WHERE id_unidade = ?";
 
   pool.getConnection((err, con) => {
-    if (err) return next(err);
+    if (err) {
+      console.error("Erro ao obter conexão do pool", err);
+      return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
+    }
 
-    con.query(q, data, (err, result) => {
+    con.beginTransaction((err) => {
       if (err) {
-        console.error("Erro ao inserir Unidade na tabela", err);
+        console.error("Erro ao iniciar transação", err);
         return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
       }
-      registrarLog('unidades', 'create', `Cadastrou Unidade`, `${nome}`, tenant, new Date());
-      return res.status(200).json(`Unidade cadastrada com sucesso!`);
+
+      con.query(insertUnidadeQuery, unidade_data, (err, unidadeResult) => {
+        if (err) {
+          console.error("Erro ao inserir unidade na tabela", err);
+          con.rollback(() => {
+            console.error("Transação revertida devido a erro", err);
+            return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
+          });
+        }
+
+        const id_unidade = unidadeResult.insertId;
+
+        con.query(insertContatoQuery, contato_data, (err, contatoResult) => {
+          if (err) {
+            console.error("Erro ao inserir contato na tabela", err);
+            con.rollback(() => {
+              console.error("Transação revertida devido a erro", err);
+              return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
+            });
+          }
+
+          const id_contato = contatoResult.insertId;
+
+          con.query(updateUnidadeQuery, [id_contato, id_unidade], (err, result) => {
+            if (err) {
+              console.error("Erro ao atualizar unidade na tabela", err);
+              con.rollback(() => {
+                console.error("Transação revertida devido a erro", err);
+                return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
+              });
+              return; // Retornar após o rollback
+            }
+
+            con.commit((err) => {
+              if (err) {
+                console.error("Erro ao confirmar transação", err);
+                con.rollback(() => {
+                  console.error("Transação revertida devido a erro", err);
+                  return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
+                });
+              }
+
+              registrarLog('unidades', 'create', `Cadastrou Unidade`, `${nomeUsuario}`, tenant, new Date());
+              registrarLog('contatos', 'create', `Cadastrou Contato`, `${nomeUsuario}`, tenant, new Date());
+
+              return res.status(200).json(`Unidade e Contato cadastrados com sucesso!`);
+            });
+          });
+        });
+      });
     });
 
     con.release();
-  })
-
+  });
 });
+
 
 //Update row in table
 router.put("/unidades/:id_unidade", (req, res) => {
