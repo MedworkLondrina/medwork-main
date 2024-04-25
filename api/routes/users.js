@@ -58,24 +58,82 @@ router.get("/empresas", (req, res) => {
 
 //Add rows in table
 router.post("/empresas", (req, res) => {
-  const data = req.body;
-  const nome = req.query.nome_usuario
-  const q = "INSERT INTO empresas SET ?";
+  const { empresa_data, contato_data } = req.body;
+  console.log('teste')
+  console.log(empresa_data)
+  const nomeUsuario = req.query.nome_usuario;
+  const tenant = empresa_data.fk_tenant_code;
+
+  const qEmpresa = "INSERT INTO empresas SET ?";
+  const qContato = "INSERT INTO contatos SET ?";
+  const qUpdate = `UPDATE empresas SET fk_contato_id = ? WHERE id_empresa = ?`;
 
   pool.getConnection((err, con) => {
     if (err) return next(err);
 
-    con.query(q, data, (err, result) => {
+    con.beginTransaction((err) => {
       if (err) {
-        console.error("Erro ao inserir empresa na tabela", err);
+        console.error("Erro ao iniciar transação", err);
         return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
       }
 
-      // Chama a função registrarLog passando o username como parâmetro
-      registrarLog('empresas', 'create', `Cadastrou Empresa`, `${nome}`, data.fk_tenant_code, new Date());
+      con.query(qEmpresa, empresa_data, (err, empresaResult) => {
+        if (err) {
+          console.error("Erro ao inserir empresa na tabela", err);
+          con.rollback(() => {
+            console.error("Transação revertida devido a erro", err);
+            return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
+          });
+        }
 
-      return res.status(200).json(`Empresa cadastrada com sucesso!`);
+        const id_empresa = empresaResult.insertId;
+        contato_data.fk_empresa_id = id_empresa;
+        const requisicao = [
+          contato_data
+        ]
+        console.log(requisicao)
+
+        con.query(qContato, contato_data, (err, contatoResult) => {
+          if (err) {
+            console.error("Erro ao inserir contato na tabela", err);
+            con.rollback(() => {
+              console.error("Transação revertida devido a erro", err);
+              return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
+            });
+          }
+
+          const id_contato = contatoResult.insertId;
+
+          con.query(qUpdate, [id_contato,id_empresa], (err, result) => {
+            if (err) {
+              console.error("Erro ao atualizar empresa na tabela", err);
+              con.rollback(() => {
+                console.error("Transação revertida devido a erro", err);
+                return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
+              });
+              return; // Retornar após o rollback
+            }
+          
+          })
+          con.commit((err) => {
+            if (err) {
+              console.error("Erro ao confirmar transação", err);
+              con.rollback(() => {
+                console.error("Transação revertida devido a erro", err);
+                return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
+              });
+            }
+
+            // Chama a função registrarLog passando o username como parâmetro
+            registrarLog('empresas', 'create', `Cadastrou Empresa`, `${nomeUsuario}`, tenant, new Date());
+            registrarLog('contatos', 'create', `Cadastrou Contato`, `${nomeUsuario}`, tenant, new Date());
+
+            return res.status(200).json(`Empresa e Contato cadastrados com sucesso!`);
+          });
+        }); 
+      });
     });
+
 
     con.release();
   });
@@ -642,7 +700,7 @@ router.put("/contatos/activate/:id_contato", (req, res) => {
 //Get table
 router.get("/processos", (req, res) => {
   const q = `SELECT * FROM processos`;
-  
+
   pool.getConnection((err, con) => {
     if (err) return next(err);
 
