@@ -38,9 +38,6 @@ function GridProcesso({ processos, setOnEdit }) {
               <th scope="col" className="px-4 py-3">
                 Processo
               </th>
-              <th scope="col" className="px-4 py-3">
-                Ramo de Trabalho
-              </th>
               <th scope="col" className="px-4 py-3 text-center">
                 Ações
               </th>
@@ -55,9 +52,6 @@ function GridProcesso({ processos, setOnEdit }) {
                 <th scope="row" className="px-4 py-4 font-medium text-gray-900 whitespace-nowrap">
                   {item.nome_processo}
                 </th>
-                <td className="px-4 py-4">
-                  {item.ramo_trabalho}
-                </td>
                 <td className="px-5 py-4 gap-4 flex justify-center">
                   <a className="font-medium text-blue-400 hover:text-blue-800">
                     <BsFillPencilFill onClick={() => handleEdit(item)} />

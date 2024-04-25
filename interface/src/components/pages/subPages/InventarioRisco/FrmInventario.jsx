@@ -188,7 +188,7 @@ function FrmInventario({
     setSetorNome(SetorName);
     handleClearProcesso();
     setPessoasExpostas('');
-    
+
     const filteredProcessosSetores = setoresProcessos.filter((i) => i.fk_setor_id === SetorId);
     const IdsProcesso = filteredProcessosSetores.map((item) => item.fk_processo_id);
     const filteredProcessos = processos.filter((i) => IdsProcesso.includes(i.id_processo));
@@ -770,7 +770,7 @@ function FrmInventario({
 
       {/* Popover */}
       <div className="flex w-full" onMouseLeave={() => setVisible(false)}>
-        <div className="fixed z-50 m-2">
+        <div className="fixed z-30 m-2">
           <div className={`bg-gray-700 rounded-lg px-6 py-2 ${visible ? 'block' : 'hidden'} text-white`}>
             <h2 className="font-bold text-xl mb-2 text-gray-100 mt-2">Página Cadastro Empresa</h2>
             <div>
@@ -1499,8 +1499,6 @@ function FrmInventario({
                   ))}
               </div>
             </div>
-
-
 
             {/* Botões */}
             <div className="w-full px-3 pl-8 flex justify-end mt-10">

@@ -6,27 +6,34 @@ import { connect } from "../../../../services/api";
 import ModalSearchCnae from "../components/Modal/ModalSearchCnae";
 import icon_lupa from '../../../media/icon_lupa.svg';
 
-function CadastroProcesso({ onEdit, getProcessos, setOnEdit, setSearchTerm, processos }) {
+function CadastroProcesso({ onEdit, getProcessos, setOnEdit, setSearchTerm, processos, getProcessoCnaes, getCnae, setVerify, setVerifyCnaes, verifyVinculo, setVerifyVinculo }) {
 
   //Instanciando as Variáveis
-  const ref = useRef(null); // Referência do formulario
+  const ref = useRef(null);
   const [processo, setProcesso] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [selectedCnaes, setSelectedCnaes] = useState([]);
+  const [processoCnae, setProcessoCnae] = useState([]);
+  const [cnae, setCnae] = useState([]);
+
+  const get = async () => {
+    const resProcessoCnae = await getProcessoCnaes();
+    setProcessoCnae(resProcessoCnae);
+    const resCnae = await getCnae();
+    setCnae(resCnae);
+  };
 
   // Colocando as informações do formulario nas variaveis
   useEffect(() => {
-    const user = ref.current;
-
+    get();
     if (onEdit) {
-      const { nome_processo, ramo_trabalho } = user;
-
-      nome_processo.value = onEdit.nome_processo || "";
-      ramo_trabalho.value = onEdit.ramo_trabalho || "";
-
+      setProcesso(onEdit.nome_processo || "");
+      const procCnae = processoCnae.filter((proc) => proc.fk_processo_id === onEdit.id_processo);
+      const mapCnae = procCnae.map((proc) => proc.fk_cnae_id);
+      const filterCnaes = cnae.filter((cnae) => mapCnae.includes(cnae.id_cnae));
+      setSelectedCnaes(filterCnaes);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-
   }, [onEdit]);
 
   const verifyProcessRegister = async (processo) => {
@@ -44,6 +51,15 @@ function CadastroProcesso({ onEdit, getProcessos, setOnEdit, setSearchTerm, proc
     }
   };
 
+  const verifyCnaeRegister = async (idProcesso, selectedCnaes) => {
+    const procCnae = processoCnae.filter((proc) => proc.fk_processo_id === idProcesso);
+    const cnaesVinculados = procCnae.map((proc) => proc.fk_cnae_id);
+
+    const cnaesParaVincular = selectedCnaes.filter(cnae => !cnaesVinculados.includes(cnae.id_cnae));
+
+    return cnaesParaVincular;
+  }
+
   //Função para adicionar ou atualizar dados
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -51,20 +67,24 @@ function CadastroProcesso({ onEdit, getProcessos, setOnEdit, setSearchTerm, proc
     const tenant = userData.tenant_code;
     const nome = userData.nome_usuario;
     const queryParams = new URLSearchParams({ tenant_code: tenant, nome_usuario: nome }).toString();
-    const user = ref.current;
 
     //Verificandose todos os campos foram preenchidos
     if (
       !processo || selectedCnaes.length === 0) {
-      return toast.warn("Preencha Todos os Campos!")
+      return toast.warn("Preencha Todos os Campos!");
     }
     try {
 
-      // const resVerify = await verifyProcessRegister(user.nome_processo.value);
+      const resVerify = await verifyProcessRegister(processo);
 
-      // if (resVerify) {
-      //   return toast.warn(`Já existem processos cadastrados com esse nome: ${user.nome_processo.value}!`);
-      // }
+      let cnaesParaVincular = [];
+
+      if (resVerify) {
+        cnaesParaVincular = await verifyCnaeRegister(resVerify[0]?.id_processo, selectedCnaes);
+        if (!onEdit) {
+          return toast.warn(`Já existem processos cadastrados com esse nome: ${processo}!`);
+        }
+      }
 
       const processoData = {
         nome_processo: processo || null,
@@ -91,12 +111,15 @@ function CadastroProcesso({ onEdit, getProcessos, setOnEdit, setSearchTerm, proc
       const responseData = await response.json();
       const processoId = responseData.id;
 
-      toast.success("Processo cadastrado com sucesso!");
+      onEdit ? toast.success('Processo atualizado com sucesso!') : toast.success('Processo cadastrado com sucesso!');
+
+      const cnaesToLink = onEdit ? cnaesParaVincular : selectedCnaes;
+      const idProcesso = onEdit ? onEdit.id_processo : processoId;
 
       // Vincular os cnaes
-      for (const cnae of selectedCnaes) {
+      for (const cnae of cnaesToLink) {
         const cnaeData = {
-          fk_processo_id: processoId,
+          fk_processo_id: idProcesso,
           fk_cnae_id: cnae.id_cnae,
         };
 
@@ -113,12 +136,12 @@ function CadastroProcesso({ onEdit, getProcessos, setOnEdit, setSearchTerm, proc
         }
 
         toast.success(`Cnae ${cnae.subclasse_cnae} vinculado com sucesso!`);
-        //Limpa os campos e reseta o estaodo de edição
-        handleClear();
-
-        //Atualiza os dados
-        getProcessos();
       }
+      //Limpa os campos e reseta o estaodo de edição
+      handleClear();
+
+      //Atualiza os dados
+      getProcessos();
     } catch (error) {
       toast.error("Erro ao cadastrar ou editar processo!")
       console.log("Erro ao cadastrar ou editar processo: ", error);
@@ -132,6 +155,9 @@ function CadastroProcesso({ onEdit, getProcessos, setOnEdit, setSearchTerm, proc
     setOnEdit(null);
     setSearchTerm('');
     setSelectedCnaes([]);
+    setVerify([]);
+    setVerifyCnaes([]);
+    setVerifyVinculo(false);
   };
 
   const handleSearchProcesso = (e) => {
@@ -148,6 +174,23 @@ function CadastroProcesso({ onEdit, getProcessos, setOnEdit, setSearchTerm, proc
 
   const onSelectedCnaes = (cnaes) => {
     setSelectedCnaes(cnaes);
+  };
+
+  const handleBlurProcesso = async () => {
+    setVerify([]);
+    setVerifyCnaes([]);
+    setVerifyVinculo(false);
+    if (processo && !onEdit) {
+      const verifyProcess = await verifyProcessRegister(processo);
+      if (verifyProcess) {
+        const procCnae = processoCnae.filter((proc) => proc.fk_processo_id === verifyProcess[0].id_processo);
+        const mapCnae = procCnae.map((proc) => proc.fk_cnae_id);
+        const filterCnaes = cnae.filter((cnae) => mapCnae.includes(cnae.id_cnae));
+        setVerify(verifyProcess);
+        setVerifyCnaes(filterCnaes);
+        setVerifyVinculo(true);
+      };
+    };
   };
 
   return (
@@ -168,11 +211,12 @@ function CadastroProcesso({ onEdit, getProcessos, setOnEdit, setSearchTerm, proc
                 placeholder="Nome do Processo"
                 onChange={handleSearchProcesso}
                 value={processo}
+                onBlur={handleBlurProcesso}
               />
             </div>
             {/* Cnae */}
-            <div className={`w-full ${selectedCnaes.length > 0 ? 'md:w-full' : 'md:w-1/2'} px-3`}>
-              <label className="tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="grid-fk_contato_id">
+            <div className={`w-full ${selectedCnaes.length > 0 ? 'md:w-full' : 'md:w-1/2'} ${verifyVinculo ? 'opacity-50 cursor-not-allowed' : ''} px-3`}>
+              <label className={`tracking-wide text-gray-700 text-xs font-bold mb-2 ${verifyVinculo ? 'cursor-not-allowed' : ''}`} htmlFor="grid-fk_contato_id">
                 {selectedCnaes.length > 0 ? `CNAE's Selecionados` : `Selecione os CNAE's`}:
               </label>
               <div className="flex items-center w-full">
@@ -192,7 +236,7 @@ function CadastroProcesso({ onEdit, getProcessos, setOnEdit, setSearchTerm, proc
                         >
                           {selectedCnaes.map((item, i) => (
                             <>
-                              <div className="col-span-1 shadow-md rounded px-3 py-2">
+                              <div className="col-span-1 shadow border border-gray-100 rounded px-3 py-2">
                                 <div className='grid grid-cols-12'>
                                   <div className="col-span-11">
                                     <p className="font-bold text-left text-sky-700">
@@ -221,8 +265,9 @@ function CadastroProcesso({ onEdit, getProcessos, setOnEdit, setSearchTerm, proc
                   <>
                     <div className="flex gap-2 w-full items-center">
                       <button
-                        className="flex w-full appearance-none text-gray-400 bg-gray-100 border-gray-200 justify-center mt-1 py-3 px-4 rounded leading-tight focus:outline-none with-text"
+                        className={`flex w-full appearance-none text-gray-400 bg-gray-100 border-gray-200 justify-center mt-1 py-3 px-4 rounded leading-tight focus:outline-none with-text ${verifyVinculo ? 'cursor-not-allowed' : ''}`}
                         type="button"
+                        disabled={verifyVinculo}
                         onClick={openModal}
                       >
                         <p className="px-2 text-sm font-medium">
@@ -231,10 +276,11 @@ function CadastroProcesso({ onEdit, getProcessos, setOnEdit, setSearchTerm, proc
                       </button>
                       <button
                         type="button"
+                        disabled={verifyVinculo}
                         onClick={openModal}
-                        className={`flex cursor-pointer ml-4`}
+                        className={`flex cursor-pointer ml-4 ${verifyVinculo ? 'cursor-not-allowed' : ''}`}
                       >
-                        <img src={icon_lupa} className="h-9" alt="Icone adicionar usuario"></img>
+                        <img src={icon_lupa} className={`h-9 ${verifyVinculo ? 'cursor-not-allowed' : ''}`} alt="Icone adicionar usuario"></img>
                       </button>
                     </div>
                   </>
@@ -265,6 +311,7 @@ function CadastroProcesso({ onEdit, getProcessos, setOnEdit, setSearchTerm, proc
         onCancel={closeModal}
         processoNome={processo}
         onSelect={onSelectedCnaes}
+        selectedCnaes={selectedCnaes}
       />
     </div>
   )

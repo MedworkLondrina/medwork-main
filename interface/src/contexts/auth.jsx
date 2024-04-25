@@ -508,8 +508,7 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       console.error(`Erro ao buscar CNAE. ${error}`);
     }
-  }
-
+  };
 
   const getPlano = async () => {
     try {
