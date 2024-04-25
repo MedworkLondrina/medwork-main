@@ -3,7 +3,7 @@ import SearchInput from '../SearchInput';
 
 import useAuth from '../../../../../hooks/useAuth';
 
-const ModalSearchCnae = ({ onCancel, isOpen, processoNome, onSelect }) => {
+const ModalSearchCnae = ({ onCancel, isOpen, processoNome, onSelect, selectedCnaes }) => {
 
   const { fetchCnae } = useAuth([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -13,19 +13,19 @@ const ModalSearchCnae = ({ onCancel, isOpen, processoNome, onSelect }) => {
   const [filterOption, setFilterOption] = useState('codigo');
 
   useEffect(() => {
+    if (selectedCnaes) {
+      setCnaeList(selectedCnaes);
+    }
     if (!isOpen) {
       setSearchTerm('');
     }
+    get();
   }, [isOpen]);
 
   const get = async () => {
     const response = await fetchCnae();
     setCnae(response);
   };
-
-  useEffect(() => {
-    get();
-  }, [isOpen]);
 
   // Função para pesquisa de CNAE
   useEffect(() => {
@@ -59,7 +59,6 @@ const ModalSearchCnae = ({ onCancel, isOpen, processoNome, onSelect }) => {
     }
     setSearchTerm(search);
   };
-
 
   const selectCnae = (item) => {
     const list = [...cnaeList, item];
