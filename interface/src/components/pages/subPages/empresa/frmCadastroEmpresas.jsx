@@ -22,8 +22,7 @@ function CadastroEmpresa({ onEdit, setOnEdit, fetchEmpresas, contact, contatos }
   const [cnae, setCnae] = useState(""); //Armazena o CNAE
   const [grauRisco, setGrauRisco] = useState(""); //Armazena o Grau de Risco
   const [descricao, setDescricao] = useState(""); //Armazena a Descrição
-  const [ContatoModal, setContatoModal] = useState([]);
-// Supondo que você já tenha uma função para cadastrar uma empresa e um contato
+  const [ContatoModal, setContatoModal] = useState([]); //Armazena os contatos do Modal
 
   // Colocando as informações do formulario nas variaveis
   useEffect(() => {
@@ -60,10 +59,7 @@ function CadastroEmpresa({ onEdit, setOnEdit, fetchEmpresas, contact, contatos }
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }, [onEdit, contact]);
-  //Função para adicionar ou atualizar dados
 
-
-  
   const handleSubmit = async (e) => {
     e.preventDefault();
     const userData = JSON.parse(localStorage.getItem("user"));
@@ -71,12 +67,12 @@ function CadastroEmpresa({ onEdit, setOnEdit, fetchEmpresas, contact, contatos }
     const nome = userData.nome_usuario;
     const queryParams = new URLSearchParams({ tenant_code: tenant, nome_usuario: nome }).toString();
     const user = ref.current;
-  
+
     // Verifica se todos os campos foram preenchidos
     if (!user.nome_empresa.value || !user.razao_social.value || !user.cnpj_empresa.value || !user.cnae_empresa) {
       return toast.warn("Preencha Todos os Campos!")
     }
-  
+
     try {
       const empresaData = {
         nome_empresa: user.nome_empresa.value || null,
@@ -91,12 +87,12 @@ function CadastroEmpresa({ onEdit, setOnEdit, fetchEmpresas, contact, contatos }
         ativo: 1,
         fk_tenant_code: tenant
       };
-      const juncao = { 
-        empresa_data:empresaData,
-        contato_data:ContatoModal,
+      
+      const juncao = {
+        empresa_data: empresaData,
+        contato_data: ContatoModal,
       }
 
-      // Requisição para cadastrar a empresa
       const empresaResponse = await fetch(`${connect}/empresas?${queryParams}`, {
         method: 'POST',
         headers: {
@@ -104,24 +100,15 @@ function CadastroEmpresa({ onEdit, setOnEdit, fetchEmpresas, contact, contatos }
         },
         body: JSON.stringify(juncao)
       });
-  
+
       if (!empresaResponse.ok) {
         throw new Error(`Erro ao cadastrar Empresa. Status: ${empresaResponse.status}`);
       }
-  
-      const empresaResponseData = await empresaResponse.json();
-      const empresaId = empresaResponseData.id_empresa;
 
       toast.success("Empresa cadastrada com sucesso!");
-  
-      // Se o contato estiver selecionado, realiza o cadastro do contato
-      console.log(ContatoModal)
 
- 
-        
-       
       handleClear();
-  
+
       // Atualiza os dados
       fetchEmpresas();
     } catch (error) {
@@ -129,7 +116,6 @@ function CadastroEmpresa({ onEdit, setOnEdit, fetchEmpresas, contact, contatos }
       toast.error("Erro ao cadastrar Empresa ou Contato!");
     }
   };
-  
 
   //Função para limpar o formulário
   const handleClear = () => {
@@ -162,7 +148,6 @@ function CadastroEmpresa({ onEdit, setOnEdit, fetchEmpresas, contact, contatos }
       setContatoModal(contato);
     }
   }, [closeModal, setContatoModal]);
-  
 
   //Funções CheckBox
   const checkboxEstadual = () => {
@@ -265,7 +250,6 @@ function CadastroEmpresa({ onEdit, setOnEdit, fetchEmpresas, contact, contatos }
   const handleDescricaoChange = (event) => {
     setDescricao(event.target.value)
   };
-
 
   return (
     <div className="flex justify-center">

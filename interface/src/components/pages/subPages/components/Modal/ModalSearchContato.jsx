@@ -1,46 +1,26 @@
 import React, { useEffect, useState } from 'react';
-import SearchInput from '../SearchInput';
 
-import Contato from '../../contato/CadastroContato';
 import FrmContato from '../../contato/frmCadastroContato';
-import GridContato from '../../contato/gridCadastroContato';
 
-const ModalSearchEmpresa = ({ onCancel, isOpen, children, onContactSelect, setContatoModal }) => {
-
-  const [searchTerm, setSearchTerm] = useState('');
-  const [showFormularioContato, setShowFormularioContato] = useState(false);
-
-  useEffect(() => {
-    if (!isOpen) {
-      setSearchTerm('');
-    }
-  }, [isOpen]);
+const ModalSearchEmpresa = ({ onCancel, isOpen, onContactSelect }) => {
 
   if (!isOpen) {
     return null;
   };
 
-  const showFormulario = () => {
-    setShowFormularioContato(!showFormularioContato);
-  };
-
-  const handleSearch = (term) => {
-    setSearchTerm(term);
-  }
-
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50">
       <div className="modal-overlay absolute inset-0 backdrop-blur-[1px] bg-black bg-opacity-10" onClick={onCancel}></div>
-      <div className="modal-container md:w-6/12 bg-white mx-auto rounded-xl z-50 overflow-y-auto px-8 py-4 max-h-[80vh]">
+      <div className="modal-container md:w-5/12 bg-white mx-auto rounded-xl z-50 overflow-y-auto px-8 py-4 max-h-[80vh]">
         <div className='flex justify-between items-center py-2'>
-          <h1 className='text-xl font-bold text-sky-800'>Selecione um contato</h1>
+          <h1 className='text-xl font-bold text-sky-800'>Cadastre um contato</h1>
           <div className="flex justify-end">
             <button
               type="button"
               className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8"
               onClick={onCancel}>
               <svg className="flex m-auto w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
-                <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+                <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
               </svg>
             </button>
           </div>
@@ -48,59 +28,10 @@ const ModalSearchEmpresa = ({ onCancel, isOpen, children, onContactSelect, setCo
         <div className='border-b border-gray-200'></div>
         <div className='flex justify-center items-center py-2'>
           <p className='text-sm text-gray-500 text-center'>
-            Selecione um Contato para ser o responsável pela Empresa, caso não encontre na lista, adicione um contato clicando no botao abaixo.
+            Cadastre um Contato para ser o responsável pela Empresa. Esse contato saira como responsável da empresa nos laudos.
           </p>
         </div>
-        <div className='w-full'>
-          <div className='flex justify-end'>
-            <button
-              type="button"
-              className="text-white bg-blue-700 hover:bg-blue-800 rounded text-sm px-4 py-2 font-medium"
-              onClick={showFormulario}>
-              Cadastrar Contato
-            </button>
-          </div>
-        </div>
-        {showFormularioContato ? (
-          <FrmContato setContatoData={onContactSelect} />
-        ) : (
-          <>
-            <div className="flex justify-center w-full mt-4 mb-4">
-              <div className="w-5/6 flex gap-4">
-                <SearchInput onSearch={handleSearch} placeholder="Buscar Contato..." />
-              </div>
-            </div>
-            <ul className='space-y-3 py-3'>
-              {children && children
-                .filter((contato) =>
-                  contato.nome_contato.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                  contato.email_contato.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                  contato.telefone_contato.toLowerCase().includes(searchTerm.toLowerCase())
-                )
-                .map((contato, i) => (
-                  <li
-                    key={i}
-                    className="py-3 hover:bg-gray-100 hover:shadow-sm shadow-sm bg-gray-50 cursor-pointer px-4 rounded-md"
-                    onClick={() => onContactSelect(contato.id_contato, contato.nome_contato)}
-                  >
-                    <div className="flex items-center gap-12">
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-700">
-                          {contato.nome_contato}
-                        </p>
-                        <p className="text-sm text-gray-500 truncate">
-                          {contato.email_contato}
-                        </p>
-                      </div>
-                      <div className="inline-flex items-center text-base font-semibold text-gray-900">
-                        {contato.telefone_contato}
-                      </div>
-                    </div>
-                  </li>
-                ))}
-            </ul>
-          </>
-        )}
+        <FrmContato setContatoData={onContactSelect} />
       </div>
     </div>
   );
