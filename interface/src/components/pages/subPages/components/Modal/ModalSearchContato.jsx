@@ -5,7 +5,7 @@ import Contato from '../../contato/CadastroContato';
 import FrmContato from '../../contato/frmCadastroContato';
 import GridContato from '../../contato/gridCadastroContato';
 
-const ModalSearchEmpresa = ({ onCancel, isOpen, children, onContactSelect }) => {
+const ModalSearchEmpresa = ({ onCancel, isOpen, children, onContactSelect, setContatoModal }) => {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [showFormularioContato, setShowFormularioContato] = useState(false);
@@ -62,7 +62,7 @@ const ModalSearchEmpresa = ({ onCancel, isOpen, children, onContactSelect }) => 
           </div>
         </div>
         {showFormularioContato ? (
-          <FrmContato />
+          <FrmContato setContatoData={onContactSelect} />
         ) : (
           <>
             <div className="flex justify-center w-full mt-4 mb-4">

@@ -3,7 +3,7 @@ import { toast } from "react-toastify";
 import { connect } from "../../../../services/api";
 
 
-function FrmCadastroContato({ onEdit, setOnEdit, getContato }) {
+function FrmCadastroContato({ setContatoData}) {
 
   // Instanciando a variavel que vai referenciar o formulario
   const ref = useRef(null);
@@ -14,19 +14,19 @@ function FrmCadastroContato({ onEdit, setOnEdit, getContato }) {
   const [showMailError2, setShowMailError2] = useState(false);
 
   // Colocando as informações do formulario nas variaveis
-  useEffect(() => {
-    if (onEdit) {
-      const user = ref.current;
+  // useEffect(() => {
+  //   if (onEdit) {
+  //     const user = ref.current;
 
 
-      //Passando o dado do input para a props
-      user.nome_contato.value = onEdit.nome_contato;
-      user.telefone_contato.value = onEdit.telefone_contato;
-      user.email_contato.value = onEdit.email_contato;
-      user.email_secundario_contato.value = onEdit.email_secundario_contato
-    }
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [onEdit]);
+  //     //Passando o dado do input para a props
+  //     user.nome_contato.value = onEdit.nome_contato;
+  //     user.telefone_contato.value = onEdit.telefone_contato;
+  //     user.email_contato.value = onEdit.email_contato;
+  //     user.email_secundario_contato.value = onEdit.email_secundario_contato
+  //   }
+  //   window.scrollTo({ top: 0, behavior: 'smooth' });
+  // }, [onEdit]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -55,29 +55,32 @@ function FrmCadastroContato({ onEdit, setOnEdit, getContato }) {
         email_contato: user.email_contato.value || '',
         email_secundario_contato: user.email_secundario_contato.value || 'N/A',
         ativo: 1,
+
       }
 
-      const url = onEdit
-        ? `${connect}/contatos/${onEdit.id_contato}`
-        : `${connect}/contatos?${queryParams}`;
+      setContatoData(contatoData);
 
-      const method = onEdit ? 'PUT' : 'POST';
+      // const url = onEdit
+      //   ? `${connect}/contatos/${onEdit.id_contato}`
+      //   : `${connect}/contatos?${queryParams}`;
 
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(contatoData),
-      })
+      // const method = onEdit ? 'PUT' : 'POST';
 
-      if (!response.ok) {
-        throw new Error(`Erro ao cadastrar/editar contato. Status: ${response.status}`);
-      }
+      // const response = await fetch(url, {
+      //   method,
+      //   headers: {
+      //     'Content-Type': 'application/json',
+      //   },
+      //   body: JSON.stringify(contatoData),
+      // })
 
-      const responseData = await response.json();
+      // if (!response.ok) {
+      //   throw new Error(`Erro ao cadastrar/editar contato. Status: ${response.status}`);
+      // }
 
-      toast.success(responseData);
+      // const responseData = await response.json();
+
+      // toast.success(responseData);
 
     } catch (error) {
       console.log("Erro ao inserir ou atualizar contato!", error);
@@ -89,11 +92,11 @@ function FrmCadastroContato({ onEdit, setOnEdit, getContato }) {
     user.telefone_contato.value = "";
     user.email_contato.value = "";
     user.email_secundario_contato.value = "";
-    setOnEdit(null);
+    //setOnEdit(null);
     setShowMailError1(false);
     setShowMailError2(false);
 
-    getContato();
+    //getContato();
   };
 
   const handleClear = () => {
@@ -105,7 +108,7 @@ function FrmCadastroContato({ onEdit, setOnEdit, getContato }) {
     user.email_secundario_contato.value = "";
     setShowMailError1(false);
     setShowMailError2(false);
-    setOnEdit(null);
+   // setOnEdit(null);
   };
 
   const handleInputChangePhone = (e) => {
