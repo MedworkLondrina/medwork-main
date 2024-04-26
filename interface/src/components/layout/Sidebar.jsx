@@ -57,7 +57,7 @@ function Sidebar() {
     handleClearLocalStorageCompany,
     getTenant,
     fetchEmpresas,
-    getContatos, contatos,
+    fetchContatos,
     clearUser,
     loginUser,
   } = useAuth(null);
@@ -69,6 +69,7 @@ function Sidebar() {
   const [tenant, setTenant] = useState([]);
   const [tenantName, setTenantName] = useState('');
   const [empresas, setEmpresas] = useState([]);
+  const [contatos, setContatos] = useState([]);
 
   // Search
   const [searchTerm, setSearchTerm] = useState('');
@@ -92,13 +93,18 @@ function Sidebar() {
     const selectCompany = await loadSelectedCompanyFromLocalStorage();
     setCompany(selectCompany);
     if (selectCompany) {
-      getContatos();
+      getContact();
       setCompanyId(selectCompany.id_empresa);
       setCompanyName(selectCompany.nome_empresa);
     } else {
       setCompanyId('');
       setCompanyName('');
     }
+  };
+
+  const getContact = async () => {
+    const resCon = await fetchContatos();
+    setContatos(resCon);
   };
 
   useEffect(() => {
@@ -179,6 +185,7 @@ function Sidebar() {
     setCompanyId(idCompany);
     setCompanyName(nameCompany);
     getCompany();
+    getContact();
   };
 
   const closeMenu = () => {
@@ -248,7 +255,7 @@ function Sidebar() {
           <nav className="fixed top-0 w-full z-50 h-16 bg-white border-b border-gray-200">
             <div className="px-3 py-3 lg:px-5 lg:pl-3 shadow">
               {/* Navbar */}
-              <div className="grid grid-cols-3 items-center px-2">
+              <div className="grid grid-cols-2 lg:grid-cols-3 items-center px-2">
 
                 {/* Column 1 */}
                 <div className="flex items-center justify-start">

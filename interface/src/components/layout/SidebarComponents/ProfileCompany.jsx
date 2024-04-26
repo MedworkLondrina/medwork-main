@@ -37,7 +37,7 @@ function ProfileCompany({ companyId, empresas, contatos }) {
     const findContato = contatos.find((item) => item.id_contato === findCompany.fk_contato_id);
     setCompany(findCompany);
     setContact(findContato);
-  }
+  };
 
   const getUnidades = async () => {
     const units = await fetchUnidades();

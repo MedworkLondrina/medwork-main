@@ -45,7 +45,7 @@ function App() {
         </div>
 
         {/* Loading */}
-        <LoadingScreen />
+        {/* <LoadingScreen /> */}
         {/* Definindo quais serão as rotas */}
         <Routes>
           {/* Linkando as rotas as paginas */}

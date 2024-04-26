@@ -10,6 +10,7 @@ import Back from '../../../layout/Back'
 import { IoInformationCircleSharp } from "react-icons/io5";
 
 function Empresa() {
+  
   const {
     fetchEmpresas,
     fetchContatos,
@@ -18,7 +19,6 @@ function Empresa() {
 
   // Instanciando e Definindo como vazio
   const [onEdit, setOnEdit] = useState(null);
-  const [contactName, setContactName] = useState(null);
   const [visible, setVisible] = useState(false);
   const [empresas, setEmpresas] = useState([]);
   const [companyId, setCompanyId] = useState(null);
@@ -33,18 +33,8 @@ function Empresa() {
     const companys = await fetchEmpresas();
     if (companys) {
       setEmpresas(companys);
-      getContatos();
     }
   };
-
-  const getContatos = async () => {
-    const contact = await fetchContatos(companyId);
-    if (contact) {
-      setContatos(contact);
-    } else {
-      setContatos([]);
-    }
-  }
 
   useEffect(() => {
     get()
@@ -114,7 +104,6 @@ function Empresa() {
         </div>
       </div>
 
-
       {/* Formulário de cadastro */}
       <CadastroEmpresa
         onEdit={onEdit}
@@ -124,7 +113,6 @@ function Empresa() {
         contatos={contatos}
       />
 
-
       {/* Barra de pesquisa */}
       <div className="flex justify-center w-full">
         <div className="w-3/6">
@@ -132,14 +120,12 @@ function Empresa() {
         </div>
       </div>
 
-
       {/* Tabela Empresa */}
       <GridCadastroEmpresa
         empresa={filteredEmpresas}
         setEmpresa={setEmpresas}
         setOnEdit={handleEdit}
         fetchEmpresas={fetchEmpresas}
-        contato={contatos}
         setCompanyId={setCompanyId}
       />
     </div>

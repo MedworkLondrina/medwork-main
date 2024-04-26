@@ -16,8 +16,6 @@ export const pool = mysql.createPool({
     database: 'asse3972_db_medwork_dev',
     multipleStatements: true,
     connectionLimit: 10,
-    connectTimeout: 10000,
-    timeout: 10000
 });
 
 // export const pool = mysql.createPool({
