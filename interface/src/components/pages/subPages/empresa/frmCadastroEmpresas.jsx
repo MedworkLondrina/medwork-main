@@ -9,7 +9,7 @@ import icon_add from '../../../media/icon_add.svg'
 import icon_sair from '../../../media/icon_sair.svg'
 
 
-function CadastroEmpresa({ onEdit, setOnEdit, fetchEmpresas, contact, contatos }) {
+function CadastroEmpresa({ onEdit, setOnEdit, fetchEmpresas, contact }) {
 
   //Instanciando as Variáveis
   const ref = useRef(null);
@@ -22,7 +22,7 @@ function CadastroEmpresa({ onEdit, setOnEdit, fetchEmpresas, contact, contatos }
   const [cnae, setCnae] = useState(""); //Armazena o CNAE
   const [grauRisco, setGrauRisco] = useState(""); //Armazena o Grau de Risco
   const [descricao, setDescricao] = useState(""); //Armazena a Descrição
-  const [ContatoModal, setContatoModal] = useState([]); //Armazena os contatos do Modal
+  const [contatoModal, setc] = useState([]); //Armazena os contatos do Modal
 
   // Colocando as informações do formulario nas variaveis
   useEffect(() => {
@@ -69,7 +69,7 @@ function CadastroEmpresa({ onEdit, setOnEdit, fetchEmpresas, contact, contatos }
     const user = ref.current;
 
     // Verifica se todos os campos foram preenchidos
-    if (!user.nome_empresa.value || !user.razao_social.value || !user.cnpj_empresa.value || !user.cnae_empresa) {
+    if (!user.nome_empresa.value || !user.razao_social.value || !user.cnpj_empresa.value || !user.cnae_empresa || !contatoModal.nome_contato) {
       return toast.warn("Preencha Todos os Campos!")
     }
 
@@ -90,11 +90,17 @@ function CadastroEmpresa({ onEdit, setOnEdit, fetchEmpresas, contact, contatos }
 
       const juncao = {
         empresa_data: empresaData,
-        contato_data: ContatoModal,
+        contato_data: contatoModal,
       }
 
-      const empresaResponse = await fetch(`${connect}/empresas?${queryParams}`, {
-        method: 'POST',
+      const url = onEdit
+        ? `${connect}/empresas/${onEdit.id_elaborador}?${queryParams}`
+        : `${connect}/empresas?${queryParams}`;
+
+      const method = onEdit ? 'PUT' : 'POST';
+
+      const empresaResponse = await fetch(url, {
+        method: method,
         headers: {
           'Content-Type': 'application/json'
         },
@@ -145,11 +151,11 @@ function CadastroEmpresa({ onEdit, setOnEdit, fetchEmpresas, contact, contatos }
   const handleContactSelect = useCallback((contato) => {
     if (contato) {
       closeModal();
-      setContatoModal(contato);
+      setc(contato);
       setContactId(contato.id_contato);
       setContactName(contato.nome_contato);
     }
-  }, [closeModal, setContatoModal]);
+  }, [closeModal, setc]);
 
   //Funções CheckBox
   const checkboxEstadual = () => {
@@ -476,8 +482,8 @@ function CadastroEmpresa({ onEdit, setOnEdit, fetchEmpresas, contact, contatos }
       <ModarSearchContato
         isOpen={showModal}
         onCancel={closeModal}
-        children={contatos}
         onContactSelect={handleContactSelect}
+        contact={contact}
       />
     </div>
   )

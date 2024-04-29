@@ -10,7 +10,7 @@ import Back from '../../../layout/Back'
 import { IoInformationCircleSharp } from "react-icons/io5";
 
 function Empresa() {
-  
+
   const {
     fetchEmpresas,
     fetchContatos,
@@ -22,7 +22,6 @@ function Empresa() {
   const [visible, setVisible] = useState(false);
   const [empresas, setEmpresas] = useState([]);
   const [companyId, setCompanyId] = useState(null);
-  const [contatos, setContatos] = useState([]);
   const [contactInfo, setContactInfo] = useState([]);
 
   //Instanciando o Search
@@ -43,7 +42,8 @@ function Empresa() {
   const handleEdit = async (selectedEmpresa) => {
     if (selectedEmpresa.fk_contato_id) {
       const contacts = await fetchContatos(selectedEmpresa.id_empresa);
-      const contactData = contacts.find((c) => c.id_contato === selectedEmpresa.fk_contato_id)
+      const contactData = contacts.find((c) => c.id_contato === selectedEmpresa.fk_contato_id);
+      console.log(contactData);
       if (contactData) {
         setContactInfo(contactData)
       }
@@ -53,13 +53,15 @@ function Empresa() {
 
   //Função para Pesquisa
   useEffect(() => {
-    const filtered = empresas.filter((emp) => emp.nome_empresa.toLowerCase().includes(searchTerm.toLowerCase()));
+    const filtered = empresas.filter((emp) =>
+      emp.nome_empresa.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      emp.razao_social.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      emp.cnpj_empresa.toLowerCase().includes(searchTerm.toLowerCase()));
     setFilteredEmpresas(filtered);
   }, [searchTerm, empresas]);
 
 
   const handleSearch = (term) => {
-    // Atualizar o estado do termo de pesquisa com o valor fornecido
     setSearchTerm(term);
   }
 
@@ -108,9 +110,8 @@ function Empresa() {
       <CadastroEmpresa
         onEdit={onEdit}
         setOnEdit={setOnEdit}
-        fetchEmpresas={fetchEmpresas}
+        fetchEmpresas={get}
         contact={contactInfo}
-        contatos={contatos}
       />
 
       {/* Barra de pesquisa */}

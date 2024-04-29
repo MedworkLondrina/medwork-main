@@ -3,12 +3,17 @@ import { BsFillPencilFill } from 'react-icons/bs'; //Icone de Edição
 import { toast } from 'react-toastify';
 import { connect } from '../../../../services/api'; //Conexão com o banco de dados
 import { useState } from 'react';
+import { IoMdArrowDropleft } from "react-icons/io";
+import { IoMdArrowDropright } from "react-icons/io";
 
 function GridCadastroEmpresa({ empresa, setEmpresa, setOnEdit, getEmpresa, setCompanyId }) {
 
   const [page, setPage] = useState(0);
-  const itemsPerPage = 2;
+  const itemsPerPage = 10;
   const totalPages = Math.ceil(empresa.length / itemsPerPage);
+  const startIndex = page * itemsPerPage;
+  const endIndex = Math.min(startIndex + itemsPerPage, empresa.length);
+  const visibleItems = empresa.slice(startIndex, endIndex);
 
   const handleNextPage = () => {
     setPage((prevPage) => Math.min(prevPage + 1, totalPages - 1));
@@ -18,9 +23,6 @@ function GridCadastroEmpresa({ empresa, setEmpresa, setOnEdit, getEmpresa, setCo
     setPage((prevPage) => Math.max(prevPage - 1, 0));
   };
 
-  const startIndex = page * itemsPerPage;
-  const endIndex = Math.min(startIndex + itemsPerPage, empresa.length);
-  const visibleItems = empresa.slice(startIndex, endIndex);
 
 
   const handleEditClick = (empresa) => () => {
@@ -62,8 +64,24 @@ function GridCadastroEmpresa({ empresa, setEmpresa, setOnEdit, getEmpresa, setCo
 
   return (
     <>
+      <div className='flex justify-center w-full mt-6 mb-2'>
+        <div className='flex justify-end w-5/6'>
+          <div className='flex justify-end items-center gap-1 py-2 rounded px-2'>
+            <button className='hover:bg-gray-100 cursor-pointer rounded-md p-1' onClick={handlePrevPage} disabled={page === 0}><IoMdArrowDropleft /></button>
+            {/* <span>Página {page + 1} de {totalPages}</span> */}
+            <div className={`flex justify-center items-center gap-1`}>
+              {Array.from(Array(totalPages).keys()).map((pageNumber) => (
+                <div key={pageNumber} className={`hover:bg-gray-100 cursor-pointer rounded px-1 ${page === pageNumber ? 'bg-gray-100' : ''}`} onClick={() => setPage(pageNumber)}>
+                  {pageNumber + 1}
+                </div>
+              ))}
+            </div>
+            <button className='hover:bg-gray-100 cursor-pointer rounded-md p-1' onClick={handleNextPage} disabled={page === totalPages - 1}><IoMdArrowDropright /></button>
+          </div>
+        </div>
+      </div>
       <div className="relative overflow-x-auto sm:rounded-lg flex sm:justify-center">
-        <table className="w-full xl:w-5/6 shadow-md text-sm mx-8 mt-10 text-left rtl:text-right text-gray-500">
+        <table className="w-full xl:w-5/6 shadow-md text-sm mx-8 text-left rtl:text-right text-gray-500">
           <thead className="text-xs text-gray-700 uppercase bg-gray-50">
             <tr>
               <th scope="col" className="px-4 py-3">
@@ -148,13 +166,6 @@ function GridCadastroEmpresa({ empresa, setEmpresa, setOnEdit, getEmpresa, setCo
             ))}
           </tbody>
         </table>
-      </div>
-      <div className='w-full flex justify-center'>
-        <div className='w-5/6 flex justify-between items-center px-1 py-2'>
-          <button onClick={handlePrevPage} disabled={page === 0}>{'<'}</button>
-          <span>Página {page + 1} de {totalPages}</span>
-          <button onClick={handleNextPage} disabled={page === totalPages - 1}>{'>'}</button>
-        </div>
       </div>
     </>
   );
