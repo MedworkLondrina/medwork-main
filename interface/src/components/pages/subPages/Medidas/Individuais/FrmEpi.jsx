@@ -210,9 +210,23 @@ function CadastroEpi({ onEdit, get, epis, setOnEdit }) {
               </button>
             </div>
             <div className="px-3 pl-8">
-              <button className="shadow mt-4 bg-green-600 hover:bg-green-700 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded" type="submit">
-                Cadastrar
-              </button>
+              {!nome || !certificado || !fator || !vencimento || !fabricante ? (
+                <button
+                  className="shadow mt-4 bg-green-600 cursor-not-allowed opacity-50 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded"
+                  type="submit"
+                  disabled
+                >
+                  Cadastrar
+                </button>
+              ) : (
+                <button
+                  className="shadow mt-4 bg-green-600 hover:bg-green-700 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded"
+                  type="submit"
+                >
+                  Cadastrar
+                </button>
+              )}
+
             </div>
           </div>
         </div>

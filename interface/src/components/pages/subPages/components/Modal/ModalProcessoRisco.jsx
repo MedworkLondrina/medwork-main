@@ -133,7 +133,8 @@ const ModalProcessoRisco = ({ onCancel, isOpen, childName, childId, children }) 
           </button>
         </div>
         <div className="relative overflow-x-auto sm:rounded-lg flex sm:justify-center">
-          <table className="w-full shadow-md text-sm mb-8 mt-2 text-left rtl:text-right text-gray-500">
+        
+          {processoRisco.length > 0 && (<table className="w-full shadow-md text-sm mb-8 mt-2 text-left rtl:text-right text-gray-500">
             <thead className="text-xs text-gray-700 uppercase bg-gray-50">
               <tr>
                 <th scope="col" className="px-4 py-3">
@@ -143,7 +144,7 @@ const ModalProcessoRisco = ({ onCancel, isOpen, childName, childId, children }) 
                   Processo
                 </th>
                 <th scope="col" className="px-4 py-3">
-                  Risco
+                  Risco2
                 </th>
               </tr>
             </thead>
@@ -166,7 +167,7 @@ const ModalProcessoRisco = ({ onCancel, isOpen, childName, childId, children }) 
                 </tr>
               ))}
             </tbody>
-          </table>
+          </table>)}
         </div>
       </div>
       <ModalSearchRisco

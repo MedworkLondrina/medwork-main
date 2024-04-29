@@ -16,7 +16,7 @@ function Riscos() {
   const {
     handleSetCompanyId, companyId,
     riscos, setRiscos, getRiscos,
-    getMedidasAdm, medidasAdm, getMedidasEpi, medidasEpi, getMedidasEpc, medidasEpc,
+     medidasAdm, fetchMedidas, medidasEpi, medidasEpc,
     getProcessos, processos,
     getProcessosRiscos, processosRiscos,
     getRiscosMedidas, riscosMedidas,
@@ -25,7 +25,7 @@ function Riscos() {
   //Instanciando o Search
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredRiscos, setFilteredRiscos] = useState([]);
-  
+  const [medidas, setMedidas] = useState([]);
 
   useEffect(() => {
     handleSetCompanyId();
@@ -34,15 +34,18 @@ function Riscos() {
   useEffect(() => {
     getRiscos();
     getProcessos();
-    getMedidasAdm();
-    getMedidasEpi();
-    getMedidasEpc();
+    getMedidas();
     getProcessosRiscos();
     getRiscosMedidas();
   }, [companyId])
 
   const handleEdit = (selectedRisco) => {
     setOnEdit(selectedRisco);
+  }
+
+  const getMedidas = async ()=>{
+    const med = await fetchMedidas("all")
+    setMedidas(med);
   }
 
   //Função para Pesquisa
@@ -118,9 +121,6 @@ function Riscos() {
           setRiscos={setRiscos}
           setOnEdit={handleEdit}
           processos={processos}
-          medidasAdm={medidasAdm}
-          medidasEpi={medidasEpi}
-          medidasEpc={medidasEpc}
           processosRiscos={processosRiscos}
           riscosMeidas={riscosMedidas}
         />

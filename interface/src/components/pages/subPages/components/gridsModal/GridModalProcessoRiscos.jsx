@@ -4,6 +4,7 @@ import { toast } from 'react-toastify';
 import { BsFillTrash3Fill } from "react-icons/bs";
 import Swal from 'sweetalert2';
 import icon_add from '../../../../media/icon_add_link.png'
+import useAuth from '../../../../../hooks/useAuth'
 
 import ModalSearchRisco from '../Modal/ModalSearchRisco'
 
@@ -12,40 +13,18 @@ function GridProcessoRiscos({ childId, children }) {
   const [processoRisco, setProcessoRisco] = useState([]);
   const [riscos, setRiscos] = useState([]);
   const [showModal, setShowModal] = useState(false);
+	const { getProcessosRiscos, getRiscos } = useAuth(null);
 
-  const fetchProcessoRisco = async () => {
-    try {
-      const response = await fetch(`${connect}/processos_riscos`);
+  const get = async () => {
+		const processoRisco = await getProcessosRiscos();
+		setProcessoRisco(processoRisco);
+		const riscos = await getRiscos();
+		setRiscos(riscos);
+	}
 
-      if (!response.ok) {
-        throw new Error(`Erro ao buscar processos e riscos. Status: ${response.status}`)
-      }
-
-      const responseData = await response.json();
-      setProcessoRisco(responseData);
-    } catch (error) {
-      console.log("Erro ao buscar processos e riscos!", error)
-    }
-  }
-
-  const fetchRisco = async () => {
-    try {
-      const response = await fetch(`${connect}/riscos`);
-
-      if (!response.ok) {
-        throw new Error(`Erro ao buscar riscos. Status: ${response.status}`)
-      }
-
-      const responseData = await response.json();
-      setRiscos(responseData);
-    } catch (error) {
-      console.log("Erro ao buscar riscos!", error)
-    }
-  }
-
+  
   useEffect(() => {
-    fetchProcessoRisco();
-    fetchRisco();
+    get();
   }, [childId])
 
   const findRisco = (fkRiscoId) => {
@@ -92,7 +71,6 @@ function GridProcessoRiscos({ childId, children }) {
       const responseData = await response.json();
 
       closeModal();
-      fetchProcessoRisco();
       toast.success(responseData);
     } catch (error) {
       console.log("Erro ao vincular Risco ao processo", error);
@@ -121,7 +99,6 @@ function GridProcessoRiscos({ childId, children }) {
         }
 
         const responseData = await response.json();
-        fetchProcessoRisco();
         toast.success(responseData);
 
       } catch (error) {
@@ -146,7 +123,7 @@ function GridProcessoRiscos({ childId, children }) {
           </div>
         </div>
         <div className="relative overflow-x-auto sm:rounded-lg flex sm:justify-center">
-          <table className="w-full shadow-md text-sm m-2 text-left rtl:text-right text-gray-500">
+          {processoRisco.length > 0 && (<table className="w-full shadow-md text-sm m-2 text-left rtl:text-right text-gray-500">
             <thead className="text-xs text-gray-700 uppercase bg-gray-50">
               <tr>
                 <th scope="col" className="px-4 py-3">
@@ -190,7 +167,7 @@ function GridProcessoRiscos({ childId, children }) {
                   </tr>
                 ))}
             </tbody>
-          </table>
+          </table>)}
         </div>
       </div>
       <ModalSearchRisco
