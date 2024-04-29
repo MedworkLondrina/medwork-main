@@ -6,7 +6,6 @@ import BotaoEmpresa from "./subPages/buttons/Cadastros/BotaoEmpresa";
 import BotaoUnidade from "./subPages/buttons/Cadastros/BotaoUnidade";
 import BotaoSetor from "./subPages/buttons/Cadastros/BotaoSetor";
 import BotaoCargo from "./subPages/buttons/Cadastros/BotaoCargo";
-import BotaoContato from "./subPages/buttons/Cadastros/BotaoContato";
 import BotaoProcessos from './subPages/buttons/Cadastros/BotaoProcessos';
 import BotaoRiscos from './subPages/buttons/Cadastros/BotaoRiscos';
 import BotaoMedidasDeProtecao from "./subPages/buttons/Cadastros/BotaoMedidasDeProtecao";
@@ -57,12 +56,6 @@ function Cadastros() {
       {/* Botões Relacionados a Empresa*/}
       <div className="mt-16 px-12 mb-12">
         <div className="grid xl:grid-cols-5 md:grid-cols-3 gap-6 bg-white">
-          {/* Contato */}
-          <figure className="flex flex-col justify-center">
-            <Link to="/cadastro_contato">
-              <BotaoContato />
-            </Link>
-          </figure>
           {/* Empresa */}
           {companyId ? (null) : (
             <figure className="flex flex-col justify-center">
