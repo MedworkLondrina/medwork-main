@@ -3,7 +3,7 @@ import SearchInput from '../SearchInput';
 import useAuth from '../../../../../hooks/useAuth';
 
 
-const ModalSearchMedidas = ({ onCancel, isOpen, medidasAdm, medidasEpi, medidasEpc, onSelect }) => {
+const ModalSearchMedidas = ({ onCancel, isOpen,  onSelect }) => {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState(0);

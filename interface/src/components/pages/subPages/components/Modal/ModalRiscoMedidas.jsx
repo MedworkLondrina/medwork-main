@@ -2,20 +2,20 @@ import React, { useEffect, useState } from 'react';
 import { connect } from '../../../../../services/api';
 import { IoAddCircle } from "react-icons/io5";
 import { toast } from 'react-toastify';
+import useAuth from '../../../../../hooks/useAuth';
 
 import ModalSearchMedidas from './ModalSearchMedidas'
 
 const ModalRiscoMedidas = ({ onCancel, isOpen, childName, childId, children }) => {
-
+  const {fetchMedidas} = useAuth(null);
   const [riscosMedidas, setRiscosMedidas] = useState([]);
   const [medida, setMedida] = useState([]);
-  const [medidaEpi, setMedidaEpi] = useState([]);
-  const [medidaEpc, setMedidaEpc] = useState([]);
   const [showModal, setShowModal] = useState(false);
-  const [tipo, setTipo] = useState(null);
-
   const fetchRiscosMedidas = async () => {
     try {
+
+      
+
       const response = await fetch(`${connect}/riscos_medidas`);
 
       if (!response.ok) {
@@ -29,55 +29,18 @@ const ModalRiscoMedidas = ({ onCancel, isOpen, childName, childId, children }) =
     }
   }
 
-  const fetchMedidasAdm = async () => {
+  const fetchMedidasGeral = async () => {
     try {
-      const response = await fetch(`${connect}/medidas_adm`);
-
-      if (!response.ok) {
-        throw new Error(`Erro ao buscar medidas. Status: ${response.status}`)
-      }
-
-      const responseData = await response.json();
-      setMedida(responseData);
+      const med = await fetchMedidas("all");
+      setMedida(med);
     } catch (error) {
       console.log("Erro ao buscar medidas!", error)
     }
   }
 
-  const fetchMedidasEpi = async () => {
-    try {
-      const response = await fetch(`${connect}/medidas_epi`);
-
-      if (!response.ok) {
-        throw new Error(`Erro ao buscar medidas. Status: ${response.status}`)
-      }
-
-      const responseData = await response.json();
-      setMedidaEpi(responseData);
-    } catch (error) {
-      console.log("Erro ao buscar medidas!", error)
-    }
-  }
-
-  const fetchMedidasEpc = async () => {
-    try {
-      const response = await fetch(`${connect}/medidas_epc`);
-
-      if (!response.ok) {
-        throw new Error(`Erro ao buscar medidas. Status: ${response.status}`)
-      }
-
-      const responseData = await response.json();
-      setMedidaEpc(responseData);
-    } catch (error) {
-      console.log("Erro ao buscar medidas!", error)
-    }
-  }
-
+  
   useEffect(() => {
-    fetchMedidasAdm();
-    fetchMedidasEpi();
-    fetchMedidasEpc();
+    fetchMedidasGeral();
     fetchRiscosMedidas();
   }, [childId])
 
@@ -86,43 +49,11 @@ const ModalRiscoMedidas = ({ onCancel, isOpen, childName, childId, children }) =
     return null;
   }
 
-  const findMedidas = (FkMedidaId, tipo) => {
-    if (!riscosMedidas || !medida || !medidaEpi || !medidaEpc) {
-      return 'N/A';
-    }
+  const findMedidas = (FkMedidaId) => {
 
-    const filteredRiscosMedidas = riscosMedidas.filter((item) => item.fk_medida_id === FkMedidaId && item.tipo === tipo);
-
-    if (!filteredRiscosMedidas.length) {
-      return 'N/A';
-    }
-
-    const medidasIds = filteredRiscosMedidas.map((riscoMedidaItem) => riscoMedidaItem.fk_medida_id);
-
-    // Remova IDs de medidas duplicados
-    const medidasIdsUnicas = Array.from(new Set(medidasIds));
-
-    const medidas = medidasIdsUnicas.map((medidaId) => {
-      switch (tipo) {
-        case 1:
-          const medidaAdm = medida.find((c) => c.id_medida_adm === medidaId);
-          return medidaAdm ? medidaAdm.descricao_medida_adm : 'N/A';
-
-        case 2:
-          const epis = medidaEpi.find((c) => c.id_medida === medidaId);
-          return epis ? epis.nome_medida : 'N/A';
-
-        case 3:
-          const epcs = medidaEpc.find((c) => c.id_medida === medidaId);
-          return epcs ? epcs.descricao_medida : 'N/A';
-
-        default:
-          return 'N/A';
-      }
-    });
-
-    const medidasFiltradas = medidas.filter((medida) => medida && medida.trim() !== '');
-    return medidasFiltradas.length > 0 ? medidasFiltradas.join(', ') : 'N/A';
+    const filterMedida = medida.find((i) => i.id_medida === FkMedidaId);
+    return filterMedida ? filterMedida.descricao_medida : 'N/A';
+   
   };
 
 
@@ -135,20 +66,7 @@ const ModalRiscoMedidas = ({ onCancel, isOpen, childName, childId, children }) =
     return riscos ? riscos.nome_risco : 'N/A'
   }
 
-  const findTipo = (tipo) => {
-    if (!tipo) {
-      return 'N/A'
-    }
 
-    switch (tipo) {
-      case 1:
-        return 'Medida Administrativa'
-      case 2:
-        return 'EPI'
-      case 3:
-        return 'EPC'
-    }
-  }
 
   //Funções do Modal
   //Função para abrir o Modal
@@ -156,13 +74,13 @@ const ModalRiscoMedidas = ({ onCancel, isOpen, childName, childId, children }) =
   //Função para fechar o Modal
   const closeModal = () => setShowModal(false);
 
-  const selectedSetor = async (item, tipo) => {
+  const selectedSetor = async (item) => {
     try {
-      // Verifica se já existe um vínculo do mesmo tipo
-      const existingLink = riscosMedidas.find(link => link.fk_risco_id === childId && link.fk_medida_id === item && link.tipo === tipo);
+      
+      const filteredRiscosMedidas = riscosMedidas.filter((i) => i.fk_risco_id === childId && i.fk_medida_id === item);
 
-      if (existingLink) {
-        toast.warn(`Já existe uma medida do tipo ${tipo} vinculada a este risco.`);
+      if(filteredRiscosMedidas.length > 0){
+        toast.warn(`Já existe uma medida vinculada a este risco.`);
         return;
       }
 
@@ -174,14 +92,12 @@ const ModalRiscoMedidas = ({ onCancel, isOpen, childName, childId, children }) =
         body: JSON.stringify([{
           fk_risco_id: childId,
           fk_medida_id: item,
-          tipo: tipo,
         }])
       });
-
+      
       if (!response.ok) {
         throw new Error(`Erro ao vincular medida de proteção ao risco. Status: ${response.status}`);
       }
-
       const responseData = await response.json();
 
       closeModal();
@@ -235,9 +151,7 @@ const ModalRiscoMedidas = ({ onCancel, isOpen, childName, childId, children }) =
                 <th scope="col" className="px-4 py-3">
                   Medida de Proteção
                 </th>
-                <th scope="col" className="px-4 py-3">
-                  Tipo
-                </th>
+               
               </tr>
             </thead>
             <tbody>
@@ -254,11 +168,9 @@ const ModalRiscoMedidas = ({ onCancel, isOpen, childName, childId, children }) =
                       {findRisco(item.fk_risco_id)}
                     </th>
                     <td className="px-4 py-4">
-                      {findMedidas(item.fk_medida_id, item.tipo)}
+                      {findMedidas(item.fk_medida_id)}
                     </td>
-                    <td className="px-4 py-4">
-                      {findTipo(item.tipo)}
-                    </td>
+                    
                   </tr>
                 ))}
             </tbody>
@@ -268,9 +180,6 @@ const ModalRiscoMedidas = ({ onCancel, isOpen, childName, childId, children }) =
       <ModalSearchMedidas
         isOpen={showModal}
         onCancel={closeModal}
-        medidasAdm={medida}
-        medidasEpi={medidaEpi}
-        medidasEpc={medidaEpc}
         onSelect={selectedSetor}
       />
     </div>
