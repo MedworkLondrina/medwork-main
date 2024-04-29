@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 
 import FrmContato from '../../contato/frmCadastroContato';
 
-const ModalSearchEmpresa = ({ onCancel, isOpen, onContactSelect }) => {
+const ModalSearchEmpresa = ({ onCancel, isOpen, onContactSelect, contact }) => {
 
   if (!isOpen) {
     return null;
@@ -31,7 +31,10 @@ const ModalSearchEmpresa = ({ onCancel, isOpen, onContactSelect }) => {
             Cadastre um Contato para ser o responsável pela Empresa. Esse contato saira como responsável da empresa nos laudos.
           </p>
         </div>
-        <FrmContato setContatoData={onContactSelect} />
+        <FrmContato
+          setContatoData={onContactSelect}
+          contact={contact}
+        />
       </div>
     </div>
   );

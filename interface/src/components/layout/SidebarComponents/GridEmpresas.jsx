@@ -2,14 +2,9 @@ import { toast } from 'react-toastify';
 import useAuth from '../../../hooks/useAuth';
 
 
-function GridEmpresas({ empresas, contatos, onSelect }) {
+function GridEmpresas({ empresas, onSelect }) {
 
   const { handleSelectedCompany } = useAuth();
-
-  const findContactName = (fkContatoId) => {
-    const contato = contatos.find((c) => c.id_contato === fkContatoId);
-    return contato ? contato.nome_contato : 'N/A';
-  };
 
   const handleOpenCompany = async (id, nome_empresa) => {
     try {
@@ -38,9 +33,6 @@ function GridEmpresas({ empresas, contatos, onSelect }) {
             <th scope="col" className="px-6 py-3">
               CNPJ
             </th>
-            <th scope="col" className="px-6 py-3">
-              Contato
-            </th>
           </tr>
         </thead>
         <tbody>
@@ -63,9 +55,6 @@ function GridEmpresas({ empresas, contatos, onSelect }) {
                 <td className="px-6 py-4">
                   {item.cnpj_empresa}
                 </td>
-                <th className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
-                  {findContactName(item.fk_contato_id)}
-                </th>
               </tr>
             ))}
         </tbody>

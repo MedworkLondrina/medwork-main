@@ -426,8 +426,6 @@ export const AuthProvider = ({ children }) => {
       console.log(`Erro ao buscar epc's. ${error}`)
     }
   };
-
-
   
   const getSetoresProcessos = async () => {
     try {

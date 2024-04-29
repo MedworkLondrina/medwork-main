@@ -5,11 +5,11 @@ import { connect } from "../../../../services/api"; //Conexão com o banco de da
 import { IoIosHelpCircle } from "react-icons/io";
 
 import ModarSearchContato from "../components/Modal/ModalSearchContato";
-import icon_lupa from '../../../media/icon_lupa.svg'
+import icon_add from '../../../media/icon_add.svg'
 import icon_sair from '../../../media/icon_sair.svg'
 
 
-function CadastroEmpresa({ onEdit, setOnEdit, fetchEmpresas, contact, contatos }) {
+function CadastroEmpresa({ onEdit, setOnEdit, fetchEmpresas, contact }) {
 
   //Instanciando as Variáveis
   const ref = useRef(null);
@@ -22,7 +22,7 @@ function CadastroEmpresa({ onEdit, setOnEdit, fetchEmpresas, contact, contatos }
   const [cnae, setCnae] = useState(""); //Armazena o CNAE
   const [grauRisco, setGrauRisco] = useState(""); //Armazena o Grau de Risco
   const [descricao, setDescricao] = useState(""); //Armazena a Descrição
-  const [ContatoModal, setContatoModal] = useState([]); //Armazena os contatos do Modal
+  const [contatoModal, setc] = useState([]); //Armazena os contatos do Modal
 
   // Colocando as informações do formulario nas variaveis
   useEffect(() => {
@@ -69,7 +69,7 @@ function CadastroEmpresa({ onEdit, setOnEdit, fetchEmpresas, contact, contatos }
     const user = ref.current;
 
     // Verifica se todos os campos foram preenchidos
-    if (!user.nome_empresa.value || !user.razao_social.value || !user.cnpj_empresa.value || !user.cnae_empresa) {
+    if (!user.nome_empresa.value || !user.razao_social.value || !user.cnpj_empresa.value || !user.cnae_empresa || !contatoModal.nome_contato) {
       return toast.warn("Preencha Todos os Campos!")
     }
 
@@ -87,14 +87,20 @@ function CadastroEmpresa({ onEdit, setOnEdit, fetchEmpresas, contact, contatos }
         ativo: 1,
         fk_tenant_code: tenant
       };
-      
+
       const juncao = {
         empresa_data: empresaData,
-        contato_data: ContatoModal,
+        contato_data: contatoModal,
       }
 
-      const empresaResponse = await fetch(`${connect}/empresas?${queryParams}`, {
-        method: 'POST',
+      const url = onEdit
+        ? `${connect}/empresas/${onEdit.id_elaborador}?${queryParams}`
+        : `${connect}/empresas?${queryParams}`;
+
+      const method = onEdit ? 'PUT' : 'POST';
+
+      const empresaResponse = await fetch(url, {
+        method: method,
         headers: {
           'Content-Type': 'application/json'
         },
@@ -145,9 +151,11 @@ function CadastroEmpresa({ onEdit, setOnEdit, fetchEmpresas, contact, contatos }
   const handleContactSelect = useCallback((contato) => {
     if (contato) {
       closeModal();
-      setContatoModal(contato);
+      setc(contato);
+      setContactId(contato.id_contato);
+      setContactName(contato.nome_contato);
     }
-  }, [closeModal, setContatoModal]);
+  }, [closeModal, setc]);
 
   //Funções CheckBox
   const checkboxEstadual = () => {
@@ -360,18 +368,9 @@ function CadastroEmpresa({ onEdit, setOnEdit, fetchEmpresas, contact, contatos }
 
           {/* CNAE */}
           <div className={`w-full px-3 md:w-3/12`}>
-            <div className="flex gap-2">
-              <div className="h-full">
-                <label className="tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="cnae">
-                  CNAE:
-                </label>
-              </div>
-              <div className="flex items-center text-sm pt-1">
-                <a href="https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/arquivos/normas-regulamentadoras/nr-04-atualizada-2022-2-1.pdf" target="_blank">
-                  <button type="button"><IoIosHelpCircle className='text-sky-700' /></button>
-                </a>
-              </div>
-            </div>
+            <label className="tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="cnae">
+              CNAE:
+            </label>
             <input
               className="appearence-none block w-full bg-gray-100 rounded py-3 px-4 mb-3 mt-1 leading-tight focus:outline-gray-100 focus:bg-white"
               type="text"
@@ -426,39 +425,40 @@ function CadastroEmpresa({ onEdit, setOnEdit, fetchEmpresas, contact, contatos }
               {contactName ? (
                 <>
                   <button
-                    className="flex appearance-none hover:shadow-sm text-sky-600 bg-gray-100 border-gray-200 justify-center mt-1 py-3 px-4 rounded leading-tight focus:outline-none with-text"
+                    className="w-full flex appearance-none hover:shadow-sm text-sky-600 bg-gray-100 border-gray-200 justify-center mt-1 py-3 px-4 rounded leading-tight focus:outline-none with-text"
                     type="button"
                     onClick={openModal}
                   >
-                    <p name="fk_contato_id" className="px-2 text-sm font-sm text-gray-600">
-                      Contato:
-                    </p>
                     <p className="font-bold">
                       {contactName}
                     </p>
                   </button>
                   <button className="ml-4" type="button" onClick={handleClearContato}>
-                    <img src={icon_sair} alt="" className="h-9" />
+                    <img src={icon_sair} alt="" className="h-8" />
                   </button>
                 </>
               ) : (
-                <button
-                  className="flex w-full appearance-none text-gray-400 bg-gray-100 border-gray-200 justify-center mt-1 py-3 px-4 rounded leading-tight focus:outline-none with-text"
-                  type="button"
-                  onClick={openModal}
-                >
-                  <p className="px-2 text-sm font-medium">
-                    Nenhum Contato Selecionado
-                  </p>
-                </button>
+                <>
+                  <div className="flex items-center gap-3 w-full">
+                    <button
+                      className="flex w-full appearance-none text-gray-400 bg-gray-100 border-gray-200 justify-center mt-1 py-3 px-4 rounded leading-tight focus:outline-none with-text"
+                      type="button"
+                      onClick={openModal}
+                    >
+                      <p className="px-2 text-sm font-medium">
+                        Nenhum Contato Cadastrado
+                      </p>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={openModal}
+                      className={`flex cursor-pointer`}
+                    >
+                      <img src={icon_add} className="h-9" alt="Icone adicionar usuario"></img>
+                    </button>
+                  </div>
+                </>
               )}
-              <button
-                type="button"
-                onClick={openModal}
-                className={`flex cursor-pointer ml-4`}
-              >
-                <img src={icon_lupa} className="h-9" alt="Icone adicionar usuario"></img>
-              </button>
             </div>
 
           </div>
@@ -482,8 +482,8 @@ function CadastroEmpresa({ onEdit, setOnEdit, fetchEmpresas, contact, contatos }
       <ModarSearchContato
         isOpen={showModal}
         onCancel={closeModal}
-        children={contatos}
         onContactSelect={handleContactSelect}
+        contact={contact}
       />
     </div>
   )

@@ -2,7 +2,7 @@ import { useRef, useEffect, useState } from "react";
 import { toast } from "react-toastify";
 
 
-function FrmCadastroContato({ setContatoData, onEdit }) {
+function FrmCadastroContato({ setContatoData, onEdit, contact }) {
 
   const ref = useRef(null);
 
@@ -92,6 +92,16 @@ function FrmCadastroContato({ setContatoData, onEdit }) {
       setShowMailError2(false);
     }
   };
+
+  useEffect(() => {
+    const user = ref.current;
+    if (contact) {
+      contact.nome_contato ? user.nome_contato.value = contact.nome_contato : user.nome_contato.value = '';
+      contact.telefone_contato ? user.telefone_contato.value = contact.telefone_contato : user.telefone_contato.value = '';
+      contact.email_contato ? user.email_contato.value = contact.email_contato : user.email_contato.value = '';
+      contact.email_secundario_contato ? user.email_secundario_contato.value = contact.email_secundario_contato : user.email_secundario_contato.value = '';
+    }
+  }, [contact])
 
 
   return (
