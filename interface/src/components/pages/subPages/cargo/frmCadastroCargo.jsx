@@ -71,7 +71,7 @@ function FrmCadastroCargo({ onEdit, setOnEdit, getCargo, set, setor, unidades })
         func_menor: funcMenor || 0,
         fk_setor_id: setorId || null,
         ativo: 1,
-        fk_company_id: companyId,
+        fk_empresa_id: companyId,
       }
 
       const url = onEdit
