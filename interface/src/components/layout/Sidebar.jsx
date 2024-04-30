@@ -21,7 +21,6 @@ import icon_empresa from '../media/menu/icon_empresa.svg';
 import icon_unidade from '../media/menu/icon_unidade.svg';
 import icon_setor from '../media/menu/icon_setor.svg';
 import icon_cargo from '../media/menu/icon_cargo.svg';
-import icon_contato from '../media/menu/icon_contato.svg';
 import icon_corporativo from '../media/menu/icon_corporativo.svg';
 // Controle de Riscos
 import icon_controle_risco from '../media/menu/icon_controle_risco.svg';
@@ -130,6 +129,7 @@ function Sidebar() {
   }, [companyId]);
 
   const clearLocalSotrageCompany = () => {
+    navigate("/");
     setCompany(null);
     setCompanyId('');
     setCompanyName('');
@@ -186,6 +186,7 @@ function Sidebar() {
     setCompanyName(nameCompany);
     getCompany();
     getContact();
+    navigate('/');
   };
 
   const closeMenu = () => {
@@ -250,15 +251,15 @@ function Sidebar() {
       {user ? (
         <div>
           {/* Camada de fundo */}
-          <div className={`modal-overlay absolute inset-0 backdrop-blur-[1px] bg-black bg-opacity-5 z-50 ${showMenu || showProfileCompany || showProfileTenant || showSearchCompany ? 'block' : 'hidden'}`} onClick={closeMenu}></div>
+          <div className={`modal-overlay fixed inset-0 backdrop-blur-[1px] bg-black bg-opacity-5 z-50 ${showMenu || showProfileCompany || showProfileTenant || showSearchCompany ? 'block' : 'hidden'}`} onClick={closeMenu}></div>
           {/* Barra de navegação */}
           <nav className="fixed top-0 w-full z-50 h-16 bg-white border-b border-gray-200">
             <div className="px-3 py-3 lg:px-5 lg:pl-3 shadow">
               {/* Navbar */}
-              <div className="grid grid-cols-2 lg:grid-cols-3 items-center px-2">
+              <div className="grid grid-cols-12 lg:grid-cols-3 items-center px-2">
 
                 {/* Column 1 */}
-                <div className="flex items-center justify-start">
+                <div className="flex items-center justify-start col-span-2 lg:col-span-1">
                   <div className="flex items-center gap-2">
                     {/* Logo */}
                     <div className="cursor-pointer" onClick={menuOpen}>
@@ -266,7 +267,7 @@ function Sidebar() {
                     </div>
 
                     {/* Inquilino */}
-                    <div className={`rounded py-1 px-2 w-5/6 cursor-pointer ${showProfileTenant ? 'bg-gray-100 hover:bg-gray-100' : 'hover:bg-gray-100 hover:shadow-sm'}`} onClick={tenantOpen}>
+                    <div className={`rounded py-1 px-2 w-5/6 cursor-pointer hidden lg:block ${showProfileTenant ? 'bg-gray-100 hover:bg-gray-100' : 'hover:bg-gray-100 hover:shadow-sm'}`} onClick={tenantOpen}>
                       <h1 className="text-center text-sky-700 font-bold truncate cursor-pointer">{tenantName}</h1>
                     </div>
 
@@ -274,7 +275,7 @@ function Sidebar() {
                 </div>
 
                 {/* Column 2 */}
-                <div className="w-full">
+                <div className="w-full col-span-10 lg:col-span-1">
                   {companyId ? (
                     <>
                       {/* Empresa Selecionada */}
@@ -335,7 +336,7 @@ function Sidebar() {
                 </div>
 
                 {/* Column 3 */}
-                <div className="flex items-center justify-end">
+                <div className="hidden items-center justify-end lg:flex lg:col-span-1">
                   {/* Usuário */}
                   {user && (
                     <div className='space-y-1 cursor-pointer'>
@@ -344,9 +345,6 @@ function Sidebar() {
 
                           <p className='text-sky-700 font-bold text-base'>{user ? user.nome_usuario : ''}</p>
                         </div>
-                        <button onClick={logout}>
-                          <img src={icon_logout} alt="icon_logout" />
-                        </button>
                       </div>
                     </div>
                   )}
@@ -356,7 +354,7 @@ function Sidebar() {
 
             {/* Menu */}
             {showMenu && (
-              <aside id="logo-sidebar" className="fixed left-1 mt-1 z-50 w-64 transition-transform -translate-x-full bg-white shadow-md border border-gray-200 sm:translate-x-0 rounded-md" aria-label="Sidebar">
+              <aside id="logo-sidebar" className="fixed right-1 mx-auto left-1 mt-1 z-50 sm:w-64 sm:mx-0 bg-white shadow-md border border-gray-200 rounded-md" aria-label="Sidebar">
                 <div className="h-full overflow-y-auto">
                   <ul className="space-y-2 font-medium cursor-pointer px-3 py-2">
 
@@ -420,16 +418,6 @@ function Sidebar() {
                                     <div className={`flex items-center py-2 px-6`}>
                                       <img src={icon_cargo} alt="icon_cargo" />
                                       <span className="ms-3 font-normal">Cargo</span>
-                                    </div>
-                                  </li>
-                                </Link>
-
-                                {/* Contato */}
-                                <Link to="/cadastro_contato" onClick={() => setShowMenu(!showMenu)}>
-                                  <li className="hover:bg-sky-100">
-                                    <div className={`flex items-center py-2 px-6`}>
-                                      <img src={icon_contato} alt="icon_contato" />
-                                      <span className="ms-3 font-normal">Contato</span>
                                     </div>
                                   </li>
                                 </Link>
@@ -507,14 +495,16 @@ function Sidebar() {
                               </Link>
 
                               {/* Vinculos */}
-                              <Link to="/vinculos" onClick={() => setShowMenu(!showMenu)}>
-                                <li className="hover:bg-sky-100">
-                                  <div className={`flex items-center py-2 px-6`}>
-                                    <img src={icon_vinculos} alt="icon_contato" />
-                                    <span className="ms-3 font-normal">Vínculos</span>
-                                  </div>
-                                </li>
-                              </Link>
+                              {companyId && (
+                                < Link to="/vinculos" onClick={() => setShowMenu(!showMenu)}>
+                                  <li className="hover:bg-sky-100">
+                                    <div className={`flex items-center py-2 px-6`}>
+                                      <img src={icon_vinculos} alt="icon_contato" />
+                                      <span className="ms-3 font-normal">Vínculos</span>
+                                    </div>
+                                  </li>
+                                </Link>
+                              )}
                             </>
 
 
@@ -586,89 +576,109 @@ function Sidebar() {
                       )}
                     </li>
 
-                    {/* Inventário de Riscos */}
-                    <Link to="/inventario" onClick={openMenu}>
-                      <li className="flex items-center p-2 hover:bg-gray-100 rounded-md">
-                        <div>
-                          <img src={icon_inventario} alt="icon_inventario" />
-                        </div>
-                        <span className="ms-3">Inventário de Riscos</span>
-                      </li>
-                    </Link>
 
-                    {/* Plano de Ação */}
-                    <Link to="plano" onClick={openMenu}>
-                      <li className="flex items-center p-2 hover:bg-gray-100 rounded-md">
-                        <div>
-                          <img src={icon_plano} alt="icon_plano" />
-                        </div>
-                        <span className="ms-3">Plano de Ação</span>
-                      </li>
-                    </Link>
+                    {/* Inventário de Riscos, Plano de Ação e Laudos */}
+                    {companyId && (
+                      <>
+                        {/* Inventário de Riscos */}
+                        <Link to="/inventario" onClick={openMenu}>
+                          <li className="flex items-center p-2 hover:bg-gray-100 rounded-md">
+                            <div>
+                              <img src={icon_inventario} alt="icon_inventario" />
+                            </div>
+                            <span className="ms-3">Inventário de Riscos</span>
+                          </li>
+                        </Link>
 
-                    {/* Laudos */}
-                    <li className={`${showLaudosSubMenu ? 'bg-gray-100 rounded-md' : ''}`} onClick={openLaudosMenu}>
-                      <div className={`flex items-center hover:bg-gray-100 p-2 ${showLaudosSubMenu ? 'hover:bg-sky-100 bg-sky-200 rounded-t-md' : 'rounded-md'}`}>
-                        <img src={icon_laudos} alt="icon_laudos" />
-                        <span className="ms-3">Laudos</span>
-                        <div className="absolute right-3 flex items-center justify-center pr-2">
-                          {showLaudosSubMenu ? (
+                        {/* Plano de Ação */}
+                        <Link to="plano" onClick={openMenu}>
+                          <li className="flex items-center p-2 hover:bg-gray-100 rounded-md">
+                            <div>
+                              <img src={icon_plano} alt="icon_plano" />
+                            </div>
+                            <span className="ms-3">Plano de Ação</span>
+                          </li>
+                        </Link>
+
+                        {/* Laudos */}
+                        <li className={`${showLaudosSubMenu ? 'bg-gray-100 rounded-md' : ''}`} onClick={openLaudosMenu}>
+                          <div className={`flex items-center hover:bg-gray-100 p-2 ${showLaudosSubMenu ? 'hover:bg-sky-100 bg-sky-200 rounded-t-md' : 'rounded-md'}`}>
+                            <img src={icon_laudos} alt="icon_laudos" />
+                            <span className="ms-3">Laudos</span>
+                            <div className="absolute right-3 flex items-center justify-center pr-2">
+                              {showLaudosSubMenu ? (
+                                <>
+                                  <IoIosArrowUp />
+                                </>
+                              ) : (
+                                <>
+                                  <IoIosArrowDown />
+                                </>
+                              )}
+                            </div>
+                          </div>
+                          {showLaudosSubMenu && (
                             <>
-                              <IoIosArrowUp />
-                            </>
-                          ) : (
-                            <>
-                              <IoIosArrowDown />
+                              <ul className="space-y-2 font-medium cursor-pointer">
+                                {/* PGR */}
+                                <Link to="/gerar_pgr" onClick={() => setShowMenu(!showMenu)}>
+                                  <li className="hover:bg-sky-100">
+                                    <div className={`flex items-center py-2 px-6`}>
+                                      <img src={icon_laudo} alt="icon_pgr" />
+                                      <div>
+                                        <span className="ms-3 font-normal">PGR</span>
+                                      </div>
+                                    </div>
+                                  </li>
+                                </Link>
+
+                                {/* LTCAT */}
+                                <Link to="/gerar_ltcat" onClick={() => setShowMenu(!showMenu)}>
+                                  <li className="hover:bg-sky-100">
+                                    <div className={`flex items-center py-2 px-6`}>
+                                      <img src={icon_laudo} alt="icon_ltcat" />
+                                      <span className="ms-3 font-normal">LTCAT</span>
+                                    </div>
+                                  </li>
+                                </Link>
+
+                                {/* LIP */}
+                                <Link to="/gerar_lip" onClick={() => setShowMenu(!showMenu)}>
+                                  <li className="hover:bg-sky-100">
+                                    <div className={`flex items-center py-2 px-6`}>
+                                      <img src={icon_laudo} alt="icon_lip" />
+                                      <span className="ms-3 font-normal">LIP</span>
+                                    </div>
+                                  </li>
+                                </Link>
+
+                                {/* PCMSO */}
+                                <li className="opacity-25 cursor-not-allowed">
+                                  <div className={`flex items-center py-2 px-6`}>
+                                    <img src={icon_laudo} alt="icon_pcmso" />
+                                    <span className="ms-3 font-normal">PCMSO</span>
+                                  </div>
+                                </li>
+                              </ul>
                             </>
                           )}
+                        </li>
+                      </>
+                    )}
+
+                    {/* Usuário */}
+                    {user && (
+                      <li className="p-2 bg-gray-50 shadow-sm rounded-md cursor-auto truncate">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sky-700 font-bold">{user.nome_usuario}</span>
+                          <div className="cursor-pointer" onClick={logout}>
+                            <img className="" src={icon_logout} alt="icon_logout" />
+                          </div>
                         </div>
-                      </div>
-                      {showLaudosSubMenu && (
-                        <>
-                          <ul className="space-y-2 font-medium cursor-pointer">
-                            {/* PGR */}
-                            <Link to="/gerar_pgr" onClick={() => setShowMenu(!showMenu)}>
-                              <li className="hover:bg-sky-100">
-                                <div className={`flex items-center py-2 px-6`}>
-                                  <img src={icon_laudo} alt="icon_pgr" />
-                                  <div>
-                                    <span className="ms-3 font-normal">PGR</span>
-                                  </div>
-                                </div>
-                              </li>
-                            </Link>
+                        <span className="text-xs font-thin">{tenantName}</span>
+                      </li>
+                    )}
 
-                            {/* LTCAT */}
-                            <Link to="/gerar_ltcat" onClick={() => setShowMenu(!showMenu)}>
-                              <li className="hover:bg-sky-100">
-                                <div className={`flex items-center py-2 px-6`}>
-                                  <img src={icon_laudo} alt="icon_ltcat" />
-                                  <span className="ms-3 font-normal">LTCAT</span>
-                                </div>
-                              </li>
-                            </Link>
-
-                            {/* LIP */}
-                            <Link to="/gerar_lip" onClick={() => setShowMenu(!showMenu)}>
-                              <li className="hover:bg-sky-100">
-                                <div className={`flex items-center py-2 px-6`}>
-                                  <img src={icon_laudo} alt="icon_lip" />
-                                  <span className="ms-3 font-normal">LIP</span>
-                                </div>
-                              </li>
-                            </Link>
-
-                            {/* PCMSO */}
-                            <li className="opacity-25 cursor-not-allowed">
-                              <div className={`flex items-center py-2 px-6`}>
-                                <img src={icon_laudo} alt="icon_pcmso" />
-                                <span className="ms-3 font-normal">PCMSO</span>
-                              </div>
-                            </li>
-                          </ul>
-                        </>
-                      )}
-                    </li>
 
                   </ul>
                 </div>
@@ -712,10 +722,11 @@ function Sidebar() {
             )}
 
           </nav>
-        </div>
+        </div >
       ) : (
         null
-      )}
+      )
+      }
     </>
   );
 }
