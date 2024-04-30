@@ -139,12 +139,37 @@ router.post("/empresas", (req, res) => {
   });
 });
 
-//Update row in table
-router.put("/empresas/:id_empresa", (req, res) => {
-  const id_empresa = req.params.id_empresa; // Obtém o ID da empresa da URL
+router.put("/empresas/:id_empresa", (req, res, next) => {
   const data = req.body;
-  const nome = req.query.nome_usuario
+  const nomeUsuario = req.query.nome_usuario;
+  const tenant = req.query.tenant_code;
+  const idEmpresa = req.params.id_empresa;
+  console.log(idEmpresa)
+  
+
   const {
+    empresa_data: {
+      nome_empresa,
+      razao_social,
+      cnpj_empresa,
+      inscricao_estadual_empresa,
+      inscricao_municipal_empresa,
+      cnae_empresa,
+      grau_risco_cnae,
+      descricao_cnae,
+      ativo,
+      fk_tenant_code
+    },
+    contato_data: {
+      id_contato,
+      nome_contato,
+      telefone_contato,
+      email_contato,
+      email_secundario_contato,
+    }
+  } = data;
+
+  const empresaValues = [
     nome_empresa,
     razao_social,
     cnpj_empresa,
@@ -153,53 +178,85 @@ router.put("/empresas/:id_empresa", (req, res) => {
     cnae_empresa,
     grau_risco_cnae,
     descricao_cnae,
-    fk_contato_id,
-  } = req.body;
+    ativo,
+    fk_tenant_code,
+  ];
 
-  const q = `
+  const contatoValues = [
+    id_contato,
+    nome_contato,
+    telefone_contato,
+    email_contato,
+    email_secundario_contato,
+  ];
+
+  const qEmpresa = `
     UPDATE empresas
     SET nome_empresa = ?,
     razao_social = ?,
     cnpj_empresa = ?,
     inscricao_estadual_empresa = ?,
     inscricao_municipal_empresa = ?,
-    fk_contato_id = ?,
     cnae_empresa = ?,
     grau_risco_cnae = ?,
-    descricao_cnae = ?
-    WHERE id_empresa = ?
-    `;
+    descricao_cnae = ?,
+    ativo = ?,
+    fk_tenant_code = ?
+    WHERE id_empresa=?
+  `;
 
-  const values = [
-    nome_empresa,
-    razao_social,
-    cnpj_empresa,
-    inscricao_estadual_empresa,
-    inscricao_municipal_empresa,
-    fk_contato_id,
-    cnae_empresa,
-    grau_risco_cnae,
-    descricao_cnae,
-    id_empresa
-  ];
+  const qContato = `
+    UPDATE contatos
+    SET nome_contato = ?,
+    telefone_contato = ?,
+    email_contato = ?,
+    email_secundario_contato = ?
+    WHERE id_contato = (SELECT fk_contato_id FROM empresas WHERE nome_empresa = ?)
+  `;
+
+
 
   pool.getConnection((err, con) => {
     if (err) return next(err);
 
-    con.query(q, values, (err) => {
-      if (err) {
-        console.error("Erro ao atualizar dados na tabela", err);
-        return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
-      }
-      registrarLog('empresas', 'put', `Alterou Empresa`, `${nome}`, data.fk_tenant_code, new Date());
+    // Inicia a transação
+    con.beginTransaction((err) => {
+      if (err) return next(err);
 
-      return res.status(200).json("Empresa atualizada com sucesso!");
+      con.query(qEmpresa, [...empresaValues, idEmpresa], (err, result) => {
+        if (err) return con.rollback(() => next(err));
+
+        if (result.affectedRows === 0) {
+          return res.status(404).json({ error: 'Empresa não encontrada' });
+        }
+      console.log(result)
+        // Atualiza os dados do contato
+        con.query(qContato, [...contatoValues, nome_empresa], (err) => {
+          if (err) return con.rollback(() => next(err));
+
+          // Commit da transação se todas as consultas forem bem-sucedidas
+          con.commit((err) => {
+            if (err) return con.rollback(() => next(err));
+
+            // Se a transação for bem-sucedida, registra o log e envia a resposta
+            registrarLog('empresas', 'put', `Alterou Empresa`, `${nomeUsuario}`, tenant, new Date());
+            registrarLog('contato', 'put', `Alterou Contato`, `${nomeUsuario}`, tenant, new Date());
+
+            res.status(200).json("Empresa atualizada com sucesso!");
+          });
+        });
+      });
+
+      // Libera a conexão somente após a conclusão da transação
+      con.release();
     });
-
-    con.release();
-  })
-
+  });
 });
+
+
+
+
+
 
 // Desactivate
 router.put("/empresas/activate/:id_empresa", (req, res) => {
@@ -295,7 +352,7 @@ router.post("/unidades", (req, res) => {
               return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
             });
           }
-
+          console.log(contato_data)
           const id_contato = contatoResult.insertId;
 
           con.query(updateUnidadeQuery, [id_contato, id_unidade], (err, result) => {
@@ -333,72 +390,121 @@ router.post("/unidades", (req, res) => {
 
 
 //Update row in table
-router.put("/unidades/:id_unidade", (req, res) => {
-  const id_unidade = req.params.id_unidade; // Obtém o ID da empresa da URL
-  const nome = req.query.nome_usuario
-  const tenant = req.query.tenant_code
+router.put("/unidades/:id_unidade", (req, res, next) => {
+  const id_unidade = req.params.id_unidade; // Obtém o ID da unidade da URL
+  const data = req.body;
+  console.log(data)
+  const nome = req.query.nome_usuario;
+  const tenant = req.query.tenant_code;
   const {
+    unidade_data: {
+      nome_unidade,
+      cnpj_unidade,
+      cep_unidade,
+      endereco_unidade,
+      numero_unidade,
+      complemento,
+      bairro_unidade,
+      cidade_unidade,
+      uf_unidade,
+      fk_contato_id,
+      fk_empresa_id,
+  
+    },
+    contato_data: {
+      nome_contato,
+      telefone_contato,
+      email_contato,
+      email_secundario_contato,
+    }
+  } = data;
+  console.log(data)
+  const qUnidade = `
+  UPDATE unidades
+  SET nome_unidade = ?,
+  cnpj_unidade = ?,
+  cep_unidade = ?,
+  endereco_unidade = ?,
+  numero_unidade = ?,
+  complemento = ?,
+  bairro_unidade = ?,
+  cidade_unidade = ?,
+  uf_unidade = ?,
+  fk_contato_id = ?,
+  fk_empresa_id = ?
+  WHERE id_unidade = ?
+`;
+
+const qContato = `
+  UPDATE contatos
+  SET nome_contato = ?,
+  telefone_contato = ?,
+  email_contato = ?,
+  email_secundario_contato = ?
+  WHERE id_contato = ?
+`;
+
+  const unidadeValues = [
     nome_unidade,
     cnpj_unidade,
     cep_unidade,
     endereco_unidade,
     numero_unidade,
     complemento,
-    cidade_unidade,
     bairro_unidade,
-    uf_unidade,
-    fk_contato_id,
-    fk_empresa_id,
-  } = req.body;
-
-  const q = `
-    UPDATE unidades
-    SET nome_unidade = ?,
-    cnpj_unidade = ?,
-    cep_unidade = ?,
-    endereco_unidade = ?,
-    numero_unidade = ?,
-    complemento = ?,
-    bairro_unidade = ?,
-    cidade_unidade = ?,
-    uf_unidade = ?,
-    fk_contato_id = ?,
-    fk_empresa_id = ?
-    WHERE id_unidade = ?
-    `;
-
-  const values = [
-    nome_unidade,
-    cnpj_unidade,
-    cep_unidade,
-    endereco_unidade,
-    numero_unidade,
-    complemento,
     cidade_unidade,
-    bairro_unidade,
     uf_unidade,
     fk_contato_id,
     fk_empresa_id,
     id_unidade,
   ];
 
+  const contatoValues = [
+    nome_contato,
+    telefone_contato,
+    email_contato,
+    email_secundario_contato,
+    fk_contato_id
+  ];
+
   pool.getConnection((err, con) => {
     if (err) return next(err);
 
-    con.query(q, values, (err) => {
-      if (err) {
-        console.error("Erro ao atualizar unidade na tabela", err);
-        return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
-      }
-      registrarLog('unidades', 'put', `Alterou Unidade`, `${nome}`, tenant, new Date());
+    // Inicia a transação
+    con.beginTransaction((err) => {
+      if (err) return next(err);
 
-      return res.status(200).json("Unidade atualizada com sucesso!");
+      // Atualiza os dados da unidade
+      con.query(qUnidade, unidadeValues, (err, resultUnidade) => {
+        if (err) return con.rollback(() => next(err));
+
+        if (resultUnidade.affectedRows === 0) {
+          return res.status(404).json({ error: 'Unidade não encontrada' });
+        }
+
+        // Atualiza os dados do contato
+        con.query(qContato, contatoValues, (err, resultContato) => {
+          if (err) return con.rollback(() => next(err));
+
+          // Commit da transação se todas as consultas forem bem-sucedidas
+          con.commit((err) => {
+            if (err) return con.rollback(() => next(err));
+
+            // Se a transação for bem-sucedida, registra o log e envia a resposta
+            registrarLog('unidades', 'put', `Alterou Unidade`, `${nome}`, tenant, new Date());
+            registrarLog('contatos', 'put', `Alterou Contato`, `${nome}`, tenant, new Date());
+
+            res.status(200).json("Unidade atualizada com sucesso!");
+          });
+        });
+      });
+
+      // Libera a conexão somente após a conclusão da transação
+      con.release();
     });
-
-    con.release();
-  })
-
+  });
 });
+
 
 router.put("/unidades/activate/:id_unidade", (req, res) => {
   const id_unidade = req.params.id_unidade;
