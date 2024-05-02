@@ -3,7 +3,7 @@ import { connect } from '../../../../services/api'; //Conexão com o banco de da
 
 import { BsFillPencilFill } from 'react-icons/bs';
 
-function GridCadastroUnidade({ unidade, setUnidades, getUnidades, setOnEdit, contato, empresa }) {
+function GridCadastroUnidade({ unidade, setUnidades, getUnidades, setOnEdit, contato }) {
 
   //Função para editar os campos
   const handleEdit = (unidade) => {
@@ -18,12 +18,6 @@ function GridCadastroUnidade({ unidade, setUnidades, getUnidades, setOnEdit, con
 
     const contatos = contato.find((c) => c.id_contato === fkContatoId);
     return contatos ? contatos.nome_contato : 'N/A';
-  };
-
-  //Função para encontrar o nome da empresa
-  const findEmpresaName = (fkEmpresaID) => {
-    const company = empresa.find((c) => c.id_empresa === fkEmpresaID);
-    return company ? company.nome_empresa : 'N/A';
   };
 
   const handleDesactivation = async (id, ativo) => {
@@ -73,9 +67,6 @@ function GridCadastroUnidade({ unidade, setUnidades, getUnidades, setOnEdit, con
             <th scope="col" className="px-4 py-3">
               Responsável
             </th>
-            <th scope="col" className="px-4 py-3">
-              Empresa
-            </th>
             <th scope="col" className="px-4 py-3 text-center">
               Ações
             </th>
@@ -101,9 +92,6 @@ function GridCadastroUnidade({ unidade, setUnidades, getUnidades, setOnEdit, con
               </td>
               <th className="px-4 py-4 font-medium text-gray-900 whitespace-nowrap">
                 {findContactName(item.fk_contato_id)}
-              </th>
-              <th className="px-4 py-4 font-medium text-gray-900 whitespace-nowrap">
-                {findEmpresaName(item.fk_empresa_id)}
               </th>
               <td className="py-4 gap-4 flex justify-center items-center">
                 <a className={`font-medium text-blue-400 hover:text-blue-800 ${item.ativo ? 'cursor-pointer' : 'cursor-not-allowed'}`}>

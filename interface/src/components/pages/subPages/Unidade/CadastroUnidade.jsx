@@ -13,17 +13,12 @@ function CadastroUnidade() {
 
   const {
     fetchUnidades,
-    getUnidades,
     loadSelectedCompanyFromLocalStorage,
     companyId,
-    getContatos,
-    contatos,
-    fetchEmpresas,
+    fetchContatos,
   } = useAuth(null)
 
   // Instanciando variáveis e definindo como vazio
-  const [contactName, setContactName] = useState([]);
-  const [companyName, setCompanyName] = useState([]);
   const [onEdit, setOnEdit] = useState(null);
   const [visible, setVisible] = useState(false);
 
@@ -32,7 +27,7 @@ function CadastroUnidade() {
   const [filteredUnidade, setFilteredUnidades] = useState([]);
 
   const [unidades, setUnidades] = useState([]);
-  const [empresas, setEmpresas] = useState([]);
+  const [contatos, setContatos] = useState([]);
 
   useEffect(() => {
     loadSelectedCompanyFromLocalStorage();
@@ -41,10 +36,13 @@ function CadastroUnidade() {
   const get = async () => {
     const data = await fetchUnidades();
     setUnidades(data);
-    const companys = await fetchEmpresas();
-    setEmpresas(companys);
   };
- 
+
+  const getContatos = async () => {
+    const data = await fetchContatos();
+    setContatos(data);
+  };
+
   useEffect(() => {
     get();
     getContatos();
@@ -53,21 +51,6 @@ function CadastroUnidade() {
   //Função para Editar
   const handleEdit = (selectUnidade) => {
     setOnEdit(selectUnidade);
-
-    if (selectUnidade.fk_contato_id) {
-      const contactInfo = contatos.find((c) => c.id_contato === selectUnidade.fk_contato_id)
-      if (contactInfo) {
-        setContactName(contactInfo.nome_contato)
-      }
-    }
-
-    if (selectUnidade.fk_empresa_id) {
-      const companyInfo = empresas.find((c) => c.id_empresa === selectUnidade.fk_empresa_id)
-      console.log(companyInfo)
-      if (companyInfo) {
-        setCompanyName(companyInfo.nome_empresa)
-      }
-    }
   };
 
   //Função para Pesquisa
@@ -82,7 +65,7 @@ function CadastroUnidade() {
 
   const handleSearch = (term) => {
     setSearchTerm(term)
-  }
+  };
 
 
   return (
@@ -129,11 +112,8 @@ function CadastroUnidade() {
       <FrmCadastroUnidade
         onEdit={onEdit}
         setOnEdit={setOnEdit}
-        getUnidades={getUnidades}
-        contact={contactName}
+        getUnidades={get}
         contato={contatos}
-        empresa={empresas}
-        company={companyName}
         companyId={companyId}
       />
 
@@ -148,10 +128,9 @@ function CadastroUnidade() {
       <GridCadastroUnidade
         unidade={filteredUnidade}
         setUnidades={setUnidades}
-        getUnidades={getUnidades}
+        getUnidades={get}
         setOnEdit={handleEdit}
         contato={contatos}
-        empresa={empresas}
       />
     </div>
   )
