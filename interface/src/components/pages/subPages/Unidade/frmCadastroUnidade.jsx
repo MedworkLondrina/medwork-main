@@ -1,19 +1,18 @@
-import { useRef, useEffect, useState, useCallback  } from "react";
+import { useRef, useEffect, useState, useCallback } from "react";
 import { toast } from "react-toastify";
-import { connect } from "../../../../services/api"; //Conexão com o banco de dados
+import { connect } from "../../../../services/api";
 
-import ModalSearchContato from '../components/Modal/ModalSearchContato'
-import icon_lupa from '../../../media/icon_lupa.svg'
-import icon_sair from '../../../media/icon_sair.svg'
+import ModalSearchContato from '../components/Modal/ModalSearchContato';
+import icon_add from '../../../media/icon_add.svg';
+import icon_sair from '../../../media/icon_sair.svg';
 
-function FrmCadastroUnidade({ onEdit, setOnEdit, getUnidades, contact, company, contato, companyId }) {
+function FrmCadastroUnidade({ onEdit, setOnEdit, getUnidades, contato, companyId }) {
 
   // Instanciando a variavel que vai referenciar o formulario
   const ref = useRef(null);
 
   const [showModalContato, setShowModalContato] = useState(false); //Controlar o Modal Contato
   const [contatoId, setContatoId] = useState(null);
-  const [nomeContato, setNomeContato] = useState(null);
   const [cnpj, setCnpj] = useState(""); //Armazena o CNPJ
   const [cep, setCep] = useState(""); //Armazena o CNPJ
   const [estado, setEstado] = useState(null);
@@ -22,7 +21,7 @@ function FrmCadastroUnidade({ onEdit, setOnEdit, getUnidades, contact, company, 
   const [complemento, setComplemento] = useState('');
   const [bairro, setBairro] = useState(null);
   const [numero, setNumero] = useState('');
-  const [ContatoModal, setContatoModal] = useState([]);
+  const [ContatoModal, setContatoModal] = useState(null);
 
 
   const user = ref.current
@@ -42,16 +41,18 @@ function FrmCadastroUnidade({ onEdit, setOnEdit, getUnidades, contact, company, 
       setComplemento(onEdit.complemento || "");
       setNumero(onEdit.numero_unidade || "");
 
-      if (contact && onEdit.fk_contato_id) {
-        setNomeContato(contact);
-        setContatoId(onEdit.fk_contato_id);
+      if (contato && onEdit.fk_contato_id) {
+        const findcontact = contato.find((c) => c.id_contato === onEdit.fk_contato_id);
+        if (findcontact) {
+          setContatoId(findcontact.id_contato);
+          setContatoModal(findcontact);
+        }
       } else {
-        setNomeContato(null)
-        setContatoId(null);
+        setContatoModal([]);
       }
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-  }, [onEdit, contact, company, user]);
+  }, [onEdit, contato, user]);
 
   //Função para adicionar ou atualizar dados
   const handleSubmit = async (e) => {
@@ -59,7 +60,7 @@ function FrmCadastroUnidade({ onEdit, setOnEdit, getUnidades, contact, company, 
     const userData = JSON.parse(localStorage.getItem("user"));
     const tenant = userData.tenant_code;
     const nome = userData.nome_usuario;
-    const queryParams = new URLSearchParams({ tenant_code: tenant , nome_usuario:nome}).toString();
+    const queryParams = new URLSearchParams({ tenant_code: tenant, nome_usuario: nome }).toString();
     //Verificandose todos os campos foram preenchidos
     if (
       !user.nome_unidade.value ||
@@ -82,11 +83,12 @@ function FrmCadastroUnidade({ onEdit, setOnEdit, getUnidades, contact, company, 
         fk_empresa_id: companyId || null,
         ativo: 1,
       };
-      const juncao = { 
-        unidade_data:unidadesData,
-        contato_data:ContatoModal,
-      }
-    
+
+      const juncao = {
+        unidade_data: unidadesData,
+        contato_data: ContatoModal,
+      };
+
       const url = onEdit
         ? `${connect}/unidades/${onEdit.id_unidade}?${queryParams}`
         : `${connect}/unidades?${queryParams}`
@@ -100,39 +102,25 @@ function FrmCadastroUnidade({ onEdit, setOnEdit, getUnidades, contact, company, 
         },
         body: JSON.stringify(juncao),
       });
+
       if (!response.ok) {
         throw new Error(`Erro ao cadastrar/Editar unidade. Status: ${response.status}`);
-      }
-      console.log(ContatoModal)
+      };
 
       const responseData = await response.json();
 
       toast.success(responseData);
 
     } catch (error) {
-      console.log("Erro ao cadastrar ou atualizar Unidade", error)
+      console.log("Erro ao cadastrar ou atualizar Unidade", error);
     }
 
-    user.nome_unidade.value = "";
-    setNumero("");
-    setBairro("");
-    setLogradouro("");
-    setCidade("")
-    setEstado("");
-    setCnpj("");
-    setCep("");
-    setComplemento("");
-    setOnEdit(null);
-    setContatoId(null);
-    setNomeContato(null);
-    setOnEdit(null);
-
-    //Atualiza os dados
+    handleClear();
+    getUnidades();
   };
 
   //Função para limpar os campos
   const handleClear = () => {
-    // Limpa todos os campos do formulário
     user.nome_unidade.value = "";
     setNumero("");
     setBairro("");
@@ -141,8 +129,7 @@ function FrmCadastroUnidade({ onEdit, setOnEdit, getUnidades, contact, company, 
     setEstado("");
     setCnpj("");
     setCep("");
-    setContatoId(null);
-    setNomeContato(null);
+    setContatoModal(null);
     setOnEdit(null);
   };
 
@@ -159,12 +146,11 @@ function FrmCadastroUnidade({ onEdit, setOnEdit, getUnidades, contact, company, 
       setContatoModal(contato);
     }
   }, [closeModalContato, setContatoModal]);
-  
+
 
   //Função para limpar o campo Contato
   const handleClearContato = () => {
-    setContatoId(null);
-    setNomeContato(null);
+    setContatoModal(null);
   };
 
   //Funções para formatação do CNPJ
@@ -278,7 +264,7 @@ function FrmCadastroUnidade({ onEdit, setOnEdit, getUnidades, contact, company, 
   };
 
   const handleOnChange = (e) => {
-  }
+  };
 
   return (
     <div className="flex justify-center">
@@ -439,18 +425,18 @@ function FrmCadastroUnidade({ onEdit, setOnEdit, getUnidades, contact, company, 
               Contato:
             </label>
             <div className="flex items-center w-full">
-              {nomeContato ? (
+              {ContatoModal ? (
                 <>
                   <button
                     className="flex appearance-none hover:shadow-sm text-sky-600 bg-gray-100 border-gray-200 justify-center mt-1 py-3 px-4 rounded leading-tight focus:outline-none with-text"
-                    onClick={openModalContato} 
+                    onClick={openModalContato}
                     type="button"
                   >
                     <p className="px-2 text-sm font-sm text-gray-600">
                       Contato:
                     </p>
                     <p className="font-bold">
-                      {nomeContato}
+                      {ContatoModal.nome_contato}
                     </p>
                   </button>
                   <button className="ml-4" onClick={handleClearContato} type="button">
@@ -472,14 +458,15 @@ function FrmCadastroUnidade({ onEdit, setOnEdit, getUnidades, contact, company, 
                 type="button"
                 onClick={openModalContato}
                 className={`flex cursor-pointer ml-4`}
-                
+
               >
-                <img src={icon_lupa} className="h-9" alt="Icone adicionar unidade"></img>
+                <img src={icon_add} className="h-9" alt="Icone adicionar contato"></img>
               </button>
             </div>
-         
+
           </div>
 
+          {/* Botoes */}
           <div className="w-full px-3 pl-8 flex justify-end">
             <div>
               <button onClick={handleClear} className="shadow mt-4 bg-red-600 hover:bg-red-700 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded" type="button">
@@ -495,11 +482,12 @@ function FrmCadastroUnidade({ onEdit, setOnEdit, getUnidades, contact, company, 
         </div>
       </form>
       <ModalSearchContato
-              isOpen={showModalContato}
-              onCancel={closeModalContato}
-              children={contato}
-              onContactSelect={handleContactSelect}
-            />
+        isOpen={showModalContato}
+        onCancel={closeModalContato}
+        children={contato}
+        onContactSelect={handleContactSelect}
+        contact={ContatoModal}
+      />
     </div>
   )
 }
