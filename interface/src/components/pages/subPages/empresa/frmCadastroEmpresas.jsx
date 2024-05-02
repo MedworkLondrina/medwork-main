@@ -94,7 +94,7 @@ function CadastroEmpresa({ onEdit, setOnEdit, fetchEmpresas, contact }) {
       }
 
       const url = onEdit
-        ? `${connect}/empresas/${onEdit.id_elaborador}?${queryParams}`
+        ? `${connect}/empresas/${onEdit.id_empresa}?${queryParams}`
         : `${connect}/empresas?${queryParams}`;
 
       const method = onEdit ? 'PUT' : 'POST';
