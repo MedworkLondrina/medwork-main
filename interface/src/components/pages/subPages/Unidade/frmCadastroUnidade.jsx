@@ -65,7 +65,9 @@ function FrmCadastroUnidade({ onEdit, setOnEdit, getUnidades, contato, companyId
     if (
       !user.nome_unidade.value ||
       !user.cnpj_unidade.value ||
-      !user.cep_unidade.value) {
+      !user.cep_unidade.value ||
+      !numero ||
+      !ContatoModal) {
       return toast.warn("Preencha Todos os Campos!")
     }
     try {
@@ -122,6 +124,7 @@ function FrmCadastroUnidade({ onEdit, setOnEdit, getUnidades, contato, companyId
   //Função para limpar os campos
   const handleClear = () => {
     user.nome_unidade.value = "";
+    setComplemento("");
     setNumero("");
     setBairro("");
     setLogradouro("");
@@ -247,12 +250,10 @@ function FrmCadastroUnidade({ onEdit, setOnEdit, getUnidades, contato, companyId
   const handleUfChange = (e) => {
     const inputValue = e.target.value.trim().toUpperCase();
 
-    // Verifica se o valor tem no máximo 2 letras
     if (/^[a-zA-Z]{0,2}$/.test(inputValue)) {
       setEstado(inputValue);
     } else {
       toast.warn("UF inválido. Digite no máximo 2 letras.");
-      // Pode optar por não limpar o estado aqui
     }
   };
 
@@ -261,9 +262,6 @@ function FrmCadastroUnidade({ onEdit, setOnEdit, getUnidades, contato, companyId
     const inputValue = e.target.value;
     const numericValue = inputValue.replace(/\D/g, '');
     setNumero(numericValue)
-  };
-
-  const handleOnChange = (e) => {
   };
 
   return (
@@ -335,7 +333,7 @@ function FrmCadastroUnidade({ onEdit, setOnEdit, getUnidades, contato, companyId
                 name="endereco_unidade"
                 placeholder="Endereço da Unidade"
                 value={logradouro}
-                onChange={handleOnChange}
+                onChange={(e) => setLogradouro(e.target.value)}
               />
             </div>
             <div className="w-1/3">
@@ -383,7 +381,7 @@ function FrmCadastroUnidade({ onEdit, setOnEdit, getUnidades, contato, companyId
               name="bairro_unidade"
               placeholder="Bairro da Unidade"
               value={bairro}
-              onChange={handleOnChange}
+              onChange={(e) => setBairro(e.target.value)}
             />
           </div>
 
@@ -399,7 +397,7 @@ function FrmCadastroUnidade({ onEdit, setOnEdit, getUnidades, contato, companyId
               name="cidade_unidade"
               placeholder="Cidade da Unidade"
               value={cidade}
-              onChange={handleOnChange}
+              onChange={(e) => setCidade(e.target.value)}
             />
           </div>
 
@@ -481,6 +479,7 @@ function FrmCadastroUnidade({ onEdit, setOnEdit, getUnidades, contato, companyId
           </div>
         </div>
       </form>
+
       <ModalSearchContato
         isOpen={showModalContato}
         onCancel={closeModalContato}

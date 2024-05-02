@@ -21,8 +21,13 @@ const ModalSearchEmpresa = ({ onCancel, isOpen, children, onContactSelect, conta
         console.error(`Erro ao burscar contatos. Status: ${error}`)
       }
 
-    }
-  }, [children, searchTerm]);
+    };
+
+    if (contact) {
+      setShowForm(true);
+    };
+
+  }, [children, searchTerm, contact]);
 
   const handleSearch = (term) => {
     setSearchTerm(term)
