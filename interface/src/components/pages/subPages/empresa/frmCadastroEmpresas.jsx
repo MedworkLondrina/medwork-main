@@ -59,7 +59,12 @@ function CadastroEmpresa({ onEdit, setOnEdit, fetchEmpresas, contact }) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }, [onEdit, contact]);
-
+  const areFieldsFilled = () => {
+    const user = ref.current;
+    if (!user) return false; // Retorna false se user for null
+    return user.nome_empresa.value && user.razao_social.value && user.cnpj_empresa.value && user.cnae_empresa.value && contatoModal.nome_contato;
+  };
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
     const userData = JSON.parse(localStorage.getItem("user"));
@@ -151,11 +156,12 @@ function CadastroEmpresa({ onEdit, setOnEdit, fetchEmpresas, contact }) {
   const handleContactSelect = useCallback((contato) => {
     if (contato) {
       closeModal();
-      setc(contato);
+      setc(contato); // Corrigido para atualizar o estado correto
       setContactId(contato.id_contato);
       setContactName(contato.nome_contato);
     }
-  }, [closeModal, setc]);
+  }, [closeModal, setc, setContactId, setContactName]);
+  
 
   //Funções CheckBox
   const checkboxEstadual = () => {
@@ -471,10 +477,25 @@ function CadastroEmpresa({ onEdit, setOnEdit, fetchEmpresas, contact }) {
               </button>
             </div>
             <div className="px-3 pl-8">
-              <button className="shadow mt-4 bg-green-600 hover:bg-green-700 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded" type="submit">
-                Cadastrar
-              </button>
+            {!areFieldsFilled() ? (
+  <button
+    className="shadow mt-4 bg-green-600 cursor-not-allowed opacity-50 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded"
+    type="submit"
+    disabled
+  >
+    Cadastrar
+  </button>
+) : (
+  <button
+    className="shadow mt-4 bg-green-600 hover:bg-green-700 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded"
+    type="submit"
+  >
+    Cadastrar
+  </button>
+)}
+
             </div>
+
           </div>
 
         </div>

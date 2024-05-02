@@ -336,10 +336,11 @@ router.post("/unidades", (req, res) => {
   const { unidade_data, contato_data } = req.body;
   const nomeUsuario = req.query.nome_usuario;
   const tenant = req.query.tenant_code;
-  const data = req.body
-  const insertUnidadeQuery = "INSERT INTO unidades SET ?";
-  const insertContatoQuery = "INSERT INTO contatos SET ?";
-  const updateUnidadeQuery = "UPDATE unidades SET fk_contato_id = ? WHERE id_unidade = ?";
+  const data = req.body;
+
+  const insertUnidadeQuery = "INSERT INTO unidades SET?";
+  const updateUnidadeQuery = "UPDATE unidades SET fk_contato_id =? WHERE id_unidade =?";
+  const selectContatoQuery = "SELECT id_contato FROM contatos WHERE email_contato =?";
 
   pool.getConnection((err, con) => {
     if (err) {
@@ -364,17 +365,34 @@ router.post("/unidades", (req, res) => {
 
         const id_unidade = unidadeResult.insertId;
 
-        con.query(insertContatoQuery, contato_data, (err, contatoResult) => {
+        // Verifica se o contato já existe
+        con.query(selectContatoQuery, [contato_data.email_contato], (err, contatoResult) => {
           if (err) {
-            console.error("Erro ao inserir contato na tabela", err);
+            console.error("Erro ao selecionar contato na tabela", err);
             con.rollback(() => {
               console.error("Transação revertida devido a erro", err);
               return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
             });
           }
-          console.log(contato_data)
-          const id_contato = contatoResult.insertId;
 
+          let id_contato = contatoResult[0].id_contato;
+
+          // Se o contato não existir, insira-o e obtenha o ID
+          if (!id_contato) {
+            con.query(insertContatoQuery, contato_data, (err, contatoResult) => {
+              if (err) {
+                console.error("Erro ao inserir contato na tabela", err);
+                con.rollback(() => {
+                  console.error("Transação revertida devido a erro", err);
+                  return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
+                });
+              } else {
+                id_contato = contatoResult.insertId;
+              }
+            });
+          }
+
+          // Atualiza a unidade com o ID do contato
           con.query(updateUnidadeQuery, [id_contato, id_unidade], (err, result) => {
             if (err) {
               console.error("Erro ao atualizar unidade na tabela", err);
@@ -394,23 +412,22 @@ router.post("/unidades", (req, res) => {
                 });
               }
 
-            const formatBody = (obj) => {
-              let formatted = '';
-              for (const key in obj) {
-                if (obj.hasOwnProperty(key)) {
-                  formatted += `${key}: ${obj[key]}, `;
+              const formatBody = (obj) => {
+                let formatted = '';
+                for (const key in obj) {
+                  if (obj.hasOwnProperty(key)) {
+                    formatted += `${key}: ${obj[key]}, `;
+                  }
                 }
-              }
-              return formatted.slice(0, -2); // Remove a última vírgula e espaço
-            };
-            const bodyString_unidade = formatBody(data.unidade_data)
-            const bodyString_contato = formatBody(data.contato_data)
-            // Se a transação for bem-sucedida, registra o log e envia a resposta
+                return formatted.slice(0, -2); // Remove a última vírgula e espaço
+              };
+              const bodyString_unidade = formatBody(data.unidade_data)
+              const bodyString_contato = formatBody(data.contato_data)
 
               registrarLog('unidades', 'create', `Cadastrou Unidade`, `${nomeUsuario}`, tenant, new Date(), bodyString_unidade);
               registrarLog('contatos', 'create', `Cadastrou Contato`, `${nomeUsuario}`, tenant, new Date(), bodyString_contato);
 
-              return res.status(200).json(`Unidade e Contato cadastrados com sucesso!`);
+              return res.status(200).json(`Unidade e Contato cadastrados com sucesso`);
             });
           });
         });
@@ -420,6 +437,7 @@ router.post("/unidades", (req, res) => {
     con.release();
   });
 });
+
 
 
 //Update row in table
@@ -1024,7 +1042,7 @@ router.put("/processos/:id_processo", (req, res) => {
         console.error("Erro ao atualizar processo na tabela", err);
         return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
       }
-      registrarLog('processos', 'put', `Alterou Processo`, `${nome}`, tenant, new Date(),data);
+      registrarLog('processos', 'put', `Alterou nome do processo`, `${nome}`, tenant, new Date(),data);
 
       return res.status(200).json("Processo atualizado com sucesso!");
     });
@@ -1069,7 +1087,7 @@ router.post("/processo_cnae", (req, res) => {
         console.error("Erro ao vincular cnae no processo", err);
         return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
       }
-      registrarLog('processo_cnae', 'create', `vinculou CNAE ao processo`, `${nome}`, tenant, new Date());
+      registrarLog('processo_cnae', 'create', `vinculou CNAE ao processo`, `${nome}`, tenant, new Date(),data);
 
       return res.status(200).json(`Vinculo cadastrado com sucesso!`);
     });
@@ -1105,6 +1123,7 @@ router.put("/processo_cnae/:id_processo_cnae", (req, res) => {
         console.error("Erro ao atualizar vinculo de cnae no processo", err);
         return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
       }
+      registrarLog('processos', 'put', `Alterou cnae do processo`, `${nome}`, tenant, new Date(), values);
 
       return res.status(200).json("Vinculo atualizado com sucesso!");
     });
@@ -1171,7 +1190,17 @@ router.post("/riscos", (req, res) => {
         return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
       }
       const id = result.insertId;
-      registrarLog('riscos', 'create', `Cadastrou Risco`, `${nome}`, tenant, new Date());
+      const formatBody = (obj) => {
+        let formatted = '';
+        for (const key in obj) {
+          if (obj.hasOwnProperty(key)) {
+            formatted += `${key}: ${obj[key]}, `;
+          }
+        }
+        return formatted.slice(0, -2); // Remove a última vírgula e espaço
+      };
+      const bodyString = formatBody(data)
+      registrarLog('riscos', 'create', `Cadastrou Risco`, `${nome}`, tenant, new Date(),bodyString);
 
       return res.status(200).json({ message: `Risco cadastrado com sucesso!`, id });
     });
@@ -1202,6 +1231,7 @@ router.put("/riscos/:id_risco", (req, res) => {
     ltcat_risco,
     lip_risco
   } = req.body;
+  const data=req.body;
 
   const q = `
     UPDATE riscos
@@ -1248,7 +1278,18 @@ router.put("/riscos/:id_risco", (req, res) => {
         console.error("Erro ao atualizar risco na tabela", err);
         return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
       }
-      registrarLog('riscos', 'put', `Alterou Risco`, `${nome}`, tenant, new Date());
+
+      const formatBody = (obj) => {
+        let formatted = '';
+        for (const key in obj) {
+          if (obj.hasOwnProperty(key)) {
+            formatted += `${key}: ${obj[key]}, `;
+          }
+        }
+        return formatted.slice(0, -2); // Remove a última vírgula e espaço
+      };
+      const bodyString = formatBody(data)
+      registrarLog('riscos', 'put', `Alterou Risco`, `${nome}`, tenant, new Date(),bodyString);
 
       return res.status(200).json({ message: `Risco cadastrado com sucesso!` });
     });
@@ -1368,7 +1409,8 @@ router.get("/medidas", (req, res) => {
 //Add rows in table
 router.post("/medidas", (req, res) => {
   const data = req.body;
-
+  const nome = req.query.nome_usuario
+  const tenant = req.query.tenant_code
   const q = "INSERT INTO medidas SET ?"
 
   pool.getConnection((err, con) => {
@@ -1379,6 +1421,17 @@ router.post("/medidas", (req, res) => {
         console.error("Erro ao inserir Medida na tabela", err);
         return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
       }
+      const formatBody = (obj) => {
+        let formatted = '';
+        for (const key in obj) {
+          if (obj.hasOwnProperty(key)) {
+            formatted += `${key}: ${obj[key]}, `;
+          }
+        }
+        return formatted.slice(0, -2); // Remove a última vírgula e espaço
+      };
+      const bodyString = formatBody(data)
+      registrarLog('riscos', 'put', `Alterou Risco`, `${nome}`, tenant, new Date(),bodyString);
 
       return res.status(200).json(`Medida cadastrado com sucesso!`);
     });
@@ -1390,6 +1443,9 @@ router.post("/medidas", (req, res) => {
 
 router.put("/medidas/:id_medida", (req, res) => {
   const id_medida = req.params.id_medida;
+  const nome = req.query.nome_usuario
+  const tenant = req.query.tenant_code
+  console.log(nome,tenant)
   const {
     descricao_medida,
     certificado_medida,
@@ -1398,15 +1454,16 @@ router.put("/medidas/:id_medida", (req, res) => {
     fabricante_medida,
     grupo_medida,
   } = req.body;
+  const data = req.body
 
   const q = `
-    UPDATE medidas_epi
+    UPDATE medidas
     SET descricao_medida = ?,
     certificado_medida = ?,
     fator_reducao_medida = ?,
     vencimento_certificado_medida = ?,
     fabricante_medida = ?,
-    grupo_medida = ?,
+    grupo_medida = ?
     WHERE id_medida = ?
     `;
 
@@ -1428,7 +1485,17 @@ router.put("/medidas/:id_medida", (req, res) => {
         console.error("Erro ao atualizar medida na tabela", err);
         return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
       }
-
+      const formatBody = (obj) => {
+        let formatted = '';
+        for (const key in obj) {
+          if (obj.hasOwnProperty(key)) {
+            formatted += `${key}: ${obj[key]}, `;
+          }
+        }
+        return formatted.slice(0, -2); // Remove a última vírgula e espaço
+      };
+      const bodyString = formatBody(data)
+      registrarLog('riscos', 'put', `Alterou Risco`, `${nome}`, tenant, new Date(),bodyString);
       return res.status(200).json("Medida atualizado com sucesso!");
     });
 
@@ -1712,7 +1779,17 @@ router.post("/usuarios", (req, res) => {
         console.error("Erro ao inserir usuário na tabela", err);
         return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
       }
-      registrarLog('usuarios', 'create', `Cadastrou Usuario`, `${nome}`, tenant, new Date());
+      const formatBody = (obj) => {
+        let formatted = '';
+        for (const key in obj) {
+          if (obj.hasOwnProperty(key)) {
+            formatted += `${key}: ${obj[key]}, `;
+          }
+        }
+        return formatted.slice(0, -2); // Remove a última vírgula e espaço
+      };
+      const bodyString = formatBody(data)
+      registrarLog('usuarios', 'create', `Cadastrou Usuario`, `${nome}`, tenant, new Date(),bodyString);
 
       return res.status(200).json(`Usuário cadastrado com sucesso!`);
     });
@@ -1728,6 +1805,7 @@ router.put("/usuarios/:id_usuario", (req, res) => {
   const nome = req.query.nome_usuario
 
   const { nome_usuario, cpf_usuario, email, tipo, fk_tenant_code } = req.body;
+  const data = req.body
 
   const q = `
     UPDATE usuarios
@@ -1757,7 +1835,17 @@ router.put("/usuarios/:id_usuario", (req, res) => {
         console.error("Erro ao atualizar usuário na tabela", err);
         return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
       }
-      registrarLog('usuarios', 'put', `Alterou Usuario`, `${nome}`, tenant, new Date());
+      const formatBody = (obj) => {
+        let formatted = '';
+        for (const key in obj) {
+          if (obj.hasOwnProperty(key)) {
+            formatted += `${key}: ${obj[key]}, `;
+          }
+        }
+        return formatted.slice(0, -2); // Remove a última vírgula e espaço
+      };
+      const bodyString = formatBody(data)
+      registrarLog('usuarios', 'put', `Alterou Usuario`, `${nome}`, tenant, new Date(),bodyString);
 
       return res.status(200).json("Usuário atualizado com sucesso!");
     });
@@ -1799,7 +1887,17 @@ router.post("/aparelhos", (req, res) => {
         console.error("Erro ao inserir aparelho na tabela", err);
         return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
       }
-      registrarLog('aparelhos', 'create', `Criou Aparelho`, `${nome}`, tenant, new Date());
+      const formatBody = (obj) => {
+        let formatted = '';
+        for (const key in obj) {
+          if (obj.hasOwnProperty(key)) {
+            formatted += `${key}: ${obj[key]}, `;
+          }
+        }
+        return formatted.slice(0, -2); // Remove a última vírgula e espaço
+      };
+      const bodyString = formatBody(data)
+      registrarLog('aparelhos', 'create', `Criou Aparelho`, `${nome}`, tenant, new Date(),bodyString);
 
       return res.status(200).json(`Aparelho cadastrado com sucesso!`);
     })
@@ -1813,7 +1911,7 @@ router.put("/aparelhos/:id_aparelho", (req, res) => {
   const { nome_aparelho, marca_aparelho, modelo_aparelho, data_calibracao_aparelho } = req.body;
   const tenant = req.query.tenant_code;
   const nome = req.query.nome_usuario
-
+  const data = req.body;
   const q = `
     UPDATE aparelhos
     SET nome_aparelho = ?,
@@ -1839,7 +1937,17 @@ router.put("/aparelhos/:id_aparelho", (req, res) => {
         console.error("Erro ao atualizar aparelho na tabela", err);
         return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
       }
-      registrarLog('aparelhos', 'put', `Alterou Aparelho`, `${nome}`, tenant, new Date());
+      const formatBody = (obj) => {
+        let formatted = '';
+        for (const key in obj) {
+          if (obj.hasOwnProperty(key)) {
+            formatted += `${key}: ${obj[key]}, `;
+          }
+        }
+        return formatted.slice(0, -2); // Remove a última vírgula e espaço
+      };
+      const bodyString = formatBody(data)
+      registrarLog('aparelhos', 'put', `Alterou Aparelho`, `${nome}`, tenant, new Date(), bo);
 
       return res.status(200).json("Aparelho atualizado com sucesso!");
     });
@@ -2600,7 +2708,19 @@ router.route('/:table')
           console.error(`Erro ao registrar dado na tabela ${table}. Status: ${err}`);
           return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
         }
-        registrarLog('elaboradores', 'create', `Cadastrou Elaborador`, `${nome}`, tenant, new Date());
+
+        const formatBody = (obj) => {
+          let formatted = '';
+          for (const key in obj) {
+            if (obj.hasOwnProperty(key)) {
+              formatted += `${key}: ${obj[key]}, `;
+            }
+          }
+          return formatted.slice(0, -2); // Remove a última vírgula e espaço
+        };
+        const bodyString = formatBody(data)
+        
+        registrarLog('elaboradores', 'create', `Cadastrou Elaborador`, `${nome}`, tenant, new Date(),bodyString);
 
         return res.status(200).json(`Registro concluido com sucesso!`)
       });
@@ -2615,7 +2735,6 @@ router.put("/:table/:id", (req, res) => {
   const id = req.params.id;
   const nome = req.query.nome_usuario
   const tenant = req.query.tenant_code
-
   const columns = Object.keys(req.body);
   const values = Object.values(req.body);
 
@@ -2639,7 +2758,19 @@ router.put("/:table/:id", (req, res) => {
         console.error(`Erro ao atualizar registro na tabela ${table}:`, err);
         return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
       }
-      registrarLog('elaboradores', 'put', `Alterou Elaborador`, `${nome}`, tenant, new Date());
+
+      const formatBody = (obj) => {
+        let formatted = '';
+        for (const key in obj) {
+          if (obj.hasOwnProperty(key)) {
+            formatted += `${key}: ${obj[key]}, `;
+          }
+        }
+        return formatted.slice(0, -2); // Remove a última vírgula e espaço
+      };
+      const bodyString = formatBody(finalValues)
+      
+      registrarLog('elaboradores', 'put', `Alterou Elaborador`, `${nome}`, tenant, new Date(),bodyString);
 
       return res.status(200).json(`${table} atualizado com sucesso!`);
     });
