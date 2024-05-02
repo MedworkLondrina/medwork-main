@@ -123,10 +123,19 @@ router.post("/empresas", (req, res) => {
                 return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
               });
             }
-
-            // Chama a função registrarLog passando o username como parâmetro
-            registrarLog('empresas', 'create', `Cadastrou Empresa`, `${nomeUsuario}`, tenant, new Date());
-            registrarLog('contatos', 'create', `Cadastrou Contato`, `${nomeUsuario}`, tenant, new Date());
+            const formatBody = (obj) => {
+              let formatted = '';
+              for (const key in obj) {
+                if (obj.hasOwnProperty(key)) {
+                  formatted += `${key}: ${obj[key]}, `;
+                }
+              }
+              return formatted.slice(0, -2); // Remove a última vírgula e espaço
+            };
+            const bodyString_empresa = formatBody(empresa_data)
+            const bodyString_contato = formatBody(contato_data)
+            registrarLog('empresas', 'create', `Cadastrou Empresa`, `${nomeUsuario}`, tenant, new Date(),bodyString_empresa);
+            registrarLog('contatos', 'create', `Cadastrou Contato`, `${nomeUsuario}`, tenant, new Date(),bodyString_contato);
 
             return res.status(200).json(`Empresa e Contato cadastrados com sucesso!`);
           });
@@ -238,9 +247,20 @@ router.put("/empresas/:id_empresa", (req, res, next) => {
           con.commit((err) => {
             if (err) return con.rollback(() => next(err));
 
+            const formatBody = (obj) => {
+              let formatted = '';
+              for (const key in obj) {
+                if (obj.hasOwnProperty(key)) {
+                  formatted += `${key}: ${obj[key]}, `;
+                }
+              }
+              return formatted.slice(0, -2); // Remove a última vírgula e espaço
+            };
+            const bodyString_empresa = formatBody(data.empresa_data)
+            const bodyString_contato = formatBody(data.contato_data)
             // Se a transação for bem-sucedida, registra o log e envia a resposta
-            registrarLog('empresas', 'put', `Alterou Empresa`, `${nomeUsuario}`, tenant, new Date());
-            registrarLog('contato', 'put', `Alterou Contato`, `${nomeUsuario}`, tenant, new Date());
+            registrarLog('empresas', 'put', `Alterou Empresa`, `${nomeUsuario}`, tenant, new Date(),bodyString_empresa);
+            registrarLog('contato', 'put', `Alterou Contato`, `${nomeUsuario}`, tenant, new Date(),bodyString_contato);
 
             res.status(200).json("Empresa atualizada com sucesso!");
           });
@@ -316,7 +336,7 @@ router.post("/unidades", (req, res) => {
   const { unidade_data, contato_data } = req.body;
   const nomeUsuario = req.query.nome_usuario;
   const tenant = req.query.tenant_code;
-
+  const data = req.body
   const insertUnidadeQuery = "INSERT INTO unidades SET ?";
   const insertContatoQuery = "INSERT INTO contatos SET ?";
   const updateUnidadeQuery = "UPDATE unidades SET fk_contato_id = ? WHERE id_unidade = ?";
@@ -374,8 +394,21 @@ router.post("/unidades", (req, res) => {
                 });
               }
 
-              registrarLog('unidades', 'create', `Cadastrou Unidade`, `${nomeUsuario}`, tenant, new Date());
-              registrarLog('contatos', 'create', `Cadastrou Contato`, `${nomeUsuario}`, tenant, new Date());
+            const formatBody = (obj) => {
+              let formatted = '';
+              for (const key in obj) {
+                if (obj.hasOwnProperty(key)) {
+                  formatted += `${key}: ${obj[key]}, `;
+                }
+              }
+              return formatted.slice(0, -2); // Remove a última vírgula e espaço
+            };
+            const bodyString_unidade = formatBody(data.unidade_data)
+            const bodyString_contato = formatBody(data.contato_data)
+            // Se a transação for bem-sucedida, registra o log e envia a resposta
+
+              registrarLog('unidades', 'create', `Cadastrou Unidade`, `${nomeUsuario}`, tenant, new Date(), bodyString_unidade);
+              registrarLog('contatos', 'create', `Cadastrou Contato`, `${nomeUsuario}`, tenant, new Date(), bodyString_contato);
 
               return res.status(200).json(`Unidade e Contato cadastrados com sucesso!`);
             });
@@ -559,7 +592,18 @@ router.post("/setores", (req, res) => {
         console.error("Erro ao inserir setor na tabela", err);
         return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
       }
-      registrarLog('setores', 'create', `Cadastrou Setor`, `${nome}`, tenant, new Date());
+      const formatBody = (obj) => {
+        let formatted = '';
+        for (const key in obj) {
+          if (obj.hasOwnProperty(key)) {
+            formatted += `${key}: ${obj[key]}, `;
+          }
+        }
+        return formatted.slice(0, -2); // Remove a última vírgula e espaço
+      };
+      const bodyString = formatBody(data);
+
+      registrarLog('setores', 'create', `Criou Setor`, `${nome}`, tenant, new Date(), bodyString);
 
       return res.status(200).json(`Setor cadastrada com sucesso!`);
     });
@@ -575,6 +619,7 @@ router.put("/setores/:id_setor", (req, res) => {
   const nome = req.query.nome_usuario
   const tenant = req.query.tenant_code
   const { nome_setor, ambiente_setor, observacao_setor, fk_unidade_id } = req.body;
+  const data = req.body
 
   const q = `
     UPDATE setores
@@ -601,7 +646,19 @@ router.put("/setores/:id_setor", (req, res) => {
         console.error("Erro ao atualizar setor na tabela", err);
         return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
       }
-      registrarLog('setores', 'put', `Alterou Setor`, `${nome}`, tenant, new Date());
+
+      const formatBody = (obj) => {
+        let formatted = '';
+        for (const key in obj) {
+          if (obj.hasOwnProperty(key)) {
+            formatted += `${key}: ${obj[key]}, `;
+          }
+        }
+        return formatted.slice(0, -2); // Remove a última vírgula e espaço
+      };
+      const bodyString = formatBody(data);
+
+      registrarLog('setores', 'put', `Alterou Setor`, `${nome}`, tenant, new Date(), bodyString);
 
       return res.status(200).json("Setor atualizada com sucesso!");
     });
@@ -615,7 +672,7 @@ router.put("/setores/:id_setor", (req, res) => {
 router.put("/setores/activate/:id_setor", (req, res) => {
   const id_setor = req.params.id_setor;
   const { ativo } = req.body;
-
+  const data = req.body
   const q = 'UPDATE setores SET ativo = ? WHERE id_setor = ?';
   const values = [ativo, id_setor];
 
@@ -629,7 +686,7 @@ router.put("/setores/activate/:id_setor", (req, res) => {
         console.error('Erro ao atualizar status do setor:', err);
         return res.status(500).json({ error: 'Erro ao atualizar status do setor.' });
       }
-
+    
       res.status(200).json({ message: 'Status do setor atualizado com sucesso.' });
     });
   });
@@ -668,7 +725,18 @@ router.post("/cargos", (req, res) => {
         console.error("Erro ao inserir Cargo na tabela", err);
         return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
       }
-      registrarLog('cargos', 'create', `Cadastrou Cargo`, `${nome}`, tenant, new Date());
+      const formatBody = (obj) => {
+        let formatted = '';
+        for (const key in obj) {
+          if (obj.hasOwnProperty(key)) {
+            formatted += `${key}: ${obj[key]}, `;
+          }
+        }
+        return formatted.slice(0, -2); // Remove a última vírgula e espaço
+      };
+      const bodyString = formatBody(data);
+
+      registrarLog('cargos', 'create', `Cadastrou Cargo`, `${nome}`, tenant, new Date(), bodyString);
 
       return res.status(200).json(`Cargo cadastrada com sucesso!`);
     });
@@ -683,6 +751,7 @@ router.put("/cargos/:id_cargo", (req, res) => {
   const id_cargo = req.params.id_cargo; // Obtém o ID da empresa da URL
   const nome = req.query.nome_usuario
   const tenant = req.query.tenant_code
+  const data = req.body
   const { nome_cargo, descricao, func_masc, func_fem, func_menor, fk_setor_id } = req.body;
 
   const q = `
@@ -696,32 +765,45 @@ router.put("/cargos/:id_cargo", (req, res) => {
     WHERE id_cargo = ?
     `;
 
-  const values = [
-    nome_cargo,
-    descricao,
-    func_masc,
-    func_fem,
-    func_menor,
-    id_cargo,
-    fk_setor_id,
-    id_cargo,
-  ];
-
-  pool.getConnection((err, con) => {
-    if (err) return next(err);
-
-    con.query(q, values, (err) => {
+    const values = [
+      nome_cargo,
+      descricao,
+      func_masc,
+      func_fem,
+      func_menor,
+      fk_setor_id, // Este valor deve ser passado para a cláusula SET
+      id_cargo, // Este valor deve ser passado para a cláusula WHERE
+     ];
+     
+     pool.getConnection((err, con) => {
       if (err) {
-        console.error("Erro ao atualizar cargo na tabela", err);
-        return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
+         console.error("Erro ao obter conexão com o banco de dados", err);
+         return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
       }
-      registrarLog('cargos', 'put', `Alterou Cargo`, `${nome}`, tenant, new Date());
-
-      return res.status(200).json("Cargo atualizada com sucesso!");
-    });
-
-    con.release();
-  })
+     
+      con.query(q, values, (err) => {
+         if (err) {
+           console.error("Erro ao atualizar cargo na tabela", err);
+           return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
+         }
+         const formatBody = (obj) => {
+          let formatted = '';
+          for (const key in obj) {
+            if (obj.hasOwnProperty(key)) {
+              formatted += `${key}: ${obj[key]}, `;
+            }
+          }
+          return formatted.slice(0, -2); // Remove a última vírgula e espaço
+        };
+        const bodyString = formatBody(data)
+         registrarLog('cargos', 'put', `Alterou Cargo`, `${nome}`, tenant, new Date(), bodyString);
+     
+         return res.status(200).json("Cargo atualizada com sucesso!");
+      });
+     
+      con.release();
+     });
+     
 
 });
 
@@ -874,12 +956,13 @@ router.get("/processos", (req, res) => {
 
 });
 
-//Add rows in table
 router.post("/processos", (req, res) => {
   const data = req.body;
-  const nome = req.query.nome_usuario
-  const tenant = req.query.tenant_code
-  const q = "INSERT INTO processos SET ?"
+  console.log("Data recebida:", data); // Verifique a estrutura de data aqui
+  const nome = req.query.nome_usuario;
+  const tenant = req.query.tenant_code;
+  const q = "INSERT INTO processos SET?";
+
 
   pool.getConnection((err, con) => {
     if (err) return next(err);
@@ -889,16 +972,30 @@ router.post("/processos", (req, res) => {
         console.error("Erro ao inserir processo na tabela", err);
         return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
       }
-      registrarLog('processos', 'create', `Cadastrou Processo`, `${nome}`, tenant, new Date());
       const id = result.insertId;
+      const formatBody = (obj) => {
+        let formatted = '';
+        for (const key in obj) {
+          if (obj.hasOwnProperty(key)) {
+            formatted += `${key}: ${obj[key]}, `;
+          }
+        }
+        return formatted.slice(0, -2); // Remove a última vírgula e espaço
+      };
+      
+      
+      const bodyString = formatBody(data);
 
-      return res.status(200).json({ message: `Processo cadastrado com sucesso!`, id });
+      // Certifique-se de que registrarLog seja chamado com todos os argumentos necessários
+      // registrarLog('processos', 'create', `Cadastrou Processo`, nome, tenant, new Date(), bodyString);
+
+      return res.status(200).json({ message: `Processo cadastrado com sucesso`, id });
     });
 
     con.release();
   })
-
 });
+
 
 //Update row int table
 router.put("/processos/:id_processo", (req, res) => {
@@ -906,10 +1003,11 @@ router.put("/processos/:id_processo", (req, res) => {
   const nome = req.query.nome_usuario
   const tenant = req.query.tenant_code
   const { nome_processo } = req.body;
+  const data = req.body
 
   const q = `
     UPDATE processos
-    SET nome_processo = ?,
+    SET nome_processo = ?
     WHERE id_processo = ?
     `;
 
@@ -926,7 +1024,7 @@ router.put("/processos/:id_processo", (req, res) => {
         console.error("Erro ao atualizar processo na tabela", err);
         return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
       }
-      registrarLog('processos', 'put', `Alterou Processo`, `${nome}`, tenant, new Date());
+      registrarLog('processos', 'put', `Alterou Processo`, `${nome}`, tenant, new Date(),data);
 
       return res.status(200).json("Processo atualizado com sucesso!");
     });
