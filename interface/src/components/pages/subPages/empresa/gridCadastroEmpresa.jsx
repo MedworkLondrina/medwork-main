@@ -23,8 +23,6 @@ function GridCadastroEmpresa({ empresa, setEmpresa, setOnEdit, getEmpresa, setCo
     setPage((prevPage) => Math.max(prevPage - 1, 0));
   };
 
-
-
   const handleEditClick = (empresa) => () => {
     handleEdit(empresa);
     setCompanyId(empresa.id_empresa);
@@ -60,7 +58,6 @@ function GridCadastroEmpresa({ empresa, setEmpresa, setOnEdit, getEmpresa, setCo
       toast.error('Erro ao atualizar status da empresa, verifique o console!');
     }
   };
-
 
   return (
     <>
