@@ -17,14 +17,6 @@ function FrmCadastroCargo({ onEdit, setOnEdit, getCargo, set, setor, unidades })
   const [funcMenor, setFuncMenor] = useState('');
   const [showModal, setShowModal] = useState(false);
 
-  const [filteredSetores, setFilteredSetores] = useState([]);
-
-  useEffect(() => {
-    const filterunidades = unidades.map((i) => i.id_unidade);
-    const filtersetor = setor.filter((i) => filterunidades.includes(i.fk_unidade_id));
-    setFilteredSetores(filtersetor);
-  }, [unidades, setor]);
-
   useEffect(() => {
     if (onEdit) {
       const user = ref.current;
@@ -59,7 +51,11 @@ function FrmCadastroCargo({ onEdit, setOnEdit, getCargo, set, setor, unidades })
 
     if (
       !user.nome_cargo.value ||
-      !setorId) {
+      !setorId ||
+      !funcMasc ||
+      !funcFem ||
+      !funcMenor ||
+      !user.descricao.value) {
       return toast.warn("Preencha Todos os Campos!")
     }
     try {
@@ -180,6 +176,8 @@ function FrmCadastroCargo({ onEdit, setOnEdit, getCargo, set, setor, unidades })
     <div className="flex justify-center">
       <form className="w-full max-w-5xl" ref={ref} onSubmit={handleSubmit}>
         <div className="flex flex-wrap -mx-3 mb-6">
+
+          {/* Nome */}
           <div className="w-full md:w-2/5 px-3">
             <label className="tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="cargo">
               Nome do Cargo
@@ -192,45 +190,60 @@ function FrmCadastroCargo({ onEdit, setOnEdit, getCargo, set, setor, unidades })
               placeholder="Nome do Cargo"
             />
           </div>
+
+          {/* Masculinos */}
           <div className="w-full md:w-1/5 px-3">
             <label className="tracking-wide text-gray-700 text-xs font-bold mb-2">
-              Quantidade de Funcionários
+              Funcionários Masculinos
             </label>
+            {/* Masculinos */}
             <input
               className="apperance-none block w-full bg-gray-100 rounded py-3 px-4 mb-3 mt-1 leading-tight focus:outline-gray-100 focus:bg-white"
               type="number"
               name="func_masc"
-              placeholder="Masculinos"
+              placeholder="0"
               onInput={handleInputChange}
               value={funcMasc}
               onFocus={handleFocusInputFuncMasc}
               onChange={(e) => setFuncMasc(e.target.value)}
             />
           </div>
+
+          {/* Femininos */}
           <div className="w-full md:w-1/5 px-3">
+          <label className="tracking-wide text-gray-700 text-xs font-bold mb-2">
+              Funcionários Femininos
+            </label>
             <input
-              className="apperance-none block w-full bg-gray-100 rounded py-3 px-4 mb-3 mt-7 leading-tight focus:outline-gray-100 focus:bg-white"
+              className="apperance-none block w-full bg-gray-100 rounded py-3 px-4 mb-3 mt-1 leading-tight focus:outline-gray-100 focus:bg-white"
               type="number"
               name="func_fem"
-              placeholder="Femininos"
+              placeholder="0"
               onInput={handleInputChange}
               value={funcFem}
               onFocus={handleFocusInputFuncFem}
               onChange={(e) => setFuncFem(e.target.value)}
             />
           </div>
+
+          {/* Menores */}
           <div className="w-full md:w-1/5 px-3">
+          <label className="tracking-wide text-gray-700 text-xs font-bold mb-2">
+              Funcionários Menores de Idade
+            </label>
             <input
-              className="apperance-none block w-full bg-gray-100 rounded py-3 px-4 mb-3 mt-7 leading-tight focus:outline-gray-100 focus:bg-white"
+              className="apperance-none block w-full bg-gray-100 rounded py-3 px-4 mb-3 mt-1 leading-tight focus:outline-gray-100 focus:bg-white"
               type="number"
               name="func_menor"
-              placeholder="Menores de Idade"
+              placeholder="0"
               onInput={handleInputChange}
               value={funcMenor}
               onFocus={handleFocusInputFuncMenor}
               onChange={(e) => setFuncMenor(e.target.value)}
             />
           </div>
+
+          {/* Descricão */}
           <div className="w-full md:w-2/3 px-3">
             <label className="tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="descricao">
               Descrição
@@ -243,6 +256,8 @@ function FrmCadastroCargo({ onEdit, setOnEdit, getCargo, set, setor, unidades })
               placeholder="Descrição do Cargo"
             />
           </div>
+
+          {/* Setor */}
           <div className="w-full md:w-1/3 px-3">
             <label className="tracking-wide text-gray-700 text-xs font-bold mb-2">
               Setor:
@@ -291,6 +306,8 @@ function FrmCadastroCargo({ onEdit, setOnEdit, getCargo, set, setor, unidades })
               onContactSelect={handleSetorSelect}
             />
           </div>
+
+          {/* Botões */}
           <div className="w-full px-3 pl-8 flex justify-end">
             <div>
               <button onClick={handleClear} className="shadow mt-4 bg-red-600 hover:bg-red-700 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded" type="button">

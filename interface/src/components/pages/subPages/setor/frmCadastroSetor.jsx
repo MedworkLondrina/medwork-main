@@ -45,7 +45,7 @@ function FrmCadastroSetor({ onEdit, setOnEdit, getSetor, unidades, onCancel, uni
     const userData = JSON.parse(localStorage.getItem("user"));
     const tenant = userData.tenant_code;
     const nome = userData.nome_usuario;
-    const queryParams = new URLSearchParams({ tenant_code: tenant , nome_usuario:nome}).toString();
+    const queryParams = new URLSearchParams({ tenant_code: tenant, nome_usuario: nome }).toString();
     const user = ref.current;
 
     //Verificando se todos os campos foram preenchidos
@@ -92,15 +92,7 @@ function FrmCadastroSetor({ onEdit, setOnEdit, getSetor, unidades, onCancel, uni
       console.error(error);
     }
 
-    // Limpa campos e reseta estado de edição
-    user.nome_setor.value = "";
-    user.ambiente_setor.value = "";
-    user.observacao_setor.value = "";
-    setUnidadeId(null);
-    setNomeUnidade(null);
-    setOnEdit(null);
-
-    // Atualiza os dados
+    handleClear();
     getSetor();
   };
 
@@ -140,6 +132,8 @@ function FrmCadastroSetor({ onEdit, setOnEdit, getSetor, unidades, onCancel, uni
     <div className="flex justify-center">
       <form className="w-full max-w-5xl" ref={ref} onSubmit={handleSubmit}>
         <div className="flex flex-wrap -mx-3 mb-6 p-3">
+
+          {/* Nome */}
           <div className="w-full md:w-1/3 px-3">
             <label className="tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="grid-nome_setor">
               Nome do Setor
@@ -151,6 +145,8 @@ function FrmCadastroSetor({ onEdit, setOnEdit, getSetor, unidades, onCancel, uni
               placeholder="Nome do Setor"
             />
           </div>
+
+          {/* Unidade */}
           <div className="w-full md:w-1/3 px-3">
             <label className="tracking-wide text-gray-700 text-xs font-bold mb-2">
               Unidade:
@@ -159,7 +155,7 @@ function FrmCadastroSetor({ onEdit, setOnEdit, getSetor, unidades, onCancel, uni
               {nomeUnidade ? (
                 <>
                   <button
-                    className="flex appearance-none hover:shadow-sm text-sky-600 bg-gray-100 border-gray-200 mt-1 py-3 px-4 rounded leading-tight focus:outline-none with-text"
+                    className="w-full flex appearance-none hover:shadow-sm text-sky-600 bg-gray-100 border-gray-200 mt-1 py-3 px-4 rounded leading-tight focus:outline-none with-text"
                     onClick={openModal}
                   >
                     <p className="px-2 text-sm font-sm text-gray-600">
@@ -198,6 +194,8 @@ function FrmCadastroSetor({ onEdit, setOnEdit, getSetor, unidades, onCancel, uni
               onContactSelect={handleUnidadeSelect}
             />
           </div>
+
+          {/* Observação */}
           <div className="w-full md:w-1/3 px-3">
             <label className="tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="grid-observacao_setor">
               Observação
@@ -211,6 +209,8 @@ function FrmCadastroSetor({ onEdit, setOnEdit, getSetor, unidades, onCancel, uni
             />
             <p className="text-xs text-gray-400 mb-3">**Apenas se houver necessidade</p>
           </div>
+
+          {/* Descrição do Ambiente */}
           <div className="w-full md:w-3/3 px-3">
             <label className="tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="grid-ambiente_setor">
               Descrição do Ambiente
@@ -223,6 +223,8 @@ function FrmCadastroSetor({ onEdit, setOnEdit, getSetor, unidades, onCancel, uni
               placeholder="Descrição do Ambiente"
             />
           </div>
+
+          {/* Botões */}
           <div className="w-full pl-8 flex justify-end">
             <div>
               <button onClick={handleClear} className="shadow mt-4 bg-red-600 hover:bg-red-700 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded" type="button">
@@ -230,7 +232,7 @@ function FrmCadastroSetor({ onEdit, setOnEdit, getSetor, unidades, onCancel, uni
               </button>
             </div>
             <div className="px-3 pl-8">
-              <button className={`shadow mt-4 bg-green-600 hover:bg-green-700 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded ${unidadeId ? '' : 'opacity-25'}`} type="submit" disabled={!unidadeId}>
+              <button className={`shadow mt-4 bg-green-600 hover:bg-green-700 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded`} type="submit">
                 Cadastrar
               </button>
             </div>
