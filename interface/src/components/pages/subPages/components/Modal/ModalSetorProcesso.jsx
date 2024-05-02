@@ -77,10 +77,18 @@ const ModalProcesso = ({ onCancel, isOpen, setorName, setorId, setor }) => {
 
   const selectedSetor = async (item) => {
     try {
+
+      const filteredSetorProcessos = setorProcesso.filter((i) => i.fk_processo_id === item);
+
+      if (filteredSetorProcessos.length > 0) {
+        toast.warn("Processo ja vinculado ao setor");
+        return;
+      };
+
       const response = await fetch(`${connect}/setores_processos`, {
         method: 'POST',
         headers: {
-          'Content-Type' : 'application/json'
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify([{
           fk_processo_id: item,
@@ -149,22 +157,22 @@ const ModalProcesso = ({ onCancel, isOpen, setorName, setorId, setor }) => {
             </thead>
             <tbody>
               {setorProcesso.filter((item) => item.fk_setor_id === setorId)
-              .map((item, i) => (
-                <tr
-                  key={i}
-                  className={`border-b bg-white`}
-                >
-                  <th scope="row" className="px-4 py-4 font-medium text-gray-900 whitespace-nowrap">
-                    {item.id_setor_processo}
-                  </th>
-                  <th scope="row" className="px-4 py-4 font-medium text-gray-900 whitespace-nowrap">
-                    {findSetor(item.fk_setor_id)}
-                  </th>
-                  <td className="px-4 py-4">
-                    {findPorcesso(item.fk_processo_id)}
-                  </td>
-                </tr>
-              ))}
+                .map((item, i) => (
+                  <tr
+                    key={i}
+                    className={`border-b bg-white`}
+                  >
+                    <th scope="row" className="px-4 py-4 font-medium text-gray-900 whitespace-nowrap">
+                      {item.id_setor_processo}
+                    </th>
+                    <th scope="row" className="px-4 py-4 font-medium text-gray-900 whitespace-nowrap">
+                      {findSetor(item.fk_setor_id)}
+                    </th>
+                    <td className="px-4 py-4">
+                      {findPorcesso(item.fk_processo_id)}
+                    </td>
+                  </tr>
+                ))}
             </tbody>
           </table>
         </div>

@@ -7,15 +7,13 @@ import useAuth from '../../../../../hooks/useAuth';
 import ModalSearchMedidas from './ModalSearchMedidas'
 
 const ModalRiscoMedidas = ({ onCancel, isOpen, childName, childId, children }) => {
-  const {fetchMedidas} = useAuth(null);
+  const { fetchMedidas } = useAuth(null);
   const [riscosMedidas, setRiscosMedidas] = useState([]);
   const [medida, setMedida] = useState([]);
   const [showModal, setShowModal] = useState(false);
+
   const fetchRiscosMedidas = async () => {
     try {
-
-      
-
       const response = await fetch(`${connect}/riscos_medidas`);
 
       if (!response.ok) {
@@ -38,7 +36,6 @@ const ModalRiscoMedidas = ({ onCancel, isOpen, childName, childId, children }) =
     }
   }
 
-  
   useEffect(() => {
     fetchMedidasGeral();
     fetchRiscosMedidas();
@@ -50,10 +47,9 @@ const ModalRiscoMedidas = ({ onCancel, isOpen, childName, childId, children }) =
   }
 
   const findMedidas = (FkMedidaId) => {
-
     const filterMedida = medida.find((i) => i.id_medida === FkMedidaId);
     return filterMedida ? filterMedida.descricao_medida : 'N/A';
-   
+
   };
 
 
@@ -76,11 +72,10 @@ const ModalRiscoMedidas = ({ onCancel, isOpen, childName, childId, children }) =
 
   const selectedSetor = async (item) => {
     try {
-      
       const filteredRiscosMedidas = riscosMedidas.filter((i) => i.fk_risco_id === childId && i.fk_medida_id === item);
 
-      if(filteredRiscosMedidas.length > 0){
-        toast.warn(`Já existe uma medida vinculada a este risco.`);
+      if (filteredRiscosMedidas.length > 0) {
+        toast.warn(`Medida já vinculada ao risco.`);
         return;
       }
 
@@ -94,7 +89,7 @@ const ModalRiscoMedidas = ({ onCancel, isOpen, childName, childId, children }) =
           fk_medida_id: item,
         }])
       });
-      
+
       if (!response.ok) {
         throw new Error(`Erro ao vincular medida de proteção ao risco. Status: ${response.status}`);
       }
@@ -151,7 +146,7 @@ const ModalRiscoMedidas = ({ onCancel, isOpen, childName, childId, children }) =
                 <th scope="col" className="px-4 py-3">
                   Medida de Proteção
                 </th>
-               
+
               </tr>
             </thead>
             <tbody>
@@ -170,7 +165,7 @@ const ModalRiscoMedidas = ({ onCancel, isOpen, childName, childId, children }) =
                     <td className="px-4 py-4">
                       {findMedidas(item.fk_medida_id)}
                     </td>
-                    
+
                   </tr>
                 ))}
             </tbody>

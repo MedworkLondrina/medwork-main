@@ -24,7 +24,7 @@ const ModalProcessoRisco = ({ onCancel, isOpen, childName, childId, children }) 
     } catch (error) {
       console.log("Erro ao buscar processos e riscos!", error);
     }
-  }
+  };
 
   const fetchRisco = async () => {
     try {
@@ -39,7 +39,7 @@ const ModalProcessoRisco = ({ onCancel, isOpen, childName, childId, children }) 
     } catch (error) {
       console.log("Erro ao buscar riscos!", error)
     }
-  }
+  };
 
   useEffect(() => {
     fetchRisco();
@@ -49,7 +49,7 @@ const ModalProcessoRisco = ({ onCancel, isOpen, childName, childId, children }) 
 
   if (!isOpen) {
     return null;
-  }
+  };
 
   const findRisco = (FkprocessoId) => {
     if (!risco) {
@@ -58,7 +58,7 @@ const ModalProcessoRisco = ({ onCancel, isOpen, childName, childId, children }) 
 
     const riscos = risco.find((c) => c.id_risco === FkprocessoId)
     return riscos ? riscos.nome_risco : 'N/A'
-  }
+  };
 
   const findProcesso = (FkRiscoId) => {
     if (!children) {
@@ -67,7 +67,7 @@ const ModalProcessoRisco = ({ onCancel, isOpen, childName, childId, children }) 
 
     const processos = children.find((c) => c.id_processo === FkRiscoId)
     return processos ? processos.nome_processo : 'N/A'
-  }
+  };
 
   //Funções do Modal
   //Função para abrir o Modal
@@ -77,10 +77,18 @@ const ModalProcessoRisco = ({ onCancel, isOpen, childName, childId, children }) 
 
   const selectedSetor = async (item) => {
     try {
+
+      const filteredProcessosRiscos = processoRisco.filter((c) => c.fk_processo_id === childId && c.fk_risco_id === item);
+
+      if (filteredProcessosRiscos.length > 0) {
+        toast.warn("Risco ja vinculado ao processo");
+        return;
+      }
+
       const response = await fetch(`${connect}/processos_riscos`, {
         method: 'POST',
         headers: {
-          'Content-Type' : 'application/json'
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify([{
           fk_processo_id: childId,
@@ -101,7 +109,7 @@ const ModalProcessoRisco = ({ onCancel, isOpen, childName, childId, children }) 
       console.log("Erro ao vincular processo no setor", error);
       toast.warn("Erro ao vincular processo")
     }
-  }
+  };
 
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50">
@@ -133,7 +141,7 @@ const ModalProcessoRisco = ({ onCancel, isOpen, childName, childId, children }) 
           </button>
         </div>
         <div className="relative overflow-x-auto sm:rounded-lg flex sm:justify-center">
-        
+
           {processoRisco.length > 0 && (<table className="w-full shadow-md text-sm mb-8 mt-2 text-left rtl:text-right text-gray-500">
             <thead className="text-xs text-gray-700 uppercase bg-gray-50">
               <tr>
@@ -150,22 +158,22 @@ const ModalProcessoRisco = ({ onCancel, isOpen, childName, childId, children }) 
             </thead>
             <tbody>
               {processoRisco.filter((item) => item.fk_processo_id === childId)
-              .map((item, i) => (
-                <tr
-                  key={i}
-                  className={`border-b bg-white`}
-                >
-                  <th scope="row" className="px-4 py-4 font-medium text-gray-900 whitespace-nowrap">
-                    {item.id_processo_risco}
-                  </th>
-                  <th scope="row" className="px-4 py-4 font-medium text-gray-900 whitespace-nowrap">
-                    {findProcesso(item.fk_processo_id)}
-                  </th>
-                  <td className="px-4 py-4">
-                    {findRisco(item.fk_risco_id)}
-                  </td>
-                </tr>
-              ))}
+                .map((item, i) => (
+                  <tr
+                    key={i}
+                    className={`border-b bg-white`}
+                  >
+                    <th scope="row" className="px-4 py-4 font-medium text-gray-900 whitespace-nowrap">
+                      {item.id_processo_risco}
+                    </th>
+                    <th scope="row" className="px-4 py-4 font-medium text-gray-900 whitespace-nowrap">
+                      {findProcesso(item.fk_processo_id)}
+                    </th>
+                    <td className="px-4 py-4">
+                      {findRisco(item.fk_risco_id)}
+                    </td>
+                  </tr>
+                ))}
             </tbody>
           </table>)}
         </div>
