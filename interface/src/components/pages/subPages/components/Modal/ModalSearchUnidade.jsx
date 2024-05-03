@@ -4,8 +4,15 @@ import useAuth from '../../../../../hooks/useAuth';
 
 const ModalSearchSetor = ({ onCancel, isOpen, children, onContactSelect }) => {
 
-  const { contatos, getContatos } = useAuth(null);
+  const { fetchContatos } = useAuth(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [contatos, setContatos] = useState([]);
+  const [filteredUnidades, setFilteredUnidades] = useState([]);
+
+  const getContatos = async () => {
+    const contacts = await fetchContatos();
+    setContatos(contacts);
+  };
 
   useEffect(() => {
     getContatos();
@@ -17,19 +24,23 @@ const ModalSearchSetor = ({ onCancel, isOpen, children, onContactSelect }) => {
     }
   }, [isOpen]);
 
-  if (!isOpen) {
-    return null;
-  }
+  useEffect(() => {
+    const filtred = children.filter((udd) => udd.nome_unidade.toLowerCase().includes(searchTerm.toLocaleLowerCase()));
+    setFilteredUnidades(filtred);
+  }, [searchTerm, contatos]);
 
   const handleSearch = (term) => {
     setSearchTerm(term);
-  }
-
+  };
 
   const findContato = (fkContatoId) => {
     const contacts = contatos.find((i) => i.id_contato === fkContatoId);
     return contacts ? contacts.nome_contato : 'N/A'
-  }
+  };
+
+  if (!isOpen) {
+    return null;
+  };
 
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50">
@@ -60,12 +71,7 @@ const ModalSearchSetor = ({ onCancel, isOpen, children, onContactSelect }) => {
           </div>
         </div>
         <ul className='space-y-3 py-3'>
-          {children && children
-            .filter((unidade) =>
-              unidade.nome_unidade.toLowerCase().includes(searchTerm.toLowerCase()) ||
-              unidade.cnpj_unidade.toLowerCase().includes(searchTerm.toLowerCase()) ||
-              unidade.cidade_unidade.toLowerCase().includes(searchTerm.toLowerCase())
-            )
+          {children && filteredUnidades
             .map((unidade, i) => (
               <li
                 key={i}

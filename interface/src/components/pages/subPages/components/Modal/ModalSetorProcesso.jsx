@@ -20,11 +20,12 @@ const ModalProcesso = ({ onCancel, isOpen, setorName, setorId, setor }) => {
       }
 
       const responseData = await response.json();
-      setSetorProcesso(responseData);
+      const filter = responseData.filter((item) => item.fk_setor_id === setorId);
+      setSetorProcesso(filter);
     } catch (error) {
       console.log("Erro ao buscar setores e processos!", error)
     }
-  }
+  };
 
   const fetchProcesso = async () => {
     try {
@@ -39,7 +40,7 @@ const ModalProcesso = ({ onCancel, isOpen, setorName, setorId, setor }) => {
     } catch (error) {
       console.log("Erro ao buscar processos!", error)
     }
-  }
+  };
 
   useEffect(() => {
     fetchSetorProcesso();
@@ -114,7 +115,7 @@ const ModalProcesso = ({ onCancel, isOpen, setorName, setorId, setor }) => {
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50">
       <div className="modal-overlay absolute inset-0 backdrop-blur-[1px] bg-black bg-opacity-10" onClick={onCancel}></div>
-      <div className="modal-container w-5/6 bg-white mx-auto rounded-xl z-50 overflow-y-auto px-8 py-4 max-h-[80vh]">
+      <div className="modal-container w-3/6 bg-white mx-auto rounded-xl z-50 overflow-y-auto px-8 py-4 max-h-[80vh]">
         <div className='flex justify-between items-center py-2'>
           <h1 className='text-xl font-bold text-sky-700'>Adicione processos ao setor: <span className='text-xl text-gray-700 font-bold'>{setorName}</span></h1>
           <div className="flex justify-end">
@@ -129,53 +130,47 @@ const ModalProcesso = ({ onCancel, isOpen, setorName, setorId, setor }) => {
           </div>
         </div>
         <div className='border-b border-gray-200'></div>
-        <div className='flex justify-end items-center py-2 mt-4'>
-          <p className='text-sm text-gray-500'>
-            Selecione um processo para o Setor <span className='text-sky-700 font-semibold'>{setorName}</span>
+        <div className='py-2'>
+          <p className='text-sm text-gray-600 mb-1'>
+            Para vincular um processo, clique no botão abaixo e selecione o processo na lista:
           </p>
-          <button
-            className='ml-4 bg-sky-600 hover:bg-sky-900 py-3 px-4 text-white rounded-md'
+
+          {/* Botão Vincular Processo */}
+          <div
+            className='bg-gray-100 hover:bg-gray-200 text-sky-700 py-3 px-4 rounded-md flex items-center gap-1 justify-center cursor-pointer'
             onClick={openModal}
           >
             <IoAddCircle />
-          </button>
+            <p className=' font-bold'>
+              Vincular Processo
+            </p>
+          </div>
         </div>
-        <div className="relative overflow-x-auto sm:rounded-lg flex sm:justify-center">
-          <table className="w-full shadow-md text-sm mb-8 mt-2 text-left rtl:text-right text-gray-500">
-            <thead className="text-xs text-gray-700 uppercase bg-gray-50">
-              <tr>
-                <th scope="col" className="px-4 py-3">
-                  ID
-                </th>
-                <th scope="col" className="px-4 py-3">
-                  Setor
-                </th>
-                <th scope="col" className="px-4 py-3">
-                  Processo
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {setorProcesso.filter((item) => item.fk_setor_id === setorId)
-                .map((item, i) => (
-                  <tr
-                    key={i}
-                    className={`border-b bg-white`}
-                  >
-                    <th scope="row" className="px-4 py-4 font-medium text-gray-900 whitespace-nowrap">
-                      {item.id_setor_processo}
-                    </th>
-                    <th scope="row" className="px-4 py-4 font-medium text-gray-900 whitespace-nowrap">
-                      {findSetor(item.fk_setor_id)}
-                    </th>
-                    <td className="px-4 py-4">
-                      {findPorcesso(item.fk_processo_id)}
-                    </td>
-                  </tr>
+        <hr />
+
+        {/* Lista de Processos */}
+        {setorProcesso.length > 0 ? (
+          <>
+            <div className='w-full mt-1'>
+              <h1 className='mb-2'>Processos Vinculados</h1>
+              <div className='flex flex-wrap items-center gap-2'>
+                {setorProcesso.map((item) => (
+                  <div key={item.fk_processo_id}>
+                    <div className='flex items-center bg-gray-100 rounded px-4 py-2 hover:bg-gray-200'>
+                      <p className='font-bold text-sky-700 truncate'>
+                        {findPorcesso(item.fk_processo_id)}
+                      </p>
+                    </div>
+                  </div>
                 ))}
-            </tbody>
-          </table>
-        </div>
+              </div>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className='w-full text-center text-lg text-sky-700 font-bold mt-4'>Nenhum processo vinculado ao setor</div>
+          </>
+        )}
       </div>
       <ModalSearchProcesso
         isOpen={showModal}

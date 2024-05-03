@@ -6,10 +6,11 @@ import useAuth from '../../../../../hooks/useAuth';
 
 const ModalSearchSetor = ({ onCancel, isOpen, setores, onContactSelect }) => {
 
+
+  const { fetchUnidades } = useAuth([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [unidades, setUnidades] = useState([]);
-
-
+  const [filteredSetores, setFilteredSetores] = useState([]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -17,7 +18,15 @@ const ModalSearchSetor = ({ onCancel, isOpen, setores, onContactSelect }) => {
     }
   }, [isOpen]);
 
- 
+
+  const getUnidades = async () => {
+    const units = await fetchUnidades();
+    setUnidades(units);
+  };
+
+  useEffect(() => {
+    getUnidades();
+  }, [])
 
   const findUnidade = (fkUnidadeId) => {
     if (!unidades) {
@@ -28,13 +37,22 @@ const ModalSearchSetor = ({ onCancel, isOpen, setores, onContactSelect }) => {
     return unidade ? unidade.nome_unidade : 'N/A';
   }
 
-  if (!isOpen) {
-    return null;
-  }
+  useEffect(() => {
+    try {
+      const filter = children.filter((u) => u.nome_setor.toLowerCase().includes(searchTerm.toLowerCase()));
+      setFilteredSetores(filter);
+    } catch (error) {
+      console.error(`Erro ao filtrar setores. ${error}`);
+    }
+  }, [searchTerm, children]);
 
   const handleSearch = (term) => {
     setSearchTerm(term);
-  }
+  };
+
+  if (!isOpen) {
+    return null;
+  };
 
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50">
@@ -70,6 +88,7 @@ const ModalSearchSetor = ({ onCancel, isOpen, setores, onContactSelect }) => {
               setor.nome_setor.toLowerCase().includes(searchTerm.toLowerCase()) ||
               setor.ambiente_setor.toLowerCase().includes(searchTerm.toLowerCase())
             )
+
             .map((item, i) => (
               <li
                 key={i}
