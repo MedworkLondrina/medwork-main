@@ -107,7 +107,7 @@ function Aparelhos() {
       <CadastroAparelhos
         onEdit={onEdit}
         setOnEdit={setOnEdit}
-        get={getAparelhos}
+        get={get}
       />
 
       {/* Barra de pesquisa */}

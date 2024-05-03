@@ -10,18 +10,29 @@ import GridModalSetorProcessos from '../../components/gridsModal/GridModalSetorP
 
 function SetoresProcessos() {
 
-  const { getSetores, setores, getUnidades, unidades, companyId, loadSelectedCompanyFromLocalStorage } = useAuth(null);
+  const { getSetores,  getUnidades, unidades, loadSelectedCompanyFromLocalStorage } = useAuth(null);
 
   const [showModalSetor, setShowModalSetor] = useState(false);
   const [showModalProcessos, setShowModalProcessos] = useState(false);
   const [setorNome, setSetorNome] = useState(null);
   const [setorId, setSetorId] = useState(null);
-
+	const { fetchSetores,companyId} = useAuth(null);
+  const [setores, setSetores] = useState([]);
   const [filteredSetores, setFilteredSetores] = useState([]);
 
   useEffect(() => {
     loadSelectedCompanyFromLocalStorage();
   }, [])
+
+  const get = async () => {
+		const sectors = await fetchSetores();
+		console.log(sectors)
+		setSetores(sectors);
+  }
+
+	useEffect(() => {
+		get();
+	}, [companyId]);
 
   useEffect(() => {
     getUnidades();
@@ -41,8 +52,7 @@ function SetoresProcessos() {
 
   const openModalSetor = () => setShowModalSetor(true);
   const closeModalSetor = () => setShowModalSetor(false);
-  const openModalProcessos = () => setShowModalProcessos(true);
-  const closeModalProcessos = () => setShowModalProcessos(false);
+
 
   const handleClearSetor = () => {
     setSetorNome(null);
@@ -121,7 +131,7 @@ function SetoresProcessos() {
       <ModalSearchSetor
         isOpen={showModalSetor}
         onCancel={closeModalSetor}
-        children={filteredSetores}
+        setores = {setores}
         onContactSelect={handleSetorSelect}
       />
     </>

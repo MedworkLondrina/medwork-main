@@ -5,7 +5,7 @@ import { toast } from "react-toastify";
 function FrmElaboador({ onEdit, setOnEdit, getTable }) {
 
   const ref = useRef(null);
-  const [nome, setNome] = useState('');
+  const [nomeelaborador, setNome] = useState('');
   const [cpf, setCpf] = useState('');
   const [email, setEmail] = useState('');
   const [telefone, setTelefone] = useState('');
@@ -32,12 +32,12 @@ function FrmElaboador({ onEdit, setOnEdit, getTable }) {
     const queryParams = new URLSearchParams({ tenant_code: tenant, nome_usuario: nome }).toString();
     try {
 
-      if (!nome || !cpf || !email || !telefone || !cargo || !registro) {
+      if (!nomeelaborador || !cpf || !email || !telefone || !cargo || !registro) {
         return toast.warn("Preencha todos os campos!");
       }
 
       const values = {
-        nome_elaborador: nome,
+        nome_elaborador: nomeelaborador,
         cpf_elaborador: cpf,
         email_elaborador: email,
         telefone_elaborador: telefone,
@@ -185,7 +185,7 @@ function FrmElaboador({ onEdit, setOnEdit, getTable }) {
                 type="text"
                 name="nome_elaborador"
                 placeholder="Nome do Elaborador"
-                value={nome}
+                value={nomeelaborador}
                 onChange={handleChangeNome}
               />
             </div>

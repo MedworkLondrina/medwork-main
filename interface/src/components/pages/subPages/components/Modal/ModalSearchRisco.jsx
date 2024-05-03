@@ -64,7 +64,7 @@ const ModalSearchRisco = ({ onCancel, isOpen, children, onSelect }) => {
               >
                 <div className="flex items-center text-sm font-light text-gray-500">
                   <div className="flex-1 min-w-0">
-                    <div className='flex justify-between text-lg font-bold text-gray-800'>
+                    <div className='flex justify-between text-lg font-bold text-sky-700'>
                       <p>
                         {item.nome_risco}
                       </p>
