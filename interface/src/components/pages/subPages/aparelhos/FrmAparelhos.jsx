@@ -49,6 +49,7 @@ function CadastroMedidas({ onEdit, setOnEdit, get }) {
         marca_aparelho: user.marca_aparelho.value || null,
         modelo_aparelho: user.modelo_aparelho.value || null,
         data_calibracao_aparelho: user.data_calibracao_aparelho.value || null,
+        ativo: 1,
         fk_tenant_code: tenant,
       };
 

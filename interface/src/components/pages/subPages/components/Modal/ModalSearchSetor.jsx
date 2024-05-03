@@ -4,7 +4,8 @@ import { connect } from '../../../../../services/api';
 
 import useAuth from '../../../../../hooks/useAuth';
 
-const ModalSearchSetor = ({ onCancel, isOpen, children, onContactSelect }) => {
+const ModalSearchSetor = ({ onCancel, isOpen, setores, onContactSelect }) => {
+
 
   const { fetchUnidades } = useAuth([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -16,6 +17,7 @@ const ModalSearchSetor = ({ onCancel, isOpen, children, onContactSelect }) => {
       setSearchTerm('');
     }
   }, [isOpen]);
+
 
   const getUnidades = async () => {
     const units = await fetchUnidades();
@@ -81,7 +83,12 @@ const ModalSearchSetor = ({ onCancel, isOpen, children, onContactSelect }) => {
           </div>
         </div>
         <ul className='space-y-3 py-3'>
-          {children && filteredSetores
+        {setores && setores
+            .filter((setor) =>
+              setor.nome_setor.toLowerCase().includes(searchTerm.toLowerCase()) ||
+              setor.ambiente_setor.toLowerCase().includes(searchTerm.toLowerCase())
+            )
+
             .map((item, i) => (
               <li
                 key={i}
