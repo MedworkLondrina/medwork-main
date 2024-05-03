@@ -182,7 +182,7 @@ function CadastroEmpresa({ onEdit, setOnEdit, fetchEmpresas, contact }) {
     setGrauRisco('');
     setDescricao('');
     setSelectedCnaes([]);
-  }, [closeModal, setc, setContactId, setContactName]);
+  };
 
 
   //Funções CheckBox

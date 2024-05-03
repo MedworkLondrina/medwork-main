@@ -4,7 +4,7 @@ import { connect } from '../../../../../services/api';
 
 import useAuth from '../../../../../hooks/useAuth';
 
-const ModalSearchSetor = ({ onCancel, isOpen, setores, onContactSelect }) => {
+const ModalSearchSetor = ({ onCancel, isOpen, setores, onContactSelect, children }) => {
 
 
   const { fetchUnidades } = useAuth([]);
