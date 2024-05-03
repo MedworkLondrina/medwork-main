@@ -6,7 +6,7 @@ import { useState } from 'react';
 import { IoMdArrowDropleft } from "react-icons/io";
 import { IoMdArrowDropright } from "react-icons/io";
 
-function GridCadastroEmpresa({ empresa, setEmpresa, setOnEdit, getEmpresa, setCompanyId }) {
+function GridCadastroEmpresa({ empresa, setEmpresa, setOnEdit, fetchEmpresas, setCompanyId }) {
 
   const [page, setPage] = useState(0);
   const itemsPerPage = 10;
@@ -22,8 +22,6 @@ function GridCadastroEmpresa({ empresa, setEmpresa, setOnEdit, getEmpresa, setCo
   const handlePrevPage = () => {
     setPage((prevPage) => Math.max(prevPage - 1, 0));
   };
-
-
 
   const handleEditClick = (empresa) => () => {
     handleEdit(empresa);
@@ -53,7 +51,7 @@ function GridCadastroEmpresa({ empresa, setEmpresa, setOnEdit, getEmpresa, setCo
         item.id_empresa === id ? { ...item, ativo: !ativo } : item
       );
       setEmpresa(novaEmpresa);
-      getEmpresa();
+      fetchEmpresas();
       toast.info(`Empresa ${!ativo ? 'ativado' : 'inativado'} com sucesso!`);
     } catch (error) {
       console.error('Erro ao atualizar status da empresa:', error);
@@ -61,10 +59,9 @@ function GridCadastroEmpresa({ empresa, setEmpresa, setOnEdit, getEmpresa, setCo
     }
   };
 
-
   return (
     <>
-      <div className='flex justify-center w-full mt-6 mb-2'>
+      <div className='flex justify-center w-full mb-2'>
         <div className='flex justify-end w-5/6'>
           <div className='flex justify-end items-center gap-1 py-2 rounded px-2'>
             <button className='hover:bg-gray-100 cursor-pointer rounded-md p-1' onClick={handlePrevPage} disabled={page === 0}><IoMdArrowDropleft /></button>

@@ -33,12 +33,15 @@ function CadastroCargo() {
     setUnidades(units);
     const sectors = await fetchSetores();
     setSetores(sectors);
-    const functions = await fetchCargos();
-    console.log(functions)
-    setCargos(functions);
   };
+  
+  const getCargos = async () => {
+    const functions = await fetchCargos();
+    setCargos(functions);
+  }
 
   useEffect(() => {
+    getCargos();
     get();
   }, [companyId]);
 
@@ -129,7 +132,7 @@ function CadastroCargo() {
       <FrmCadastroCargo
         onEdit={onEdit}
         setOnEdit={setOnEdit}
-        getCargo={fetchCargos}
+        getCargo={getCargos}
         set={setorNome}
         setor={setores}
         unidades={unidades}

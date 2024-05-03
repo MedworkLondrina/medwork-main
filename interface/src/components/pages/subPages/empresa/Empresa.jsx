@@ -126,7 +126,7 @@ function Empresa() {
         empresa={filteredEmpresas}
         setEmpresa={setEmpresas}
         setOnEdit={handleEdit}
-        fetchEmpresas={fetchEmpresas}
+        fetchEmpresas={get}
         setCompanyId={setCompanyId}
       />
     </div>
