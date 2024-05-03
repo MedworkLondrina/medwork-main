@@ -1855,7 +1855,28 @@ router.put("/usuarios/:id_usuario", (req, res) => {
 });
 
 
+router.put("/usuarios/activate/:id_usuario", (req, res) => {
+  const id_usuario = req.params.id_usuario;
+  const { ativo } = req.body;
 
+  const q = 'UPDATE usuarios SET ativo = ? WHERE id_usuario = ?';
+  const values = [ativo, id_usuario];
+
+  pool.getConnection((err, con) => {
+    if (err) return res.status(500).json({ error: 'Erro ao obter conexão.' });
+
+    con.query(q, values, (err) => {
+      con.release();
+
+      if (err) {
+        console.error('Erro ao atualizar status do usuario:', err);
+        return res.status(500).json({ error: 'Erro ao atualizar status do usuario.' });
+      }
+
+      res.status(200).json({ message: 'Status da unidade atualizado com sucesso.' });
+    });
+  });
+});
 
 //Tabela Aparelhos
 //Get table
@@ -1955,7 +1976,28 @@ router.put("/aparelhos/:id_aparelho", (req, res) => {
 
 });
 
+router.put("/aparelhos/activate/:id_aparelho", (req, res) => {
+  const id_aparelho = req.params.id_aparelho;
+  const { ativo } = req.body;
 
+  const q = 'UPDATE aparelhos SET ativo = ? WHERE id_aparelho = ?';
+  const values = [ativo, id_aparelho];
+
+  pool.getConnection((err, con) => {
+    if (err) return res.status(500).json({ error: 'Erro ao obter conexão.' });
+
+    con.query(q, values, (err) => {
+      con.release();
+
+      if (err) {
+        console.error('Erro ao atualizar status do aparelho:', err);
+        return res.status(500).json({ error: 'Erro ao atualizar status do aparelho.' });
+      }
+
+      res.status(200).json({ message: 'Status da unidade atualizado com sucesso.' });
+    });
+  });
+});
 //Tabela de Versões do PDF
 //Get Table
 router.get("/laudo_version", (req, res) => {
@@ -2793,4 +2835,26 @@ router.get("/elaboradores", (req, res) => {
       return res.status(500).json(error);
     });
 
+});
+router.put("/elaboradores/activate/:id_elaborador", (req, res) => {
+  const id_elaborador = req.params.id_elaborador;
+  const { ativo } = req.body;
+
+  const q = 'UPDATE elaboradores SET ativo = ? WHERE id_elaborador = ?';
+  const values = [ativo, id_elaborador];
+
+  pool.getConnection((err, con) => {
+    if (err) return res.status(500).json({ error: 'Erro ao obter conexão.' });
+
+    con.query(q, values, (err) => {
+      con.release();
+
+      if (err) {
+        console.error('Erro ao atualizar status do elaborador:', err);
+        return res.status(500).json({ error: 'Erro ao atualizar status do elaborador.' });
+      }
+
+      res.status(200).json({ message: 'Status da unidade atualizado com sucesso.' });
+    });
+  });
 });

@@ -93,7 +93,7 @@ function FrmCadastroUsuario({ onEdit, setOnEdit, getUsuario, usuarios }) {
 				!form.nome_usuario.value ||
 				!form.cpf_usuario.value ||
 				!form.email.value ||
-				!form.tipo) {
+				tipo === '0') {
 				return toast.warn("Preencha Todos os Campos!")
 			}
 			try {
@@ -226,7 +226,7 @@ function FrmCadastroUsuario({ onEdit, setOnEdit, getUsuario, usuarios }) {
 						/>
 						<p className={`text-xs font-medium text-red-600 px-1 mt-1 ${!emailcheck && "hidden"}`}>*Email Incompleto</p>
 					</div>
-					<div className="w-full md:w-1/3 px-3">
+					{onEdit?null:(<div className="w-full md:w-1/3 px-3">
 						<label className="tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="grid-nome_empresa">
 							Senha
 						</label>
@@ -237,9 +237,10 @@ function FrmCadastroUsuario({ onEdit, setOnEdit, getUsuario, usuarios }) {
 							placeholder="Senha do Usuário"
 							value={password}
 							onChange={handleSetPassd}
+							required
 						/>
 						<p className={`text-xs font-medium text-red-600 px-1 mt-1 ${!pasdCheck && "hidden"}`}>*Senha deve conter no minimo 6 caracteres</p>
-					</div>
+					</div>)}
 					<div className="w-full md:w-1/3 px-3">
 						<label className="tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="grid-nome_empresa">
 							Permissão:

@@ -88,7 +88,7 @@ function CadastroElaborador() {
 
       {/* Form */}
       <FrmElaboador
-        getTable={getTable}
+        getTable={get}
         onEdit={onEdit}
         setOnEdit={setOnEdit}
       />
@@ -103,6 +103,7 @@ function CadastroElaborador() {
       {/* Grid */}
       <GridElaborador
         data={filteredData}
+        setData = {setData}
         setOnEdit={setOnEdit}
       />
     </>
