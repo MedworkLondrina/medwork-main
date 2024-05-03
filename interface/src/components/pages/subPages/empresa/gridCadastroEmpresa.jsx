@@ -6,7 +6,7 @@ import { useState } from 'react';
 import { IoMdArrowDropleft } from "react-icons/io";
 import { IoMdArrowDropright } from "react-icons/io";
 
-function GridCadastroEmpresa({ empresa, setEmpresa, setOnEdit, getEmpresa, setCompanyId }) {
+function GridCadastroEmpresa({ empresa, setEmpresa, setOnEdit, fetchEmpresas, setCompanyId }) {
 
   const [page, setPage] = useState(0);
   const itemsPerPage = 10;
@@ -51,7 +51,7 @@ function GridCadastroEmpresa({ empresa, setEmpresa, setOnEdit, getEmpresa, setCo
         item.id_empresa === id ? { ...item, ativo: !ativo } : item
       );
       setEmpresa(novaEmpresa);
-      getEmpresa();
+      fetchEmpresas();
       toast.info(`Empresa ${!ativo ? 'ativado' : 'inativado'} com sucesso!`);
     } catch (error) {
       console.error('Erro ao atualizar status da empresa:', error);

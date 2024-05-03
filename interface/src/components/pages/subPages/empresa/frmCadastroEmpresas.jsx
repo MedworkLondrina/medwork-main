@@ -26,15 +26,12 @@ function CadastroEmpresa({ onEdit, setOnEdit, fetchEmpresas, contact, cnaes }) {
   const [descricao, setDescricao] = useState(""); //Armazena a Descrição
   const [contatoModal, setContatoModal] = useState([]); //Armazena os contatos do Modal
   const [selectedCnaes, setSelectedCnaes] = useState([]);
-  const [cnaePrincipal, setCnaePrincipal] = useState([]);
-  const [cnaeSecundario, setCnaeSecundario] = useState([]);
-  const [changeCnaePricnipal, setChangeCnaePrincipal] = useState(false);
 
   // Colocando as informações do formulario nas variaveis
   useEffect(() => {
     if (onEdit) {
       const user = ref.current;
-      const { nome_empresa, razao_social, cnpj_empresa, inscricao_estadual_empresa, inscricao_municipal_empresa } = user;
+      const { nome_empresa, razao_social, inscricao_estadual_empresa, inscricao_municipal_empresa } = user;
 
       nome_empresa.value = onEdit?.nome_empresa || "";
       razao_social.value = onEdit?.razao_social || "";
@@ -66,12 +63,6 @@ function CadastroEmpresa({ onEdit, setOnEdit, fetchEmpresas, contact, cnaes }) {
     }
   }, [onEdit, contact]);
 
-  const areFieldsFilled = () => {
-    const user = ref.current;
-    if (!user) return false; // Retorna false se user for null
-    return user.nome_empresa.value && user.razao_social.value && user.cnpj_empresa.value && user.cnae_empresa.value && contatoModal.nome_contato;
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     const userData = JSON.parse(localStorage.getItem("user"));
@@ -81,7 +72,7 @@ function CadastroEmpresa({ onEdit, setOnEdit, fetchEmpresas, contact, cnaes }) {
     const user = ref.current;
 
     // Verifica se todos os campos foram preenchidos
-    if (!user.nome_empresa.value || !user.razao_social.value || !user.cnpj_empresa.value || !user.cnae_empresa || !contatoModal.nome_contato) {
+    if (!user.nome_empresa.value || !user.razao_social.value || !user.cnpj_empresa.value || !cnae || !contactName) {
       return toast.warn("Preencha Todos os Campos!")
     }
 
@@ -149,25 +140,14 @@ function CadastroEmpresa({ onEdit, setOnEdit, fetchEmpresas, contact, cnaes }) {
     setCheckedEstadual(null);
     setCheckedMunicipal(null);
     setOnEdit(null);
-    setCnae('');
-    setGrauRisco('');
-    setDescricao('');
-    setCnaeSecundario(null);
-    setCnaePrincipal(null);
-    setSelectedCnaes(null);
+    handleClearCnae();
   };
 
   //Funções do Modal
   //Função para abrir o Modal
   const openModal = () => setShowModal(true);
-  const openModalCnae = () => {
-    setChangeCnaePrincipal(false);
-    setShowModalCnae(true);
-  }
-  const openModalCnaePrincipal = () => {
-    setChangeCnaePrincipal(true);
-    setShowModalCnae(true);
-  }
+  const openModalCnae = () => setShowModalCnae(true);
+
   //Função para fechar o Modal
   const closeModal = () => setShowModal(false);
   const closeModalCnae = () => setShowModalCnae(false);
@@ -184,27 +164,24 @@ function CadastroEmpresa({ onEdit, setOnEdit, fetchEmpresas, contact, cnaes }) {
   const handleCnaeSelected = (cnae) => {
     if (cnae) {
       setSelectedCnaes(cnae);
-      if (changeCnaePricnipal) {
-        setCnaePrincipal(cnae);
-        setGrauRisco(cnae[0]?.grau_risco_cnae);
-        setDescricao(cnae[0]?.descricao_cnae);
-      } else {
-        let cnaesDiferentes = [];
-        if (cnaePrincipal.length > 0) {
-          cnaesDiferentes = cnae.filter(cnaeItem => cnaeItem.id_cnae !== cnaePrincipal[0].id_cnae);
-        }
-        setCnaeSecundario(cnaesDiferentes);
-      }
+      setCnae(cnae[0]?.subclasse_cnae);
+      setGrauRisco(cnae[0]?.grau_risco_cnae);
+      setDescricao(cnae[0].descricao_cnae);
+    } else {
+      console.log("Teste")
+      setCnae('');
+      setGrauRisco('');
+      setDescricao('');
+      setSelectedCnaes([]);
     }
     closeModalCnae();
   };
 
-  const handleClearCnaePrincipal = () => {
-    setCnaePrincipal(null);
-  };
-
-  const handleClearCnaeSecundario = () => {
-    setCnaeSecundario(null);
+  const handleClearCnae = () => {
+    setCnae('');
+    setGrauRisco('');
+    setDescricao('');
+    setSelectedCnaes([]);
   };
 
   //Funções CheckBox
@@ -395,7 +372,7 @@ function CadastroEmpresa({ onEdit, setOnEdit, fetchEmpresas, contact, cnaes }) {
               CNAE Principal:
             </label>
             <div className="flex items-center w-full gap-2">
-              {cnaePrincipal ? (
+              {cnae ? (
                 <>
                   <button
                     className="w-full flex appearance-none hover:shadow-sm text-sky-600 bg-gray-100 border-gray-200 justify-center mt-1 py-3 px-4 rounded leading-tight focus:outline-none with-text"
@@ -403,10 +380,10 @@ function CadastroEmpresa({ onEdit, setOnEdit, fetchEmpresas, contact, cnaes }) {
                     onClick={openModalCnae}
                   >
                     <p className="font-bold">
-                      {cnaePrincipal[0]?.subclasse_cnae}
+                      {cnae}
                     </p>
                   </button>
-                  <button className="ml-4" type="button" onClick={handleClearCnaePrincipal}>
+                  <button className="ml-4" type="button" onClick={handleClearCnae}>
                     <img src={icon_sair} alt="" className="h-8" />
                   </button>
                 </>
@@ -416,7 +393,7 @@ function CadastroEmpresa({ onEdit, setOnEdit, fetchEmpresas, contact, cnaes }) {
                     <button
                       className="flex w-full appearance-none text-gray-400 bg-gray-100 border-gray-200 justify-center mt-1 py-3 px-4 rounded leading-tight focus:outline-none with-text"
                       type="button"
-                      onClick={openModalCnaePrincipal}
+                      onClick={openModalCnae}
                     >
                       <p className="px-2 text-sm font-medium">
                         Nenhum CNAE Selecionado
@@ -424,7 +401,7 @@ function CadastroEmpresa({ onEdit, setOnEdit, fetchEmpresas, contact, cnaes }) {
                     </button>
                     <button
                       type="button"
-                      onClick={openModalCnaePrincipal}
+                      onClick={openModalCnae}
                       className={`flex cursor-pointer`}
                     >
                       <img src={icon_add} className="h-9" alt="Icone adicionar cnae"></img>
@@ -515,79 +492,21 @@ function CadastroEmpresa({ onEdit, setOnEdit, fetchEmpresas, contact, cnaes }) {
 
           </div>
 
-          {/* CNAE Secundário */}
-          <div className="w-full px-3">
-            <label className="tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="grid-fk_contato_id">
-              CNAE Secundário:
-            </label>
-            <div className="flex items-center w-full gap-2">
-              {cnaeSecundario && cnaeSecundario.length > 0 ? (
-                <>
-                  <div className="flex items-center gap-2">
-                    {cnaeSecundario && cnaeSecundario.map((cnae) => (
-                      <>
-                        <div key={cnae.id_cnae}>
-                          <div className="bg-gray-100 rounded px-4 py-2">
-                            <p className="font-semibold text-sky-700">{cnae.subclasse_cnae}</p>
-                          </div>
-                        </div>
-                      </>
-                    ))}
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div className="flex items-center gap-3 w-full">
-                    <button
-                      className="flex w-full appearance-none text-gray-400 bg-gray-100 border-gray-200 justify-center mt-1 py-3 px-4 rounded leading-tight focus:outline-none with-text"
-                      type="button"
-                      onClick={openModalCnae}
-                    >
-                      <p className="px-2 text-sm font-medium">
-                        Nenhum CNAE Selecionado
-                      </p>
-                    </button>
-                  </div>
-                </>
-              )}
-              <button
-                type="button"
-                onClick={openModalCnae}
-                className={`flex cursor-pointer`}
-              >
-                <img src={icon_add} className="h-9" alt="Icone adicionar cnae"></img>
-              </button>
-            </div>
-
-          </div>
-
           {/* Botões */}
-          <div className="w-full px-3 pl-8 flex justify-end">
+          <div className="w-full px-3 md:px-0 flex justify-end">
             <div>
               <button onClick={handleClear} className="shadow mt-4 bg-red-600 hover:bg-red-700 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded" type="button">
                 Limpar
               </button>
             </div>
-            <div className="px-3 pl-8">
-              {!areFieldsFilled() ? (
-                <button
-                  className="shadow mt-4 bg-green-600 cursor-not-allowed opacity-50 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded"
-                  type="submit"
-                  disabled
-                >
-                  Cadastrar
-                </button>
-              ) : (
-                <button
-                  className="shadow mt-4 bg-green-600 hover:bg-green-700 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded"
-                  type="submit"
-                >
-                  Cadastrar
-                </button>
-              )}
-
+            <div className="px-3">
+              <button
+                className="shadow mt-4 bg-green-600 hover:bg-green-700 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded"
+                type="submit"
+              >
+                Cadastrar
+              </button>
             </div>
-
           </div>
 
         </div>
