@@ -5,6 +5,7 @@ import { connect } from "../../../../services/api";
 
 import ModalSearchCnae from "../components/Modal/ModalSearchCnae";
 import icon_lupa from '../../../media/icon_lupa.svg';
+import icon_add from '../../../media/icon_add.svg';
 
 function CadastroProcesso({ onEdit, getProcessos, setOnEdit, setSearchTerm, processos, getProcessoCnaes, getCnae, setVerify, setVerifyCnaes, verifyVinculo, setVerifyVinculo }) {
 
@@ -214,6 +215,7 @@ function CadastroProcesso({ onEdit, getProcessos, setOnEdit, setSearchTerm, proc
                 onBlur={handleBlurProcesso}
               />
             </div>
+
             {/* Cnae */}
             <div className={`w-full ${selectedCnaes.length > 0 ? 'md:w-full' : 'md:w-1/2'} ${verifyVinculo ? 'opacity-50 cursor-not-allowed' : ''} px-3`}>
               <label className={`tracking-wide text-gray-700 text-xs font-bold mb-2 ${verifyVinculo ? 'cursor-not-allowed' : ''}`} htmlFor="grid-fk_contato_id">
@@ -222,7 +224,7 @@ function CadastroProcesso({ onEdit, getProcessos, setOnEdit, setSearchTerm, proc
               <div className="flex items-center w-full">
                 {selectedCnaes.length > 0 ? (
                   <>
-                    <div className="w-full">
+                    <div className="w-full flex gap-2 items-center">
                       <button
                         className={`flex appearance-none text-sky-600 mt-1 rounded leading-tight focus:outline-none with-text ${selectedCnaes ? 'w-full' : 'bg-gray-100 border border-gray-200 py-3 px-4 hover:shadow-sm'}`}
                         type="button"
@@ -259,6 +261,14 @@ function CadastroProcesso({ onEdit, getProcessos, setOnEdit, setSearchTerm, proc
                           ))}
                         </div>
                       </button>
+                      <button
+                        type="button"
+                        disabled={verifyVinculo}
+                        onClick={openModal}
+                        className={`flex cursor-pointer ml-4 ${verifyVinculo ? 'cursor-not-allowed' : ''}`}
+                      >
+                        <img src={icon_add} className={`h-9 ${verifyVinculo ? 'cursor-not-allowed' : ''}`} alt="Icone adicionar usuario"></img>
+                      </button>
                     </div>
                   </>
                 ) : (
@@ -280,7 +290,7 @@ function CadastroProcesso({ onEdit, getProcessos, setOnEdit, setSearchTerm, proc
                         onClick={openModal}
                         className={`flex cursor-pointer ml-4 ${verifyVinculo ? 'cursor-not-allowed' : ''}`}
                       >
-                        <img src={icon_lupa} className={`h-9 ${verifyVinculo ? 'cursor-not-allowed' : ''}`} alt="Icone adicionar usuario"></img>
+                        <img src={icon_add} className={`h-9 ${verifyVinculo ? 'cursor-not-allowed' : ''}`} alt="Icone adicionar usuario"></img>
                       </button>
                     </div>
                   </>

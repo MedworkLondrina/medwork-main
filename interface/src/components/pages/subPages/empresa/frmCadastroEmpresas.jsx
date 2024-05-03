@@ -6,11 +6,11 @@ import { IoIosHelpCircle } from "react-icons/io";
 
 import ModarSearchContato from "../components/Modal/ModalSearchContato";
 import ModalSearchCnae from '../components/Modal/ModalSearchCnae';
-import icon_add from '../../../media/icon_add.svg'
-import icon_sair from '../../../media/icon_sair.svg'
+import icon_add from '../../../media/icon_add.svg';
+import icon_sair from '../../../media/icon_sair.svg';
 
 
-function CadastroEmpresa({ onEdit, setOnEdit, fetchEmpresas, contact, cnaes }) {
+function CadastroEmpresa({ onEdit, setOnEdit, fetchEmpresas, contact }) {
 
   //Instanciando as Variáveis
   const ref = useRef(null);
