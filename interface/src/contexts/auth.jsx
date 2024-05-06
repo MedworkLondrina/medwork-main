@@ -314,7 +314,15 @@ export const AuthProvider = ({ children }) => {
 
   const getProcessos = async () => {
     try {
-      const response = await fetch(`${connect}/processos`);
+      const tenant = await checkTenant();
+      if (!tenant) throw new Error('Tenant not found');
+      const code = await checkTenantCode();
+      if (!code) throw new Error('Tenant Code not found');
+
+      const queryParams = new URLSearchParams({ tenent_code: code, global: tenant.global }).toString();
+
+      const response = await fetch(`${connect}/processos?${queryParams}`);
+
 
       if (!response.ok) {
         throw new Error(`Erro ao buscar processos. Status: ${response.status}`)
@@ -426,7 +434,7 @@ export const AuthProvider = ({ children }) => {
       console.log(`Erro ao buscar epc's. ${error}`)
     }
   };
-  
+
   const getSetoresProcessos = async () => {
     try {
       const response = await fetch(`${connect}/setores_processos`);
@@ -647,6 +655,14 @@ export const AuthProvider = ({ children }) => {
       }
 
       const data = await response.json();
+
+      const newTenant = {
+        tenant: data[0].nome_tenant,
+        global: data[0].global,
+      }
+
+      localStorage.removeItem('tenant');
+      localStorage.setItem('tenant', JSON.stringify(newTenant));
       return data;
     } catch (error) {
       console.error("Erro ao buscar Inquilino!", error)
@@ -707,7 +723,6 @@ export const AuthProvider = ({ children }) => {
         setUser(userLogged);
         return userLogged;
       }
-      setUser(null)
     } catch (error) {
       console.log("Erro ao checar usuario!", error)
     }
@@ -724,6 +739,17 @@ export const AuthProvider = ({ children }) => {
       console.log("Erro ao checar o tenant code!", error)
     }
   };
+
+  const checkTenant = async () => {
+    try {
+      const res = localStorage.getItem('tenant');
+      if (!res) return null;
+      const tenant = JSON.parse(res);
+      return tenant;
+    } catch (error) {
+      console.error(`Erro ao buscar tenant. ${error}`)
+    }
+  }
 
   const checkCompanyId = async () => {
     try {
