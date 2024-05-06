@@ -340,7 +340,14 @@ export const AuthProvider = ({ children }) => {
 
   const getRiscos = async () => {
     try {
-      const response = await fetch(`${connect}/riscos`);
+      const tenant = await checkTenant();
+      if (!tenant) throw new Error('Tenant not found');
+      const code = await checkTenantCode();
+      if (!code) throw new Error('Tenant Code not found');
+
+      const queryParams = new URLSearchParams({ tenent_code: code, global: tenant.global }).toString();
+
+      const response = await fetch(`${connect}/riscos?${queryParams}`);
 
       if (!response.ok) {
         throw new Error(`Erro ao buscar riscos. Status: ${response.status}`)
@@ -361,7 +368,13 @@ export const AuthProvider = ({ children }) => {
 
   const fetchMedidas = async (params) => {
     try {
-      const queryParams = new URLSearchParams({ grupo: params });
+      const tenant = await checkTenant();
+      if (!tenant) throw new Error('Tenant not found');
+      const code = await checkTenantCode();
+      if (!code) throw new Error('Tenant Code not found');
+
+      const queryParams = new URLSearchParams({ grupo: params, tenant_code: code, global: tenant.global });
+      
       const response = await fetch(`${connect}/medidas?${queryParams}`);
 
       if (!response.ok) {
