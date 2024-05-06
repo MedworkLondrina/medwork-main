@@ -2,7 +2,6 @@ import cors from "cors";
 import express from "express";
 import userRoutes from "./routes/users.js";
 import bodyParser from "body-parser";
-import morgan from 'morgan';
 
 // Usando express
 const app = express();
@@ -17,8 +16,8 @@ app.use(express.json());
 
 // Middleware para permitir solicitações CORS
 const corsConfig = {
-   origin: 'https://medwork-dev.vercel.app',
-  // origin: 'http://localhost:3000',
+  //  origin: 'https://medwork-dev.vercel.app',
+  origin: 'http://localhost:3000',
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
   credentials: true,
   optionsSuccessStatus: 204,
