@@ -300,8 +300,7 @@ function ProfileCompany({ companyId, empresas, contatos }) {
           </div>
           <div className="px-4">
             <div className='bg-white rounded-sm px-3 inline-block'>
-              <p className='text-sky-600 font-semibold'>{contact ? contact.nome_contato : ''}</p>
-              <p className='text-sm text-gray-700 font-light -mt-1'>{contact ? contact.email_contato : ''}</p>
+              <p className='text-sky-600 font-semibold'>{contact ? contact.nome_contato : ''} - <span className='text-sm text-gray-700 font-light'>{contact ? contact.email_contato : ''}</span></p>
             </div>
           </div>
         </div>

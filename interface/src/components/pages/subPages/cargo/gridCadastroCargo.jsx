@@ -3,17 +3,7 @@ import { toast } from 'react-toastify';
 import { connect } from '../../../../services/api';
 import { useEffect, useState } from 'react';
 
-function GridCadastroCargo({ cargos, setCargo, getCargo, setOnEdit, find, findUnidades, unidades, setor }) {
-
-  const [filteredSetores, setFilteredSetores] = useState([]);
-
-  useEffect(() => {
-    const filterunidades = unidades.map((i) => i.id_unidade);
-    const filtersetor = setor.filter((i) => filterunidades.includes(i.fk_unidade_id));
-    const idSetores = filtersetor.map((i) => i.id_setor);
-    console.log(setor)
-    setFilteredSetores(idSetores);
-  }, [unidades, setor]);
+function GridCadastroCargo({ cargos, setCargo, getCargo, setOnEdit, find, findUnidades }) {
 
   const handleEdit = (item) => {
     setOnEdit(item);

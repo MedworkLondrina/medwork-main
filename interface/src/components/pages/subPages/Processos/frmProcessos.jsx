@@ -217,7 +217,7 @@ function CadastroProcesso({ onEdit, getProcessos, setOnEdit, setSearchTerm, proc
             </div>
 
             {/* Cnae */}
-            <div className={`w-full ${selectedCnaes.length > 0 ? 'md:w-full' : 'md:w-1/2'} ${verifyVinculo ? 'opacity-50 cursor-not-allowed' : ''} px-3`}>
+            <div className={`w-full ${selectedCnaes.length === 1 ? 'md:w-1/2' : selectedCnaes.length > 1 ? 'md:w-full' : 'md:w-1/2'} ${verifyVinculo ? 'opacity-50 cursor-not-allowed' : ''} px-3`}>
               <label className={`tracking-wide text-gray-700 text-xs font-bold mb-2 ${verifyVinculo ? 'cursor-not-allowed' : ''}`} htmlFor="grid-fk_contato_id">
                 {selectedCnaes.length > 0 ? `CNAE's Selecionados` : `Selecione os CNAE's`}:
               </label>
@@ -231,7 +231,7 @@ function CadastroProcesso({ onEdit, getProcessos, setOnEdit, setSearchTerm, proc
                         onClick={openModal}
                       >
                         <div
-                          className={`w-full grid gap-2 ${selectedCnaes.length === 1 ? 'grid-cols-2' :
+                          className={`w-full grid gap-2 ${selectedCnaes.length === 1 ? 'grid-cols-1' :
                             selectedCnaes.length === 2 ? 'grid-cols-2' :
                               selectedCnaes.length === 3 ? 'grid-cols-3' : 'grid-cols-4'
                             }`}

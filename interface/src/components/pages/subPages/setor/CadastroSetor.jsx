@@ -12,8 +12,8 @@ import SearchInput from "../components/SearchInput";
 import { IoInformationCircleSharp } from "react-icons/io5";
 
 
-function CadastroSetor({ }) {
-	
+function CadastroSetor() {
+
 	const { fetchSetores, fetchUnidades, companyId, loadSelectedCompanyFromLocalStorage } = useAuth(null);
 
 	// Instanciando e Definindo como vazio
@@ -33,7 +33,6 @@ function CadastroSetor({ }) {
 
 	const get = async () => {
 		const sectors = await fetchSetores();
-		console.log(sectors)
 		setSetores(sectors);
 		const units = await fetchUnidades();
 		setUnidades(units);
@@ -51,7 +50,6 @@ function CadastroSetor({ }) {
 
 	//Função para Busca
 	const handleSearch = (term) => {
-		// Atualizar o estado do termo de pesquisa com o valor fornecido
 		setSearchTerm(term);
 	}
 
@@ -102,11 +100,11 @@ function CadastroSetor({ }) {
 				<div className="flex justify-center">
 					<h1 className="text-3xl font-extrabold text-sky-700">Cadastrar Setor</h1>
 				</div>
-					<div className="flex justify-end w-3/4 items-center">
-						<div onMouseEnter={() => setVisible(true)}>
-							<IoInformationCircleSharp className='text-sky-700' />
-						</div>
+				<div className="flex justify-end w-3/4 items-center">
+					<div onMouseEnter={() => setVisible(true)}>
+						<IoInformationCircleSharp className='text-sky-700' />
 					</div>
+				</div>
 			</div>
 
 			{/* Formulário de Cadastro */}
