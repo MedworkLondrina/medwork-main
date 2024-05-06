@@ -34,8 +34,6 @@ router.get("/tenant", (req, res) => {
 
 //Tabela Empresa
 //Get table
-
-
 router.get("/empresas", (req, res) => {
   const queryParams = req.query.tenent_code;
   const username = req.query.nome_usuario;
@@ -148,6 +146,7 @@ router.post("/empresas", (req, res) => {
   });
 });
 
+//Update rows in table
 router.put("/empresas/:id_empresa", (req, res, next) => {
   const data = req.body;
   const nomeUsuario = req.query.nome_usuario;
@@ -273,12 +272,7 @@ router.put("/empresas/:id_empresa", (req, res, next) => {
   });
 });
 
-
-
-
-
-
-// Desactivate
+//Desactivate row in table
 router.put("/empresas/activate/:id_empresa", (req, res) => {
   const id_empresa = req.params.id_empresa;
   const { ativo } = req.body;
@@ -438,8 +432,6 @@ router.post("/unidades", (req, res) => {
   });
 });
 
-
-
 //Update row in table
 router.put("/unidades/:id_unidade", (req, res, next) => {
   const id_unidade = req.params.id_unidade; // Obtém o ID da unidade da URL
@@ -556,7 +548,7 @@ const qContato = `
   });
 });
 
-
+//Desactivate row in table
 router.put("/unidades/activate/:id_unidade", (req, res) => {
   const id_unidade = req.params.id_unidade;
   const { ativo } = req.body;
@@ -686,7 +678,7 @@ router.put("/setores/:id_setor", (req, res) => {
 
 });
 
-//Update row in table
+//Desactivate row in table
 router.put("/setores/activate/:id_setor", (req, res) => {
   const id_setor = req.params.id_setor;
   const { ativo } = req.body;
