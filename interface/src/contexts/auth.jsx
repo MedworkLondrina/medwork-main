@@ -319,7 +319,7 @@ export const AuthProvider = ({ children }) => {
       const code = await checkTenantCode();
       if (!code) throw new Error('Tenant Code not found');
 
-      const queryParams = new URLSearchParams({ tenent_code: code, global: tenant.global }).toString();
+      const queryParams = new URLSearchParams({ tenant_code: code, global: tenant.global }).toString();
 
       const response = await fetch(`${connect}/processos?${queryParams}`);
 
@@ -345,7 +345,7 @@ export const AuthProvider = ({ children }) => {
       const code = await checkTenantCode();
       if (!code) throw new Error('Tenant Code not found');
 
-      const queryParams = new URLSearchParams({ tenent_code: code, global: tenant.global }).toString();
+      const queryParams = new URLSearchParams({ tenant_code: code, global: tenant.global }).toString();
 
       const response = await fetch(`${connect}/riscos?${queryParams}`);
 
@@ -357,7 +357,7 @@ export const AuthProvider = ({ children }) => {
       data.sort((a, b) => {
         return a.nome_risco.localeCompare(b.nome_risco);
       });
-
+      console.log(`data:${data}`)
       setRiscos(data);
       return data;
     } catch (error) {

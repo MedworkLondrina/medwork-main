@@ -949,20 +949,14 @@ router.put("/contatos/activate/:id_contato", (req, res) => {
 
 //Tabela Processos
 //Get table
-router.get("/processos", (req, res) => {
-  const q = `SELECT * FROM processos`;
-
-  pool.getConnection((err, con) => {
-    if (err) return next(err);
-
-    con.query(q, (err, data) => {
-      if (err) return res.status(500).json(err);
-
-      return res.status(200).json(data);
-    });
-
-    con.release();
-  })
+router.get("/processos", async (req, res) => {
+  const tenant = req.query.tenant_code;
+  try {
+    const data = await getProcessosFromTenant(tenant);
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ error: 'An error occurred while fetching risks' });
+  }
 
 });
 
@@ -1146,24 +1140,16 @@ router.get("/cnae", (req, res) => {
 });
 
 
-
 //Tabela Riscos
 //Get table
-router.get("/riscos", (req, res) => {
-  const q = `SELECT * FROM riscos`;
-
-  pool.getConnection((err, con) => {
-    if (err) return next(err);
-
-    con.query(q, (err, data) => {
-      if (err) return res.status(500).json(err);
-
-      return res.status(200).json(data);
-    });
-
-    con.release();
-  })
-
+router.get("/riscos", async (req, res) => {
+  const tenant = req.query.tenant_code;
+  try {
+    const data = await getRiscosFromPermissions(tenant);
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ error: 'An error occurred while fetching risks' });
+  }
 });
 
 //Add rows in table
@@ -1386,16 +1372,15 @@ router.put("/conclusoes/:id_conclusao", (req, res) => {
 //Medidas de Proteção
 //Tabela EPI's
 //Get table
-router.get("/medidas", (req, res) => {
-  const queryParams = req.query.grupo;
-
-  getMedidasFromTabela(queryParams)
-    .then(data => {
-      return res.status(200).json(data);
-    })
-    .catch(error => {
-      return res.status(500).json(error);
-    });
+router.get("/medidas", async(req, res) => {
+  const grupo = req.query.grupo;
+  const tenant = req.query.tenant_code;
+  try {
+    const data = await getMedidasFromTabela(tenant,grupo);
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ error: 'An error occurred while fetching risks' });
+  }
 });
 
 //Add rows in table
@@ -2040,6 +2025,8 @@ import getElaboradoresfromTenant from "../config/elaboradores/elaboradores.js";
 import getAparelhosFromTenant from "../config/aparelhos/aparelhos.js";
 import getmedidasfromtabela from "../config/medidas/medidas.js";
 import getMedidasFromTabela from "../config/medidas/medidas.js";
+import getRiscosFromPermissions from "../config/riscos/riscos.js";
+import getProcessosFromTenant from "../config/processos/processos.js";
 
 const serviceAccount = {
   "type": "service_account",

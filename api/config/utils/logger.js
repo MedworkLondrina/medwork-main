@@ -35,7 +35,9 @@ const mysqlTransport = new MySQLTransport({
          mudanca_log: dataToInsert.mudanca,
          who_log: dataToInsert.who,
          tenant_code_log: dataToInsert.tenantCode,
-         data_log: dataToInsert.data
+         data_log: dataToInsert.data,
+         body_log: JSON.stringify(dataToInsert.body), 
+
        };
        console.log(adjustedData)
        connection.query(
@@ -59,8 +61,9 @@ const logger = winston.createLogger({
     new winston.transports.Console({
       format: winston.format.combine(
         winston.format.timestamp(),
-        winston.format.printf(({ mudanca, tabela, tenantCode, tipo, who, data }) => {
-          return `${mudanca} ${tabela} ${tenantCode} ${tipo} ${who} ${data}`;
+        winston.format.printf(({ mudanca, tabela, tenantCode, tipo, who, data, body }) => {
+          
+          return `${mudanca} ${tabela} ${tenantCode} ${tipo} ${who} ${data} ${body}`;
         })
       ),
     }),
@@ -68,7 +71,7 @@ const logger = winston.createLogger({
   ],
 });
 
-export default function registrarLog(tabela, tipo, mudanca, who, tenantCode, data) {
+export default function registrarLog(tabela, tipo, mudanca, who, tenantCode, data, body,) {
   logger.info({
     mudanca,
     tabela,
@@ -76,5 +79,6 @@ export default function registrarLog(tabela, tipo, mudanca, who, tenantCode, dat
     tipo,
     who,
     data,
+    body
   });
 }
