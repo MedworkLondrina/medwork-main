@@ -27,7 +27,6 @@ import icon_controle_risco from '../media/menu/icon_controle_risco.svg';
 import icon_processos from '../media/menu/icon_processo.svg';
 import icon_riscos from '../media/menu/icon_risco.svg';
 import icon_medidas from '../media/menu/icon_medidas.svg';
-import icon_vinculos from '../media/menu/icon_vinculos.svg';
 // Gestão do Sistema
 import icon_gestao from '../media/menu/icon_gestao.svg';
 import icon_usuario from '../media/menu/icon_usuario.svg';
@@ -493,18 +492,6 @@ function Sidebar() {
                                   </div>
                                 </li>
                               </Link>
-
-                              {/* Vinculos */}
-                              {companyId && (
-                                < Link to="/vinculos" onClick={() => setShowMenu(!showMenu)}>
-                                  <li className="hover:bg-sky-100">
-                                    <div className={`flex items-center py-2 px-6`}>
-                                      <img src={icon_vinculos} alt="icon_contato" />
-                                      <span className="ms-3 font-normal">Vínculos</span>
-                                    </div>
-                                  </li>
-                                </Link>
-                              )}
                             </>
 
 

@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { IoCloseCircleOutline } from "react-icons/io5";
 import useAuth from "../../../hooks/useAuth";
 
 function ProfileTenant({ tenant }) {

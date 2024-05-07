@@ -1000,7 +1000,6 @@ router.post("/processos", (req, res) => {
   })
 });
 
-
 //Update row int table
 router.put("/processos/:id_processo", (req, res) => {
   const id_processo = req.params.id_processo;
@@ -1405,7 +1404,7 @@ router.post("/medidas", (req, res) => {
             formatted += `${key}: ${obj[key]}, `;
           }
         }
-        return formatted.slice(0, -2); // Remove a última vírgula e espaço
+        return formatted.slice(0, -2);
       };
       const bodyString = formatBody(data)
       registrarLog('riscos', 'put', `Alterou Risco`, `${nome}`, tenant, new Date(),bodyString);
@@ -1422,13 +1421,8 @@ router.put("/medidas/:id_medida", (req, res) => {
   const id_medida = req.params.id_medida;
   const nome = req.query.nome_usuario
   const tenant = req.query.tenant_code
-  console.log(nome,tenant)
   const {
     descricao_medida,
-    certificado_medida,
-    fator_reducao_medida,
-    vencimento_certificado_medida,
-    fabricante_medida,
     grupo_medida,
   } = req.body;
   const data = req.body
@@ -1436,20 +1430,12 @@ router.put("/medidas/:id_medida", (req, res) => {
   const q = `
     UPDATE medidas
     SET descricao_medida = ?,
-    certificado_medida = ?,
-    fator_reducao_medida = ?,
-    vencimento_certificado_medida = ?,
-    fabricante_medida = ?,
     grupo_medida = ?
     WHERE id_medida = ?
     `;
 
   const values = [
     descricao_medida,
-    certificado_medida,
-    fator_reducao_medida,
-    vencimento_certificado_medida,
-    fabricante_medida,
     grupo_medida,
     id_medida
   ];
@@ -1469,10 +1455,10 @@ router.put("/medidas/:id_medida", (req, res) => {
             formatted += `${key}: ${obj[key]}, `;
           }
         }
-        return formatted.slice(0, -2); // Remove a última vírgula e espaço
+        return formatted.slice(0, -2);
       };
       const bodyString = formatBody(data)
-      registrarLog('riscos', 'put', `Alterou Risco`, `${nome}`, tenant, new Date(),bodyString);
+      registrarLog('medidas', 'put', `Alterou Medida`, `${nome}`, tenant, new Date(),bodyString);
       return res.status(200).json("Medida atualizado com sucesso!");
     });
 
@@ -1480,6 +1466,7 @@ router.put("/medidas/:id_medida", (req, res) => {
   })
 
 });
+
 
 //Tabela EPI's
 //Get table

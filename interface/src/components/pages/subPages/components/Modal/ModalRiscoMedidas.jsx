@@ -7,25 +7,21 @@ import useAuth from '../../../../../hooks/useAuth';
 import ModalSearchMedidas from './ModalSearchMedidas'
 
 const ModalRiscoMedidas = ({ onCancel, isOpen, childName, childId, children }) => {
-  const { fetchMedidas } = useAuth(null);
+
+  const { fetchMedidas, getRiscosMedidas } = useAuth(null);
   const [riscosMedidas, setRiscosMedidas] = useState([]);
   const [medida, setMedida] = useState([]);
   const [showModal, setShowModal] = useState(false);
 
   const fetchRiscosMedidas = async () => {
     try {
-      const response = await fetch(`${connect}/riscos_medidas`);
-
-      if (!response.ok) {
-        throw new Error(`Erro ao buscar processos e riscos e medidas. Status: ${response.status}`)
-      }
-
-      const responseData = await response.json();
-      setRiscosMedidas(responseData);
+      const response = await getRiscosMedidas();
+      const filterByMedida = response.filter((c) => c.fk_risco_id === childId)
+      setRiscosMedidas(filterByMedida);
     } catch (error) {
       console.log("Erro ao buscar riscos e medidas!", error);
     }
-  }
+  };
 
   const fetchMedidasGeral = async () => {
     try {
@@ -34,7 +30,7 @@ const ModalRiscoMedidas = ({ onCancel, isOpen, childName, childId, children }) =
     } catch (error) {
       console.log("Erro ao buscar medidas!", error)
     }
-  }
+  };
 
   useEffect(() => {
     fetchMedidasGeral();
@@ -44,25 +40,13 @@ const ModalRiscoMedidas = ({ onCancel, isOpen, childName, childId, children }) =
 
   if (!isOpen) {
     return null;
-  }
+  };
 
   const findMedidas = (FkMedidaId) => {
     const filterMedida = medida.find((i) => i.id_medida === FkMedidaId);
     return filterMedida ? filterMedida.descricao_medida : 'N/A';
 
   };
-
-
-  const findRisco = (FkRiscoId) => {
-    if (!children) {
-      return 'N/A'
-    }
-
-    const riscos = children.find((c) => c.id_risco === FkRiscoId)
-    return riscos ? riscos.nome_risco : 'N/A'
-  }
-
-
 
   //Funções do Modal
   //Função para abrir o Modal
@@ -109,7 +93,7 @@ const ModalRiscoMedidas = ({ onCancel, isOpen, childName, childId, children }) =
       <div className="modal-overlay absolute inset-0 backdrop-blur-[1px] bg-black bg-opacity-10" onClick={onCancel}></div>
       <div className="modal-container w-5/6 bg-white mx-auto rounded-xl z-50 overflow-y-auto px-8 py-4 max-h-[80vh]">
         <div className='flex justify-between items-center py-2'>
-          <h1 className='text-xl font-bold text-sky-700'>Adicione Medidas de Proteação ao risco: <span className='text-xl text-gray-700 font-bold'>{childName}</span></h1>
+          <h1 className='text-xl font-bold text-sky-700'>Adicione Medidas ao risco: <span className='text-xl text-gray-700 font-bold'>{childName}</span></h1>
           <div className="flex justify-end">
             <button
               type="button"
@@ -122,56 +106,51 @@ const ModalRiscoMedidas = ({ onCancel, isOpen, childName, childId, children }) =
           </div>
         </div>
         <div className='border-b border-gray-200'></div>
-        <div className='flex justify-end items-center py-2 mt-4'>
-          <p className='text-sm text-gray-500'>
-            Adicione a medida de proteção
+        <div className='py-2'>
+          <p className='text-sm text-gray-600 mb-1'>
+            Para vincular uma medida, clique no botão abaixo e selecione a medida na lista:
           </p>
-          <button
-            className='ml-4 bg-sky-600 hover:bg-sky-900 py-3 px-4 text-white rounded-md'
+
+          {/* Botão Vincular Processo */}
+          <div
+            className='bg-gray-100 hover:bg-gray-200 text-sky-700 py-3 px-4 rounded-md flex items-center gap-1 justify-center cursor-pointer'
             onClick={openModal}
           >
             <IoAddCircle />
-          </button>
+            <p className=' font-bold'>
+              Vincular Medidas
+            </p>
+          </div>
         </div>
-        <div className="relative overflow-x-auto sm:rounded-lg flex sm:justify-center">
-          <table className="w-full shadow-md text-sm mb-8 mt-2 text-left rtl:text-right text-gray-500">
-            <thead className="text-xs text-gray-700 uppercase bg-gray-50">
-              <tr>
-                <th scope="col" className="px-4 py-3">
-                  ID
-                </th>
-                <th scope="col" className="px-4 py-3">
-                  Risco
-                </th>
-                <th scope="col" className="px-4 py-3">
-                  Medida de Proteção
-                </th>
+        <hr />
 
-              </tr>
-            </thead>
-            <tbody>
-              {riscosMedidas.filter((item) => item.fk_risco_id === childId)
-                .map((item, i) => (
-                  <tr
-                    key={i}
-                    className={`border-b bg-white`}
-                  >
-                    <th scope="row" className="px-4 py-4 font-medium text-gray-900 whitespace-nowrap">
-                      {item.id_risco_medida}
-                    </th>
-                    <th scope="row" className="px-4 py-4 font-medium text-gray-900 whitespace-nowrap">
-                      {findRisco(item.fk_risco_id)}
-                    </th>
-                    <td className="px-4 py-4">
-                      {findMedidas(item.fk_medida_id)}
-                    </td>
-
-                  </tr>
+        {/* Lista de Processos */}
+        {riscosMedidas.length > 0 ? (
+          <>
+            <div className='w-full mt-1'>
+              <h1 className='mb-2'>Medidas Vinculadas</h1>
+              <div className='flex flex-wrap items-center gap-2'>
+                {riscosMedidas.map((item) => (
+                  <div key={item.fk_processo_id}>
+                    <div className='flex items-center bg-gray-100 rounded px-4 py-2 hover:bg-gray-200'>
+                      <p className='font-bold text-sky-700 truncate'>
+                        {findMedidas(item.fk_medida_id)}
+                      </p>
+                    </div>
+                  </div>
                 ))}
-            </tbody>
-          </table>
-        </div>
+              </div>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className='w-full text-center text-lg text-sky-700 font-bold mt-4'>Nenhuma medida vinculada ao risco</div>
+          </>
+        )}
+
       </div>
+
+
       <ModalSearchMedidas
         isOpen={showModal}
         onCancel={closeModal}

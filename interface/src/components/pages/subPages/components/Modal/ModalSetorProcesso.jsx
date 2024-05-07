@@ -2,26 +2,23 @@ import React, { useEffect, useState } from 'react';
 import { connect } from '../../../../../services/api';
 import { IoAddCircle } from "react-icons/io5";
 import { toast } from 'react-toastify';
+import useAuth from '../../../../../hooks/useAuth';
 
 import ModalSearchProcesso from './ModalSearchProcesso'
 
-const ModalProcesso = ({ onCancel, isOpen, setorName, setorId, setor }) => {
+const ModalProcesso = ({ onCancel, isOpen, setorName, setorId }) => {
 
-  const [setorProcesso, setSetorProcesso] = useState([]);
-  const [processo, setProcesso] = useState([]);
+  const { getProcessos, getSetoresProcessos } = useAuth();
+
+  const [setorProcessos, setSetorProcessos] = useState([]);
+  const [processos, setProcessos] = useState([]);
   const [showModal, setShowModal] = useState(false);
 
   const fetchSetorProcesso = async () => {
     try {
-      const response = await fetch(`${connect}/setores_processos`);
-
-      if (!response.ok) {
-        throw new Error(`Erro ao buscar setores e processos. Status: ${response.status}`)
-      }
-
-      const responseData = await response.json();
-      const filter = responseData.filter((item) => item.fk_setor_id === setorId);
-      setSetorProcesso(filter);
+      const res = await getSetoresProcessos();
+      const filterBySector = res.filter((c) => c.fk_setor_id === setorId)
+      setSetorProcessos(filterBySector);
     } catch (error) {
       console.log("Erro ao buscar setores e processos!", error)
     }
@@ -29,14 +26,8 @@ const ModalProcesso = ({ onCancel, isOpen, setorName, setorId, setor }) => {
 
   const fetchProcesso = async () => {
     try {
-      const response = await fetch(`${connect}/processos`);
-
-      if (!response.ok) {
-        throw new Error(`Erro ao buscar processos. Status: ${response.status}`)
-      }
-
-      const responseData = await response.json();
-      setProcesso(responseData);
+      const res = await getProcessos();
+      setProcessos(res);
     } catch (error) {
       console.log("Erro ao buscar processos!", error)
     }
@@ -45,30 +36,16 @@ const ModalProcesso = ({ onCancel, isOpen, setorName, setorId, setor }) => {
   useEffect(() => {
     fetchSetorProcesso();
     fetchProcesso();
-  }, [setorId])
+  }, [setorId]);
 
-
-  if (!isOpen) {
-    return null;
-  }
-
-  const findPorcesso = (FkprocessoId) => {
-    if (!processo) {
+  const findProcesso = (FkprocessoId) => {
+    if (!processos) {
       return 'N/A'
     }
 
-    const processos = processo.find((c) => c.id_processo === FkprocessoId)
-    return processos ? processos.nome_processo : 'N/A'
-  }
-
-  const findSetor = (FkSetorId) => {
-    if (!setor) {
-      return 'N/A'
-    }
-
-    const setores = setor.find((c) => c.id_setor === FkSetorId)
-    return setores ? setores.nome_setor : 'N/A'
-  }
+    const proc = processos.find((c) => c.id_processo === FkprocessoId)
+    return proc ? proc.nome_processo : 'N/A'
+  };
 
   //Funções do Modal
   //Função para abrir o Modal
@@ -79,7 +56,7 @@ const ModalProcesso = ({ onCancel, isOpen, setorName, setorId, setor }) => {
   const selectedSetor = async (item) => {
     try {
 
-      const filteredSetorProcessos = setorProcesso.filter((i) => i.fk_processo_id === item);
+      const filteredSetorProcessos = setorProcessos.filter((i) => i.fk_processo_id === item);
 
       if (filteredSetorProcessos.length > 0) {
         toast.warn("Processo ja vinculado ao setor");
@@ -110,7 +87,11 @@ const ModalProcesso = ({ onCancel, isOpen, setorName, setorId, setor }) => {
       console.log("Erro ao vincular processo no setor", error);
       toast.warn("Erro ao vincular processo")
     }
-  }
+  };
+
+  if (!isOpen) {
+    return null;
+  };
 
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50">
@@ -149,16 +130,16 @@ const ModalProcesso = ({ onCancel, isOpen, setorName, setorId, setor }) => {
         <hr />
 
         {/* Lista de Processos */}
-        {setorProcesso.length > 0 ? (
+        {setorProcessos.length > 0 ? (
           <>
             <div className='w-full mt-1'>
               <h1 className='mb-2'>Processos Vinculados</h1>
               <div className='flex flex-wrap items-center gap-2'>
-                {setorProcesso.map((item) => (
+                {setorProcessos.map((item) => (
                   <div key={item.fk_processo_id}>
                     <div className='flex items-center bg-gray-100 rounded px-4 py-2 hover:bg-gray-200'>
                       <p className='font-bold text-sky-700 truncate'>
-                        {findPorcesso(item.fk_processo_id)}
+                        {findProcesso(item.fk_processo_id)}
                       </p>
                     </div>
                   </div>
@@ -175,7 +156,7 @@ const ModalProcesso = ({ onCancel, isOpen, setorName, setorId, setor }) => {
       <ModalSearchProcesso
         isOpen={showModal}
         onCancel={closeModal}
-        children={processo}
+        children={processos}
         setorName={setorName}
         onSetorSelect={selectedSetor}
       />
