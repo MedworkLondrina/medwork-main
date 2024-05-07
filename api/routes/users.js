@@ -5,9 +5,10 @@ import getNomeByEmail from "../config/login/login.js";
 import getSetoresFromCompany from '../config/setores/setores.js';
 import getCargosFromCompany from '../config/cargos/cargos.js';
 import registrarLog from "../config/utils/logger.js";
+
 const router = express.Router();
-import fileUpload from "express-fileupload";
 const SECRET = 'medworkldn';
+
 // Tabela Tenant
 // Get table
 //Get table
