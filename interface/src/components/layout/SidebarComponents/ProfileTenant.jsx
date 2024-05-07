@@ -1,28 +1,24 @@
 import React, { useEffect, useState } from "react";
-import useAuth from "../../../hooks/useAuth";
 import { connect } from "../../../services/api";
+import { toast } from "react-toastify";
+import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 
 function ProfileTenant({ tenant }) {
   const [imageFile, setImageFile] = useState(null);
   const [imageURL, setImageURL] = useState(null);
+  const [logoChange, setLogoChange] = useState(false);
 
-  // Função para carregar a imagem do perfil do banco de dados
-  const loadProfileImage = async () => {
-    try {
-      const imageDataArray = tenant[0].logo_tenant.data; // Obtém o array de bytes da imagem
-      const blob = new Blob([new Uint8Array(imageDataArray)], { type: 'image/png' }); // Cria um novo Blob a partir dos bytes
-      const url = URL.createObjectURL(blob); // Cria a URL de objeto para o Blob
-      setImageURL(url); // Define a URL de objeto como a URL da imagem
-    } catch (error) {
-      console.error("Erro ao carregar a imagem do perfil:", error);
-    }
-  };
-  
-  
-  // Chamando a função para carregar a imagem do perfil assim que o componente for montado
+  const storage = getStorage();
+  const storageRef = ref(storage, `logos/${tenant[0].tenant_code}.png`);
+
   useEffect(() => {
-    loadProfileImage();
-  }, []); // O array vazio como segundo argumento faz com que o useEffect seja executado apenas uma vez, quando o componente é montado
+    const fetchImageURL = async () => {
+      const downloadURL = await getDownloadURL(storageRef);
+      setImageURL(downloadURL);
+    };
+
+    fetchImageURL();
+  }, [tenant]);
 
 
   const handleImageUpload = (e) => {
@@ -30,42 +26,33 @@ function ProfileTenant({ tenant }) {
       const file = e.target.files[0];
       const blob = new Blob([file], { type: file.type });
       setImageFile(blob);
-      console.log(blob)
     } else {
       console.error('Arquivo não encontrado. Por favor, selecione um arquivo.');
     }
   };
 
-  const updateTenant = async () => {
+  const updateTenant = async (e) => {
+    e.preventDefault();
+    setLogoChange(false);
     try {
-      const formData = new FormData();
-      formData.append("tenant_code", tenant[0].tenant_code);
-      formData.append("nome_tenant", tenant[0].nome_tenant);
-      formData.append("cnpj_tenant", tenant[0].cnpj_tenant);
-      formData.append("logo_tenant", imageFile); // Aqui está sua imagem blob
-      formData.append("cep_tenant", tenant[0].cep_tenant);
-      formData.append("rua_tenant", tenant[0].rua_tenant);
-      formData.append("numero_tenant", tenant[0].numero_tenant);
-      formData.append("complemento_tenant", tenant[0].complemento_tenant);
-      formData.append("bairro_tenant", tenant[0].bairro_tenant);
-      formData.append("cidade_tenant", tenant[0].cidade_tenant);
-      formData.append("uf_tenant", tenant[0].uf_tenant);
-      formData.append("dataCriacao_tenant", tenant[0].dataCriacao_tenant);
-      formData.append("status", tenant[0].status);
-      formData.append("global", tenant[0].global);
+      const uploadTask = uploadBytesResumable(storageRef, imageFile);
 
-      const response = await fetch(`${connect}/tenant/${tenant[0].id_tenant}`, {
-        method: 'PUT',
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error(`Erro ao atualizar o tenant. Status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      console.log(data); // Verifica a resposta
-
+      uploadTask.on('state_changed',
+        (snapshot) => {
+          console.log(`Upload is ${snapshot.bytesTransferred} out of ${snapshot.totalBytes}`);
+        },
+        (error) => {
+          console.error(error);
+          toast.warn("Erro ao atualizar logo!");
+        },
+        () => {
+          getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+            console.log('File available at', downloadURL);
+            setImageURL(downloadURL);
+            toast.success("Logo atualizada com sucesso!");
+          });
+        }
+      );
     } catch (error) {
       console.error("Erro ao atualizar o tenant:", error);
     }
@@ -76,7 +63,6 @@ function ProfileTenant({ tenant }) {
       <div className="w-full bg-sky-600 shadow-md px-4 py-4 rounded-xl">
         <div className="px-4 grid grid-cols-3">
           <div className="col-span-2">
-            {imageURL && <img src={imageURL}  />}
             <h2 className="text-white font-extrabold text-xl truncate">
               {tenant[0].nome_tenant}
             </h2>
@@ -94,9 +80,35 @@ function ProfileTenant({ tenant }) {
               {tenant[0].cnpj_tenant}
             </h2>
           </div>
-          <form>
-            <input type="file" id="imagem" accept="image/*" onChange={handleImageUpload} />
-            <button type="button" onClick={updateTenant}>BLOB!</button>
+        </div>
+        <div className="px-4 mt-3">
+          <form onSubmit={updateTenant}>
+            {imageURL ? (
+              <>
+                <div className="bg-gray-100 py-3 px-6 rounded shadow inline-block max-h-[30vh] max-w[50vh]" onClick={() => setLogoChange(!logoChange)}>
+                  <img src={imageURL} className="max-h-[20vh] max-w-[50vh]" alt="Profile" />
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="bg-gray-100 py-3 px-6 rounded shadow inline-block max-h-[30vh] max-w[50vh]" onClick={() => setLogoChange(!logoChange)}>
+                  <p className="text-red-700 font-semibold text-sm">Nenhuma Logo Selecionada!</p>
+                </div>
+              </>
+            )}
+            {logoChange && (
+              <>
+                <div className="flex gap-2 mt-1">
+                  <input
+                    class="relative rounded border border-solid border-secondary-500 bg-gray-50 px-3 py-1 transition duration-300 ease-in-out file:-mx-3 file:-my-[0.32rem] file:me-3 file:overflow-hidden file:rounded-none file:border-0 file:border-e file:border-solid file:border-inherit file:bg-transparent file:px-3  file:py-[0.32rem] file:text-surface/50 focus:border-primary focus:text-gray-700 focus:shadow-inset focus:outline-none"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                  />
+                  <button type="submit" className="bg-gray-100 hover:bg-gray-200 font-bold text-sky-600 py-1 px-3 rounded">Enviar</button>
+                </div>
+              </>
+            )}
           </form>
         </div>
       </div>

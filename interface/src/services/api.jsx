@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { initializeApp } from "firebase/app";
-import { getAuth } from 'firebase/auth'
+import { getAuth } from 'firebase/auth';
+import { getStorage } from 'firebase/storage';
 
 export const supabase = createClient(
   //URL Supabase
@@ -11,8 +12,8 @@ export const supabase = createClient(
 );
 
 
-// export const connect = "https://medwork-dev-api.vercel.app";
-export const connect = "http://localhost:8800";
+export const connect = "https://medwork-dev-api.vercel.app";
+// export const connect = "http://localhost:8800";
 
 
 
@@ -29,3 +30,4 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
+export const storage = getStorage(app); 
