@@ -1,7 +1,6 @@
-import { createContext, useState, useEffect } from "react";
+import { createContext, useState } from "react";
 import { toast } from "react-toastify";
 import { connect } from "../services/api";
-
 
 export const AuthContext = createContext({});
 
@@ -357,7 +356,6 @@ export const AuthProvider = ({ children }) => {
       data.sort((a, b) => {
         return a.nome_risco.localeCompare(b.nome_risco);
       });
-      console.log(`data:${data}`)
       setRiscos(data);
       return data;
     } catch (error) {
@@ -374,7 +372,7 @@ export const AuthProvider = ({ children }) => {
       if (!code) throw new Error('Tenant Code not found');
 
       const queryParams = new URLSearchParams({ grupo: params, tenant_code: code, global: tenant.global });
-      
+
       const response = await fetch(`${connect}/medidas?${queryParams}`);
 
       if (!response.ok) {

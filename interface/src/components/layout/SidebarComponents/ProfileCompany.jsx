@@ -210,7 +210,7 @@ function ProfileCompany({ companyId, empresas, contatos }) {
         return 'Coletiva';
       case 'TR':
         return 'Treinamento';
-      case 'INS':
+      case 'IN':
         return 'Inspeção';
       case 'MG':
         return 'Geral';
@@ -254,7 +254,6 @@ function ProfileCompany({ companyId, empresas, contatos }) {
       console.error(`Erro ao buscar cnaes dos processos. Status: ${error}`);
     }
   };
-
 
   // Controle Modais
   const openModalSetorProcesso = () => setShowModalSetorProcesso(true);
@@ -497,8 +496,8 @@ function ProfileCompany({ companyId, empresas, contatos }) {
                                                   </div>
                                                 </div>
                                                 <hr />
-                                                <div className={`${showMedidasRisk && selectedRiscoId === risco.id_risco ? 'bg-gray-100 px-2 py-1 rounded mt-1' : ''}`}>
-                                                  <div className="flex justify-between items-center text-sky-700 mt-1 mb-1 rounded hover:bg-gray-100 hover:px-1" onClick={() => handleClickMedidas(risco.id_risco)}>
+                                                <div className={`cursor-pointer rounded px-2 bg-gray-100 hover:shadow py-1 mt-1 ${showMedidasRisk && selectedRiscoId === risco.id_risco ? '' : ''}`}>
+                                                  <div className="flex justify-between items-center text-sky-700 mb-1" onClick={() => handleClickMedidas(risco.id_risco)}>
                                                     <h3 className="text-sm">Medidas</h3>
                                                     <div className="flex items-center gap-2">
                                                       {showMedidasRisk && selectedRiscoId === risco.id_risco ? (
@@ -517,7 +516,7 @@ function ProfileCompany({ companyId, empresas, contatos }) {
                                                     {showMedidasRisk && selectedRiscoId === risco.id_risco && (
                                                       <>
                                                         <li className="cursor-pointer" onClick={() => handleAdicionarMedida(risco)}>
-                                                          <div className="bg-white border rounded px-2 py-1 mb-2 hover:shadow-md">
+                                                          <div className="bg-white border rounded px-2 py-1 mb-2 hover:shadow">
                                                             <div className="flex justify-center items-center text-sky-700 font-bold gap-1">
                                                               <IoAddCircle />
                                                               <p>Adicionar Medidas</p>
@@ -537,19 +536,6 @@ function ProfileCompany({ companyId, empresas, contatos }) {
                                                                       <p className="text-sky-700 text-sm">{typeMedida(medida.grupo_medida)}</p>
                                                                     </div>
                                                                   </div>
-                                                                  {medida.grupo_medida === 'MI' && (
-                                                                    <>
-                                                                      <div className="border-b border-sky-600"></div>
-                                                                      <div className="flex items-center gap-1">
-                                                                        <p className="text-gray-600 text-sm">C.A:</p>
-                                                                        <p className="text-gray-700 text-sm font-medium">{!medida.certificado_medida ? "-" : medida.certificado_medida}</p>
-                                                                      </div>
-                                                                      <div className="flex items-center gap-1">
-                                                                        <p className="text-gray-600 text-sm">Vencimento:</p>
-                                                                        <p className="text-gray-700 text-sm font-medium">{!medida.vencimento_certificado_medida ? "-" : medida.vencimento_certificado_medida}</p>
-                                                                      </div>
-                                                                    </>
-                                                                  )}
                                                                 </div>
                                                               </li>
                                                             ))}

@@ -23,7 +23,6 @@ import Medidas from './components/pages/subPages/CadastroMedidas';
 import Aparelhos from './components/pages/subPages/aparelhos/Aparelhos';
 import ImportXlsx from './components/pages/subPages/components/ImportXlsx';
 import Elaboradores from './components/pages/subPages/Elaborador/CadastroElaborador';
-import Vinculos from './components/pages/subPages/vinculos/Vinculos';
 import LaudoPgr from './components/pages/subPages/Laudos/LaudoPgr';
 import LaudoLtcat from './components/pages/subPages/Laudos/LaudoLtcat';
 import LaudoLip from './components/pages/subPages/Laudos/LaudoLip';
@@ -32,7 +31,6 @@ import LaudoLip from './components/pages/subPages/Laudos/LaudoLip';
 import Navbar from './components/layout/Navbar';
 import Sidebar from './components/layout/Sidebar';
 import Footer from './components/layout/Footer';
-import LoadingScreen from './components/pages/subPages/components/LoadingScreen';
 import PrivateRoute from './components/pages/subPages/components/PrivateRoute';
 
 // Função Principal
@@ -68,7 +66,6 @@ function App() {
           <Route path='/cadastro_aparelhos' element={<PrivateRoute requiredPermission={2}><Aparelhos /></PrivateRoute>} />
           <Route path='/cadastro_elaboradores' element={<PrivateRoute requiredPermission={2}><Elaboradores /></PrivateRoute>} />
           <Route path='/importxlsx' element={<PrivateRoute requiredPermission={1}><ImportXlsx /></PrivateRoute>} />
-          <Route path='/vinculos' element={<PrivateRoute requiredPermission={2}><Vinculos /></PrivateRoute>} />
           <Route path='/gerar_pgr' element={<PrivateRoute requiredPermission={2}><LaudoPgr /></PrivateRoute>} />
           <Route path='/gerar_ltcat' element={<PrivateRoute requiredPermission={2}><LaudoLtcat /></PrivateRoute>} />
           <Route path='/gerar_lip' element={<PrivateRoute requiredPermission={2}><LaudoLip /></PrivateRoute>} />

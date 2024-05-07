@@ -2,10 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { connect } from '../../../../../services/api';
 import { IoAddCircle } from "react-icons/io5";
 import { toast } from 'react-toastify';
+import useAuth from '../../../../../hooks/useAuth';
 
 import ModalSearchRisco from './ModalSearchRisco'
 
 const ModalProcessoRisco = ({ onCancel, isOpen, childName, childId, children }) => {
+
+  const { getProcessosRiscos, getRiscos } = useAuth();
 
   const [processoRisco, setProcessoRisco] = useState([]);
   const [risco, setRisco] = useState([]);
@@ -13,14 +16,9 @@ const ModalProcessoRisco = ({ onCancel, isOpen, childName, childId, children }) 
 
   const fetchProcessoRisco = async () => {
     try {
-      const response = await fetch(`${connect}/processos_riscos`);
-
-      if (!response.ok) {
-        throw new Error(`Erro ao buscar processos e riscos. Status: ${response.status}`)
-      }
-
-      const responseData = await response.json();
-      setProcessoRisco(responseData);
+      const res = await getProcessosRiscos();
+      const filterByProcess = res.filter((c) => c.fk_processo_id === childId)
+      setProcessoRisco(filterByProcess);
     } catch (error) {
       console.log("Erro ao buscar processos e riscos!", error);
     }
@@ -28,13 +26,7 @@ const ModalProcessoRisco = ({ onCancel, isOpen, childName, childId, children }) 
 
   const fetchRisco = async () => {
     try {
-      const response = await fetch(`${connect}/riscos`);
-
-      if (!response.ok) {
-        throw new Error(`Erro ao buscar riscos. Status: ${response.status}`)
-      }
-
-      const responseData = await response.json();
+      const responseData = await getRiscos();
       setRisco(responseData);
     } catch (error) {
       console.log("Erro ao buscar riscos!", error)
@@ -51,22 +43,13 @@ const ModalProcessoRisco = ({ onCancel, isOpen, childName, childId, children }) 
     return null;
   };
 
-  const findRisco = (FkprocessoId) => {
+  const findRisco = (fkRiscoId) => {
     if (!risco) {
       return 'N/A'
     }
 
-    const riscos = risco.find((c) => c.id_risco === FkprocessoId)
+    const riscos = risco.find((c) => c.id_risco === fkRiscoId)
     return riscos ? riscos.nome_risco : 'N/A'
-  };
-
-  const findProcesso = (FkRiscoId) => {
-    if (!children) {
-      return 'N/A'
-    }
-
-    const processos = children.find((c) => c.id_processo === FkRiscoId)
-    return processos ? processos.nome_processo : 'N/A'
   };
 
   //Funções do Modal
@@ -114,7 +97,7 @@ const ModalProcessoRisco = ({ onCancel, isOpen, childName, childId, children }) 
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50">
       <div className="modal-overlay absolute inset-0 backdrop-blur-[1px] bg-black bg-opacity-10" onClick={onCancel}></div>
-      <div className="modal-container w-5/6 bg-white mx-auto rounded-xl z-50 overflow-y-auto px-8 py-4 max-h-[80vh]">
+      <div className="modal-container w-3/6 bg-white mx-auto rounded-xl z-50 overflow-y-auto px-8 py-4 max-h-[80vh]">
         <div className='flex justify-between items-center py-2'>
           <h1 className='text-xl font-bold text-sky-700'>Adicione riscos ao processo: <span className='text-xl text-gray-700 font-bold'>{childName}</span></h1>
           <div className="flex justify-end">
@@ -129,54 +112,49 @@ const ModalProcessoRisco = ({ onCancel, isOpen, childName, childId, children }) 
           </div>
         </div>
         <div className='border-b border-gray-200'></div>
-        <div className='flex justify-end items-center py-2 mt-4'>
-          <p className='text-sm text-gray-500'>
-            Selecione um risco para o processo <span className='text-sky-700 font-semibold'>{childName}</span>
+        <div className='py-2'>
+          <p className='text-sm text-gray-600 mb-1'>
+            Para vincular um risco, clique no botão abaixo e selecione o risco na lista:
           </p>
-          <button
-            className='ml-4 bg-sky-600 hover:bg-sky-900 py-3 px-4 text-white rounded-md'
+
+          {/* Botão Vincular Processo */}
+          <div
+            className='bg-gray-100 hover:bg-gray-200 text-sky-700 py-3 px-4 rounded-md flex items-center gap-1 justify-center cursor-pointer'
             onClick={openModal}
           >
             <IoAddCircle />
-          </button>
+            <p className=' font-bold'>
+              Vincular Riscos
+            </p>
+          </div>
         </div>
-        <div className="relative overflow-x-auto sm:rounded-lg flex sm:justify-center">
+        <hr />
 
-          {processoRisco.length > 0 && (<table className="w-full shadow-md text-sm mb-8 mt-2 text-left rtl:text-right text-gray-500">
-            <thead className="text-xs text-gray-700 uppercase bg-gray-50">
-              <tr>
-                <th scope="col" className="px-4 py-3">
-                  ID
-                </th>
-                <th scope="col" className="px-4 py-3">
-                  Processo
-                </th>
-                <th scope="col" className="px-4 py-3">
-                  Risco2
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {processoRisco.filter((item) => item.fk_processo_id === childId)
-                .map((item, i) => (
-                  <tr
-                    key={i}
-                    className={`border-b bg-white`}
-                  >
-                    <th scope="row" className="px-4 py-4 font-medium text-gray-900 whitespace-nowrap">
-                      {item.id_processo_risco}
-                    </th>
-                    <th scope="row" className="px-4 py-4 font-medium text-gray-900 whitespace-nowrap">
-                      {findProcesso(item.fk_processo_id)}
-                    </th>
-                    <td className="px-4 py-4">
-                      {findRisco(item.fk_risco_id)}
-                    </td>
-                  </tr>
+        {/* Lista de Processos */}
+        {processoRisco.length > 0 ? (
+          <>
+            <div className='w-full mt-1'>
+              <h1 className='mb-2'>Riscos Vinculados</h1>
+              <div className='flex flex-wrap items-center gap-2'>
+                {processoRisco.map((item) => (
+                  <div key={item.fk_processo_id}>
+                    <div className='flex items-center bg-gray-100 rounded px-4 py-2 hover:bg-gray-200'>
+                      <p className='font-bold text-sky-700 truncate'>
+                        {findRisco(item.fk_risco_id)}
+                      </p>
+                    </div>
+                  </div>
                 ))}
-            </tbody>
-          </table>)}
-        </div>
+              </div>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className='w-full text-center text-lg text-sky-700 font-bold mt-4'>Nenhum risco vinculado ao processo</div>
+          </>
+        )}
+
+
       </div>
       <ModalSearchRisco
         isOpen={showModal}
