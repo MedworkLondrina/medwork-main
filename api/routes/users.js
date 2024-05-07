@@ -1,15 +1,13 @@
 import express from "express";
 import { pool } from "../db.js";
 import jwt from "jsonwebtoken";
-
 import getNomeByEmail from "../config/login/login.js";
 import getSetoresFromCompany from '../config/setores/setores.js';
 import getCargosFromCompany from '../config/cargos/cargos.js';
 import registrarLog from "../config/utils/logger.js";
 const router = express.Router();
-
+import fileUpload from "express-fileupload";
 const SECRET = 'medworkldn';
-
 // Tabela Tenant
 // Get table
 //Get table
@@ -102,7 +100,7 @@ router.post("/empresas", (req, res) => {
 
           const id_contato = contatoResult.insertId;
 
-          con.query(qUpdate, [id_contato,id_empresa], (err, result) => {
+          con.query(qUpdate, [id_contato, id_empresa], (err, result) => {
             if (err) {
               console.error("Erro ao atualizar empresa na tabela", err);
               con.rollback(() => {
@@ -111,7 +109,7 @@ router.post("/empresas", (req, res) => {
               });
               return; // Retornar após o rollback
             }
-          
+
           })
           con.commit((err) => {
             if (err) {
@@ -132,12 +130,12 @@ router.post("/empresas", (req, res) => {
             };
             const bodyString_empresa = formatBody(empresa_data)
             const bodyString_contato = formatBody(contato_data)
-            registrarLog('empresas', 'create', `Cadastrou Empresa`, `${nomeUsuario}`, tenant, new Date(),bodyString_empresa);
-            registrarLog('contatos', 'create', `Cadastrou Contato`, `${nomeUsuario}`, tenant, new Date(),bodyString_contato);
+            registrarLog('empresas', 'create', `Cadastrou Empresa`, `${nomeUsuario}`, tenant, new Date(), bodyString_empresa);
+            registrarLog('contatos', 'create', `Cadastrou Contato`, `${nomeUsuario}`, tenant, new Date(), bodyString_contato);
 
             return res.status(200).json(`Empresa e Contato cadastrados com sucesso!`);
           });
-        }); 
+        });
       });
     });
 
@@ -152,8 +150,6 @@ router.put("/empresas/:id_empresa", (req, res, next) => {
   const nomeUsuario = req.query.nome_usuario;
   const tenant = req.query.tenant_code;
   const idEmpresa = req.params.id_empresa;
-  console.log(idEmpresa)
-  
 
   const {
     empresa_data: {
@@ -237,7 +233,7 @@ router.put("/empresas/:id_empresa", (req, res, next) => {
         if (result.affectedRows === 0) {
           return res.status(404).json({ error: 'Empresa não encontrada' });
         }
-      console.log(result)
+        console.log(result)
         // Atualiza os dados do contato
         con.query(qContato, [...contatoValues, nome_empresa], (err) => {
           if (err) return con.rollback(() => next(err));
@@ -258,8 +254,8 @@ router.put("/empresas/:id_empresa", (req, res, next) => {
             const bodyString_empresa = formatBody(data.empresa_data)
             const bodyString_contato = formatBody(data.contato_data)
             // Se a transação for bem-sucedida, registra o log e envia a resposta
-            registrarLog('empresas', 'put', `Alterou Empresa`, `${nomeUsuario}`, tenant, new Date(),bodyString_empresa);
-            registrarLog('contato', 'put', `Alterou Contato`, `${nomeUsuario}`, tenant, new Date(),bodyString_contato);
+            registrarLog('empresas', 'put', `Alterou Empresa`, `${nomeUsuario}`, tenant, new Date(), bodyString_empresa);
+            registrarLog('contato', 'put', `Alterou Contato`, `${nomeUsuario}`, tenant, new Date(), bodyString_contato);
 
             res.status(200).json("Empresa atualizada com sucesso!");
           });
@@ -452,7 +448,7 @@ router.put("/unidades/:id_unidade", (req, res, next) => {
       uf_unidade,
       fk_contato_id,
       fk_empresa_id,
-  
+
     },
     contato_data: {
       nome_contato,
@@ -478,7 +474,7 @@ router.put("/unidades/:id_unidade", (req, res, next) => {
   WHERE id_unidade = ?
 `;
 
-const qContato = `
+  const qContato = `
   UPDATE contatos
   SET nome_contato = ?,
   telefone_contato = ?,
@@ -696,7 +692,7 @@ router.put("/setores/activate/:id_setor", (req, res) => {
         console.error('Erro ao atualizar status do setor:', err);
         return res.status(500).json({ error: 'Erro ao atualizar status do setor.' });
       }
-    
+
       res.status(200).json({ message: 'Status do setor atualizado com sucesso.' });
     });
   });
@@ -775,45 +771,45 @@ router.put("/cargos/:id_cargo", (req, res) => {
     WHERE id_cargo = ?
     `;
 
-    const values = [
-      nome_cargo,
-      descricao,
-      func_masc,
-      func_fem,
-      func_menor,
-      fk_setor_id, // Este valor deve ser passado para a cláusula SET
-      id_cargo, // Este valor deve ser passado para a cláusula WHERE
-     ];
-     
-     pool.getConnection((err, con) => {
+  const values = [
+    nome_cargo,
+    descricao,
+    func_masc,
+    func_fem,
+    func_menor,
+    fk_setor_id, // Este valor deve ser passado para a cláusula SET
+    id_cargo, // Este valor deve ser passado para a cláusula WHERE
+  ];
+
+  pool.getConnection((err, con) => {
+    if (err) {
+      console.error("Erro ao obter conexão com o banco de dados", err);
+      return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
+    }
+
+    con.query(q, values, (err) => {
       if (err) {
-         console.error("Erro ao obter conexão com o banco de dados", err);
-         return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
+        console.error("Erro ao atualizar cargo na tabela", err);
+        return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
       }
-     
-      con.query(q, values, (err) => {
-         if (err) {
-           console.error("Erro ao atualizar cargo na tabela", err);
-           return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
-         }
-         const formatBody = (obj) => {
-          let formatted = '';
-          for (const key in obj) {
-            if (obj.hasOwnProperty(key)) {
-              formatted += `${key}: ${obj[key]}, `;
-            }
+      const formatBody = (obj) => {
+        let formatted = '';
+        for (const key in obj) {
+          if (obj.hasOwnProperty(key)) {
+            formatted += `${key}: ${obj[key]}, `;
           }
-          return formatted.slice(0, -2); // Remove a última vírgula e espaço
-        };
-        const bodyString = formatBody(data)
-         registrarLog('cargos', 'put', `Alterou Cargo`, `${nome}`, tenant, new Date(), bodyString);
-     
-         return res.status(200).json("Cargo atualizada com sucesso!");
-      });
-     
-      con.release();
-     });
-     
+        }
+        return formatted.slice(0, -2); // Remove a última vírgula e espaço
+      };
+      const bodyString = formatBody(data)
+      registrarLog('cargos', 'put', `Alterou Cargo`, `${nome}`, tenant, new Date(), bodyString);
+
+      return res.status(200).json("Cargo atualizada com sucesso!");
+    });
+
+    con.release();
+  });
+
 
 });
 
@@ -986,8 +982,8 @@ router.post("/processos", (req, res) => {
         }
         return formatted.slice(0, -2); // Remove a última vírgula e espaço
       };
-      
-      
+
+
       const bodyString = formatBody(data);
 
       // Certifique-se de que registrarLog seja chamado com todos os argumentos necessários
@@ -1027,7 +1023,7 @@ router.put("/processos/:id_processo", (req, res) => {
         console.error("Erro ao atualizar processo na tabela", err);
         return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
       }
-      registrarLog('processos', 'put', `Alterou nome do processo`, `${nome}`, tenant, new Date(),data);
+      registrarLog('processos', 'put', `Alterou nome do processo`, `${nome}`, tenant, new Date(), data);
 
       return res.status(200).json("Processo atualizado com sucesso!");
     });
@@ -1072,11 +1068,11 @@ router.post("/processo_cnae", (req, res) => {
         console.error("Erro ao vincular cnae no processo", err);
         return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
       }
-      registrarLog('processo_cnae', 'create', `vinculou CNAE ao processo`, `${nome}`, tenant, new Date(),data);
+      registrarLog('processo_cnae', 'create', `vinculou CNAE ao processo`, `${nome}`, tenant, new Date(), data);
 
       return res.status(200).json(`Vinculo cadastrado com sucesso!`);
     });
-    
+
     con.release();
   })
 
@@ -1177,7 +1173,7 @@ router.post("/riscos", (req, res) => {
         return formatted.slice(0, -2); // Remove a última vírgula e espaço
       };
       const bodyString = formatBody(data)
-      registrarLog('riscos', 'create', `Cadastrou Risco`, `${nome}`, tenant, new Date(),bodyString);
+      registrarLog('riscos', 'create', `Cadastrou Risco`, `${nome}`, tenant, new Date(), bodyString);
 
       return res.status(200).json({ message: `Risco cadastrado com sucesso!`, id });
     });
@@ -1187,94 +1183,6 @@ router.post("/riscos", (req, res) => {
 
 });
 
-//Update row int table
-router.put("/riscos/:id_risco", (req, res) => {
-  const nome = req.query.nome_usuario
-  const tenant = req.query.tenant_code
-  const id_risco = req.params.id_risco;
-  const {
-    nome_risco,
-    grupo_risco,
-    codigo_esocial_risco,
-    meio_propagacao_risco,
-    unidade_medida_risco,
-    classificacao_risco,
-    nivel_acao_risco,
-    limite_tolerancia_risco,
-    danos_saude_risco,
-    metodologia_risco,
-    severidade_risco,
-    pgr_risco,
-    ltcat_risco,
-    lip_risco
-  } = req.body;
-  const data=req.body;
-
-  const q = `
-    UPDATE riscos
-    SET nome_risco = ?,
-    grupo_risco = ?,
-    codigo_esocial_risco = ?,
-    meio_propagacao_risco = ?,
-    unidade_medida_risco = ?,
-    classificacao_risco = ?,
-    nivel_acao_risco = ?,
-    limite_tolerancia_risco = ?,
-    danos_saude_risco = ?,
-    metodologia_risco = ?,
-    severidade_risco = ?,
-    pgr_risco = ?,
-    ltcat_risco = ?,
-    lip_risco = ?
-    WHERE id_risco = ?
-    `;
-
-  const values = [
-    nome_risco,
-    grupo_risco,
-    codigo_esocial_risco,
-    meio_propagacao_risco,
-    unidade_medida_risco,
-    classificacao_risco,
-    nivel_acao_risco,
-    limite_tolerancia_risco,
-    danos_saude_risco,
-    metodologia_risco,
-    severidade_risco,
-    pgr_risco,
-    ltcat_risco,
-    lip_risco,
-    id_risco
-  ];
-
-  pool.getConnection((err, con) => {
-    if (err) return next(err);
-
-    con.query(q, values, (err) => {
-      if (err) {
-        console.error("Erro ao atualizar risco na tabela", err);
-        return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
-      }
-
-      const formatBody = (obj) => {
-        let formatted = '';
-        for (const key in obj) {
-          if (obj.hasOwnProperty(key)) {
-            formatted += `${key}: ${obj[key]}, `;
-          }
-        }
-        return formatted.slice(0, -2); // Remove a última vírgula e espaço
-      };
-      const bodyString = formatBody(data)
-      registrarLog('riscos', 'put', `Alterou Risco`, `${nome}`, tenant, new Date(),bodyString);
-
-      return res.status(200).json({ message: `Risco cadastrado com sucesso!` });
-    });
-
-    con.release();
-  })
-
-});
 
 
 // Tabela de Conclusões
@@ -1321,7 +1229,7 @@ router.post("/conclusoes", (req, res) => {
 
 //Update row int table
 router.put("/conclusoes/:id_conclusao", (req, res) => {
-  const id_conclusao = req.params.id_conclusao; // Obtém o ID da empresa da URL
+  const id_conclusao = req.params.id_conclusao;
   const {
     fk_risco_id,
     nome_conclusao,
@@ -1371,11 +1279,11 @@ router.put("/conclusoes/:id_conclusao", (req, res) => {
 //Medidas de Proteção
 //Tabela EPI's
 //Get table
-router.get("/medidas", async(req, res) => {
+router.get("/medidas", async (req, res) => {
   const grupo = req.query.grupo;
   const tenant = req.query.tenant_code;
   try {
-    const data = await getMedidasFromTabela(tenant,grupo);
+    const data = await getMedidasFromTabela(tenant, grupo);
     res.json(data);
   } catch (error) {
     res.status(500).json({ error: 'An error occurred while fetching risks' });
@@ -1407,7 +1315,7 @@ router.post("/medidas", (req, res) => {
         return formatted.slice(0, -2);
       };
       const bodyString = formatBody(data)
-      registrarLog('riscos', 'put', `Alterou Risco`, `${nome}`, tenant, new Date(),bodyString);
+      registrarLog('riscos', 'put', `Alterou Risco`, `${nome}`, tenant, new Date(), bodyString);
 
       return res.status(200).json(`Medida cadastrado com sucesso!`);
     });
@@ -1753,7 +1661,7 @@ router.post("/usuarios", (req, res) => {
         return formatted.slice(0, -2); // Remove a última vírgula e espaço
       };
       const bodyString = formatBody(data)
-      registrarLog('usuarios', 'create', `Cadastrou Usuario`, `${nome}`, tenant, new Date(),bodyString);
+      registrarLog('usuarios', 'create', `Cadastrou Usuario`, `${nome}`, tenant, new Date(), bodyString);
 
       return res.status(200).json(`Usuário cadastrado com sucesso!`);
     });
@@ -1809,7 +1717,7 @@ router.put("/usuarios/:id_usuario", (req, res) => {
         return formatted.slice(0, -2); // Remove a última vírgula e espaço
       };
       const bodyString = formatBody(data)
-      registrarLog('usuarios', 'put', `Alterou Usuario`, `${nome}`, tenant, new Date(),bodyString);
+      registrarLog('usuarios', 'put', `Alterou Usuario`, `${nome}`, tenant, new Date(), bodyString);
 
       return res.status(200).json("Usuário atualizado com sucesso!");
     });
@@ -1882,7 +1790,7 @@ router.post("/aparelhos", (req, res) => {
         return formatted.slice(0, -2); // Remove a última vírgula e espaço
       };
       const bodyString = formatBody(data)
-      registrarLog('aparelhos', 'create', `Criou Aparelho`, `${nome}`, tenant, new Date(),bodyString);
+      registrarLog('aparelhos', 'create', `Criou Aparelho`, `${nome}`, tenant, new Date(), bodyString);
 
       return res.status(200).json(`Aparelho cadastrado com sucesso!`);
     })
@@ -2727,8 +2635,8 @@ router.route('/:table')
           return formatted.slice(0, -2); // Remove a última vírgula e espaço
         };
         const bodyString = formatBody(data)
-        
-        registrarLog('elaboradores', 'create', `Cadastrou Elaborador`, `${nome}`, tenant, new Date(),bodyString);
+
+        registrarLog('elaboradores', 'create', `Cadastrou Elaborador`, `${nome}`, tenant, new Date(), bodyString);
 
         return res.status(200).json(`Registro concluido com sucesso!`)
       });
@@ -2737,54 +2645,54 @@ router.route('/:table')
     })
   })
 
-router.put("/:table/:id", (req, res) => {
-  const table = req.params.table;
-  const idName = req.query.idFieldName || 'id';
-  const id = req.params.id;
-  const nome = req.query.nome_usuario
-  const tenant = req.query.tenant_code
-  const columns = Object.keys(req.body);
-  const values = Object.values(req.body);
+// router.put("/:table/:id", (req, res) => {
+//   const table = req.params.table;
+//   const idName = req.query.idFieldName || 'id';
+//   const id = req.params.id;
+//   const nome = req.query.nome_usuario
+//   const tenant = req.query.tenant_code
+//   const columns = Object.keys(req.body);
+//   const values = Object.values(req.body);
 
-  const setClause = columns.map(column => `${column} = ?`).join(', ');
+//   const setClause = columns.map(column => `${column} = ?`).join(', ');
 
-  const q = `
-      UPDATE ${table}
-      SET ${setClause}
-      WHERE ${idName} = ?
-    `;
+//   const q = `
+//       UPDATE ${table}
+//       SET ${setClause}
+//       WHERE ${idName} = ?
+//     `;
 
-  const finalValues = [...values, id];
+//   const finalValues = [...values, id];
 
-  pool.getConnection((err, con) => {
-    con.release();
+//   pool.getConnection((err, con) => {
+//     con.release();
 
-    if (err) return next(err);
+//     if (err) return next(err);
 
-    con.query(q, finalValues, (err) => {
-      if (err) {
-        console.error(`Erro ao atualizar registro na tabela ${table}:`, err);
-        return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
-      }
+//     con.query(q, finalValues, (err) => {
+//       if (err) {
+//         console.error(`Erro ao atualizar registro na tabela ${table}:`, err);
+//         return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
+//       }
 
-      const formatBody = (obj) => {
-        let formatted = '';
-        for (const key in obj) {
-          if (obj.hasOwnProperty(key)) {
-            formatted += `${key}: ${obj[key]}, `;
-          }
-        }
-        return formatted.slice(0, -2); // Remove a última vírgula e espaço
-      };
-      const bodyString = formatBody(finalValues)
-      
-      registrarLog('elaboradores', 'put', `Alterou Elaborador`, `${nome}`, tenant, new Date(),bodyString);
+//       const formatBody = (obj) => {
+//         let formatted = '';
+//         for (const key in obj) {
+//           if (obj.hasOwnProperty(key)) {
+//             formatted += `${key}: ${obj[key]}, `;
+//           }
+//         }
+//         return formatted.slice(0, -2); // Remove a última vírgula e espaço
+//       };
+//       const bodyString = formatBody(finalValues)
 
-      return res.status(200).json(`${table} atualizado com sucesso!`);
-    });
-  })
-});
-export default router;
+//       registrarLog('elaboradores', 'put', `Alterou Elaborador`, `${nome}`, tenant, new Date(), bodyString);
+
+//       return res.status(200).json(`${table} atualizado com sucesso!`);
+//     });
+//   })
+// });
+
 
 //Tabela Elaboradores
 //Get table
@@ -2802,6 +2710,7 @@ router.get("/elaboradores", (req, res) => {
     });
 
 });
+
 router.put("/elaboradores/activate/:id_elaborador", (req, res) => {
   const id_elaborador = req.params.id_elaborador;
   const { ativo } = req.body;
@@ -2824,3 +2733,83 @@ router.put("/elaboradores/activate/:id_elaborador", (req, res) => {
     });
   });
 });
+
+router.put("/tenant/:id_tenant", (req, res) => {
+  const id_tenant = req.params.id_tenant;
+  const {
+    tenant_code,
+    nome_tenant,
+    cnpj_tenant,
+    logo_tenant,
+    cep_tenant,
+    rua_tenant,
+    numero_tenant,
+    complemento_tenant,
+    bairro_tenant,
+    cidade_tenant,
+    uf_tenant,
+    dataCriacao_tenant,
+    status,
+    global
+  } = req.body;
+
+  const q = `UPDATE tenant
+   SET tenant_code =?,
+   nome_tenant =?,
+   cnpj_tenant =?,
+   logo_tenant =?,
+   cep_tenant =?,
+   rua_tenant =?,
+   numero_tenant =?,
+   complemento_tenant =?,
+   bairro_tenant =?,
+   cidade_tenant =?,
+   uf_tenant =?,
+   dataCriacao_tenant =?,
+   status =?,
+   global =?
+   WHERE tenant_code =?`;
+
+  const values = [
+    tenant_code,
+    nome_tenant,
+    cnpj_tenant,
+    logo_tenant,
+    cep_tenant,
+    rua_tenant,
+    numero_tenant,
+    complemento_tenant,
+    bairro_tenant,
+    cidade_tenant,
+    uf_tenant,
+    dataCriacao_tenant,
+    status,
+    global,
+    tenant_code
+  ]
+
+  console.log(req.body)
+
+  pool.getConnection((err, con) => {
+    if (err) return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
+
+    con.query(q, values, (err) => {
+      con.release();
+      if (err) {
+        console.error("Erro ao atualizar Tenant", err);
+        return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
+      }
+
+      return res.status(200).json("Tenant atualizado com sucesso!");
+    });
+  });
+});
+
+
+router.put("/tenant_att/:id_tenant", (req, res) => {
+  console.log("Teste")
+});
+
+
+
+export default router;
