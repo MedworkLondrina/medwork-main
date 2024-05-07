@@ -1367,7 +1367,7 @@ router.put("/medidas/:id_medida", (req, res) => {
         return formatted.slice(0, -2);
       };
       const bodyString = formatBody(data)
-      registrarLog('medidas', 'put', `Alterou Medida`, `${nome}`, tenant, new Date(),bodyString);
+      registrarLog('medidas', 'put', `Alterou Medida`, `${nome}`, tenant, new Date(), bodyString);
       return res.status(200).json("Medida atualizado com sucesso!");
     });
 
@@ -1923,6 +1923,7 @@ import getmedidasfromtabela from "../config/medidas/medidas.js";
 import getMedidasFromTabela from "../config/medidas/medidas.js";
 import getRiscosFromPermissions from "../config/riscos/riscos.js";
 import getProcessosFromTenant from "../config/processos/processos.js";
+import multer from "multer";
 
 const serviceAccount = {
   "type": "service_account",
@@ -2735,81 +2736,6 @@ router.put("/elaboradores/activate/:id_elaborador", (req, res) => {
   });
 });
 
-router.put("/tenant/:id_tenant", (req, res) => {
-  const id_tenant = req.params.id_tenant;
-  const {
-    tenant_code,
-    nome_tenant,
-    cnpj_tenant,
-    logo_tenant,
-    cep_tenant,
-    rua_tenant,
-    numero_tenant,
-    complemento_tenant,
-    bairro_tenant,
-    cidade_tenant,
-    uf_tenant,
-    dataCriacao_tenant,
-    status,
-    global
-  } = req.body;
-
-  const q = `UPDATE tenant
-   SET tenant_code =?,
-   nome_tenant =?,
-   cnpj_tenant =?,
-   logo_tenant =?,
-   cep_tenant =?,
-   rua_tenant =?,
-   numero_tenant =?,
-   complemento_tenant =?,
-   bairro_tenant =?,
-   cidade_tenant =?,
-   uf_tenant =?,
-   dataCriacao_tenant =?,
-   status =?,
-   global =?
-   WHERE tenant_code =?`;
-
-  const values = [
-    tenant_code,
-    nome_tenant,
-    cnpj_tenant,
-    logo_tenant,
-    cep_tenant,
-    rua_tenant,
-    numero_tenant,
-    complemento_tenant,
-    bairro_tenant,
-    cidade_tenant,
-    uf_tenant,
-    dataCriacao_tenant,
-    status,
-    global,
-    tenant_code
-  ]
-
-  console.log(req.body)
-
-  pool.getConnection((err, con) => {
-    if (err) return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
-
-    con.query(q, values, (err) => {
-      con.release();
-      if (err) {
-        console.error("Erro ao atualizar Tenant", err);
-        return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
-      }
-
-      return res.status(200).json("Tenant atualizado com sucesso!");
-    });
-  });
-});
-
-
-router.put("/tenant_att/:id_tenant", (req, res) => {
-  console.log("Teste")
-});
 
 
 

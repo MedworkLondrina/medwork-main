@@ -778,8 +778,6 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('selectedCompanyData');
   };
 
-
-
   return (
     <AuthContext.Provider
       value={{
@@ -864,6 +862,7 @@ export const AuthProvider = ({ children }) => {
         setLoginUser,
         fetchCnae,
         fetchProcessoCnae,
+        checkTenant,
       }}>
       {children}
     </AuthContext.Provider>
