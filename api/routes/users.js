@@ -147,7 +147,7 @@ router.post("/empresas", (req, res) => {
 
 //Update rows in table
 router.put("/empresas/:id_empresa", (req, res, next) => {
-  const data = req.body;
+  const { empresa_data, contato_data } = req.body;
   const nomeUsuario = req.query.nome_usuario;
   const tenant = req.query.tenant_code;
   const idEmpresa = req.params.id_empresa;
@@ -166,13 +166,12 @@ router.put("/empresas/:id_empresa", (req, res, next) => {
       fk_tenant_code
     },
     contato_data: {
-      id_contato,
       nome_contato,
       telefone_contato,
       email_contato,
       email_secundario_contato,
     }
-  } = data;
+  } = req.body;
 
   const empresaValues = [
     nome_empresa,
@@ -188,7 +187,6 @@ router.put("/empresas/:id_empresa", (req, res, next) => {
   ];
 
   const contatoValues = [
-    id_contato,
     nome_contato,
     telefone_contato,
     email_contato,
@@ -197,77 +195,89 @@ router.put("/empresas/:id_empresa", (req, res, next) => {
 
   const qEmpresa = `
     UPDATE empresas
-    SET nome_empresa = ?,
-    razao_social = ?,
-    cnpj_empresa = ?,
-    inscricao_estadual_empresa = ?,
-    inscricao_municipal_empresa = ?,
-    cnae_empresa = ?,
-    grau_risco_cnae = ?,
-    descricao_cnae = ?,
-    ativo = ?,
-    fk_tenant_code = ?
+    SET nome_empresa =?,
+    razao_social =?,
+    cnpj_empresa =?,
+    inscricao_estadual_empresa =?,
+    inscricao_municipal_empresa =?,
+    cnae_empresa =?,
+    grau_risco_cnae =?,
+    descricao_cnae =?,
+    ativo =?,
+    fk_tenant_code =?
     WHERE id_empresa=?
   `;
 
   const qContato = `
-    UPDATE contatos
-    SET nome_contato = ?,
-    telefone_contato = ?,
-    email_contato = ?,
-    email_secundario_contato = ?
-    WHERE id_contato = (SELECT fk_contato_id FROM empresas WHERE nome_empresa = ?)
+  UPDATE contatos
+  SET 
+  nome_contato = ?,
+  telefone_contato = ?,
+  email_contato = ?,
+  email_secundario_contato = ?,
+  ativo = 1
+  WHERE id_contato =?
+`;
+  // Supondo que você tenha uma maneira de obter o fk_contato_id correto para a empresa
+  const qObterFkContatoId = `
+    SELECT fk_contato_id FROM empresas WHERE id_empresa =?
   `;
-
-
 
   pool.getConnection((err, con) => {
     if (err) return next(err);
 
-    // Inicia a transação
     con.beginTransaction((err) => {
       if (err) return next(err);
 
-      con.query(qEmpresa, [...empresaValues, idEmpresa], (err, result) => {
-        if (err) return con.rollback(() => next(err));
-
-        if (result.affectedRows === 0) {
-          return res.status(404).json({ error: 'Empresa não encontrada' });
-        }
-        console.log(result)
-        // Atualiza os dados do contato
-        con.query(qContato, [...contatoValues, nome_empresa], (err) => {
+        con.query(qEmpresa, [...empresaValues, idEmpresa], (err, result) => {
           if (err) return con.rollback(() => next(err));
 
-          // Commit da transação se todas as consultas forem bem-sucedidas
-          con.commit((err) => {
+          if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Empresa não encontrada' });
+          }
+
+          con.query(qObterFkContatoId, [idEmpresa], (err, result) => {
+            if (err) return con.rollback(() => next(err));
+    
+            const fkContatoId = result[0].fk_contato_id;
+            console.log(fkContatoId)
+    
+            if (!fkContatoId) {
+              return res.status(404).json({ error: 'Contato não encontrado para a empresa' });
+            }
+          // Atualiza os dados do contato
+          con.query(qContato, [...contatoValues, fkContatoId], (err) => {
             if (err) return con.rollback(() => next(err));
 
-            const formatBody = (obj) => {
-              let formatted = '';
-              for (const key in obj) {
-                if (obj.hasOwnProperty(key)) {
-                  formatted += `${key}: ${obj[key]}, `;
-                }
-              }
-              return formatted.slice(0, -2); // Remove a última vírgula e espaço
-            };
-            const bodyString_empresa = formatBody(data.empresa_data)
-            const bodyString_contato = formatBody(data.contato_data)
-            // Se a transação for bem-sucedida, registra o log e envia a resposta
-            registrarLog('empresas', 'put', `Alterou Empresa`, `${nomeUsuario}`, tenant, new Date(), bodyString_empresa);
-            registrarLog('contato', 'put', `Alterou Contato`, `${nomeUsuario}`, tenant, new Date(), bodyString_contato);
+            con.commit((err) => {
+              if (err) return con.rollback(() => next(err));
 
-            res.status(200).json("Empresa atualizada com sucesso!");
+              const formatBody = (obj) => {
+                let formatted = '';
+                for (const key in obj) {
+                  if (obj.hasOwnProperty(key)) {
+                    formatted += `${key}: ${obj[key]}, `;
+                  }
+                }
+                return formatted.slice(0, -2); // Remove a última vírgula e espaço
+              };
+              const bodyString_empresa = formatBody(empresa_data)
+              const bodyString_contato = formatBody(contato_data)
+
+              registrarLog('empresas', 'put', `Alterou Empresa`, `${nomeUsuario}`, tenant, new Date(), bodyString_empresa);
+              registrarLog('contato', 'put', `Alterou Contato`, `${nomeUsuario}`, tenant, new Date(), bodyString_contato);
+
+              res.status(200).json("Empresa e contato atualizados com sucesso!");
+            });
           });
         });
       });
 
-      // Libera a conexão somente após a conclusão da transação
       con.release();
     });
   });
 });
+
 
 //Desactivate row in table
 router.put("/empresas/activate/:id_empresa", (req, res) => {
