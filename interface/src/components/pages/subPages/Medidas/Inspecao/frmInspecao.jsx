@@ -54,6 +54,7 @@ function CadastroColetivas({ onEdit, setOnEdit, get, medidas }) {
       const medidasData = {
         descricao_medida: descricao || null,
         grupo_medida: 'IN',
+        tenant_code: tenant
       };
 
       const url = onEdit

@@ -635,9 +635,10 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const getConclusoes = async () => {
+  const getConclusoes = async (idrisco) => {
     try {
-      const response = await fetch(`${connect}/conclusoes`);
+      const query = new URLSearchParams({ id_risco: idrisco }).toString();
+      const response = await fetch(`${connect}/conclusoes?${query}`);
 
       if (!response.ok) {
         throw new Error(`Erro ao buscar conclusões. Status: ${response.status}`)

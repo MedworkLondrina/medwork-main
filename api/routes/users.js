@@ -327,7 +327,6 @@ router.post("/unidades", (req, res) => {
   const { unidade_data, contato_data } = req.body;
   const nomeUsuario = req.query.nome_usuario;
   const tenant = req.query.tenant_code;
-  const data = req.body;
 
   const insertUnidadeQuery = "INSERT INTO unidades SET?";
   const updateUnidadeQuery = "UPDATE unidades SET fk_contato_id =? WHERE id_unidade =?";
@@ -1163,7 +1162,7 @@ router.post("/riscos", (req, res) => {
         console.error("Erro ao inserir risco na tabela", err);
         return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
       }
-      const id = result.insertId;
+      const id_risco = result.insertId;
       const formatBody = (obj) => {
         let formatted = '';
         for (const key in obj) {
@@ -1176,7 +1175,7 @@ router.post("/riscos", (req, res) => {
       const bodyString = formatBody(data)
       registrarLog('riscos', 'create', `Cadastrou Risco`, `${nome}`, tenant, new Date(), bodyString);
 
-      return res.status(200).json({ message: `Risco cadastrado com sucesso!`, id });
+      return res.status(200).json({ message: `Risco cadastrado com sucesso!`, id_risco });
     });
 
     con.release();
@@ -1184,17 +1183,104 @@ router.post("/riscos", (req, res) => {
 
 });
 
+router.put("/riscos/:id_risco", (req, res) => {
+  const id_risco = req.params.id_risco;
+  const tenant = req.query.tenant_code
+  const nome = req.query.nome_usuario
+  const {
+    nome_risco,
+    grupo_risco,
+    codigo_esocial_risco,
+    meio_propagacao_risco,
+    unidade_medida_risco,
+    classificacao_risco,
+    nivel_acao_risco,
+    limite_tolerancia_risco,
+    danos_saude_risco,
+    metodologia_risco,
+    severidade_risco,
+    pgr_risco,
+    ltcat_risco,
+    lip_risco,
+    tenant_code
+  } = req.body;
+  const data = req.body
+  const q = `
+    UPDATE riscos
+    SET nome_risco = ?,
+    grupo_risco = ?,
+    codigo_esocial_risco = ?,
+    meio_propagacao_risco = ?,
+    unidade_medida_risco = ?,
+    classificacao_risco = ?,
+    nivel_acao_risco = ?,
+    limite_tolerancia_risco = ?,
+    danos_saude_risco = ?,
+    metodologia_risco = ?,
+    severidade_risco = ?,
+    pgr_risco = ?,
+    ltcat_risco = ?,
+    lip_risco = ?,
+    tenant_code =?
+    WHERE id_risco = ?
+    `;
 
-
-// Tabela de Conclusões
-// Get Table
-router.get("/conclusoes", (req, res) => {
-  const q = `SELECT * FROM conclusoes`;
+  const values = [
+    nome_risco,
+    grupo_risco,
+    codigo_esocial_risco,
+    meio_propagacao_risco,
+    unidade_medida_risco,
+    classificacao_risco,
+    nivel_acao_risco,
+    limite_tolerancia_risco,
+    danos_saude_risco,
+    metodologia_risco,
+    severidade_risco,
+    pgr_risco,
+    ltcat_risco,
+    lip_risco,
+    tenant,
+    id_risco
+  ];
 
   pool.getConnection((err, con) => {
     if (err) return next(err);
 
-    con.query(q, (err, data) => {
+    con.query(q, values, (err) => {
+      if (err) {
+        console.error("Erro ao atualizar risco na tabela", err);
+        return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
+      }
+      return res.status(200).json({ message: `Risco cadastrado com sucesso!` });
+    });
+    const formatBody = (obj) => {
+      let formatted = '';
+      for (const key in obj) {
+        if (obj.hasOwnProperty(key)) {
+          formatted += `${key}: ${obj[key]}, `;
+        }
+      }
+      return formatted.slice(0, -2);
+    };
+    const bodyString = formatBody(data)
+    registrarLog('riscos', 'put', `Alterou Riscos`, `${nome}`, tenant, new Date(), bodyString);
+
+    con.release();
+  })
+
+});
+
+// Tabela de Conclusões
+// Get Table
+router.get("/conclusoes", (req, res) => {
+  const riscoid = req.query.id_risco
+  const q = `SELECT * FROM conclusoes where fk_risco_id =?`;
+
+  pool.getConnection((err, con) => {
+    if (err) return next(err);
+
+    con.query(q, riscoid,(err, data) => {
       if (err) return res.status(500).json(err);
 
       return res.status(200).json(data);
@@ -1275,7 +1361,55 @@ router.put("/conclusoes/:id_conclusao", (req, res) => {
 
 });
 
+router.put("/medidas/:id_medida", (req, res) => {
+  const id_medida = req.params.id_medida;
+  const nome = req.query.nome_usuario
+  const tenant = req.query.tenant_code
+  const {
+    descricao_medida,
+    grupo_medida,
+  } = req.body;
+  const data = req.body
 
+  const q = `
+    UPDATE medidas
+    SET descricao_medida = ?,
+    grupo_medida = ?
+    WHERE id_medida = ?
+    `;
+
+  const values = [
+    descricao_medida,
+    grupo_medida,
+    id_medida
+  ];
+
+  pool.getConnection((err, con) => {
+    if (err) return next(err);
+
+    con.query(q, values, (err) => {
+      if (err) {
+        console.error("Erro ao atualizar medida na tabela", err);
+        return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
+      }
+      const formatBody = (obj) => {
+        let formatted = '';
+        for (const key in obj) {
+          if (obj.hasOwnProperty(key)) {
+            formatted += `${key}: ${obj[key]}, `;
+          }
+        }
+        return formatted.slice(0, -2);
+      };
+      const bodyString = formatBody(data)
+      registrarLog('medidas', 'put', `Alterou Medida`, `${nome}`, tenant, new Date(), bodyString);
+      return res.status(200).json("Medida atualizado com sucesso!");
+    });
+
+    con.release();
+  })
+
+});
 
 //Medidas de Proteção
 //Tabela EPI's
@@ -1316,7 +1450,7 @@ router.post("/medidas", (req, res) => {
         return formatted.slice(0, -2);
       };
       const bodyString = formatBody(data)
-      registrarLog('riscos', 'put', `Alterou Risco`, `${nome}`, tenant, new Date(), bodyString);
+      registrarLog('medidas', 'put', `Alterou Medidas`, `${nome}`, tenant, new Date(), bodyString);
 
       return res.status(200).json(`Medida cadastrado com sucesso!`);
     });
@@ -1795,6 +1929,7 @@ router.post("/aparelhos", (req, res) => {
 
       return res.status(200).json(`Aparelho cadastrado com sucesso!`);
     })
+    con.release();
   })
 
 });
@@ -1845,6 +1980,8 @@ router.put("/aparelhos/:id_aparelho", (req, res) => {
 
       return res.status(200).json("Aparelho atualizado com sucesso!");
     });
+    con.release();
+
   })
 
 });
@@ -1869,6 +2006,8 @@ router.put("/aparelhos/activate/:id_aparelho", (req, res) => {
 
       res.status(200).json({ message: 'Status da unidade atualizado com sucesso.' });
     });
+    con.release();
+
   });
 });
 //Tabela de Versões do PDF
@@ -1881,9 +2020,10 @@ router.get("/laudo_version", (req, res) => {
 
     con.query(q, (err, data) => {
       if (err) return res.status(500).json(err);
-      con.release();
       return res.status(200).json(data);
     });
+    con.release();
+
   })
 
 });
@@ -2108,6 +2248,8 @@ router.delete("/setores_processos/:id_setor_processo", (req, res) => {
 
       return res.status(200).json({ message: "Vínculo excluido com sucesso" });
     });
+    con.release();
+
   });
 });
 
@@ -2176,6 +2318,8 @@ router.delete("/processos_riscos/:id_processo_risco", (req, res) => {
 
       return res.status(200).json({ message: "Vínculo excluido com sucesso" });
     });
+    con.release();
+
   });
 });
 
@@ -2244,6 +2388,8 @@ router.delete("/riscos_medidas/:id_risco_medida", (req, res) => {
 
       return res.status(200).json({ message: "Vínculo excluido com sucesso" });
     });
+    con.release();
+
   });
 });
 
@@ -2355,6 +2501,8 @@ router.put("/plano/:id_plano", (req, res) => {
 
       return res.status(200).json("Plano de Ação atualizado com sucesso!");
     });
+    con.release();
+
   })
 
 });
@@ -2484,6 +2632,8 @@ router.put("/inventario/:id_inventario", (req, res) => {
 
       return res.status(200).json("Inventário atualizado com sucesso!");
     });
+    con.release();
+
   })
 
 });
@@ -2587,45 +2737,79 @@ router.put("/global_sprm/:id_global_sprm", (req, res) => {
   })
 });
 
+router.post("/elaboradores", (req, res) => {
+  const data = req.body;
+  const nome = req.query.nome_usuario
+  const tenant = req.query.tenant_code
 
 
-router.route('/:table')
-  .post(async (req, res) => {
-    const table = req.params.table;
-    const data = req.body;
-    const nome = req.query.nome_usuario
-    const tenant = req.query.tenant_code
+  const q = "INSERT INTO elaboradores SET ?"
 
-    const q = `INSERT INTO ${table} SET ?`
+  pool.getConnection((err, con) => {
+    if (err) return next(err);
 
-    pool.getConnection((err, con) => {
-      if (err) return next(err);
+    con.query(q, data, (err, result) => {
+      if (err) {
+        console.error("Erro ao cadastrar medidas no setor", err);
+        return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
+      }
 
-      con.query(q, data, (err, result) => {
-        if (err) {
-          console.error(`Erro ao registrar dado na tabela ${table}. Status: ${err}`);
-          return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
+      return res.status(200).json(`Medidas adicionadas com sucesso!`);
+    });
+    const formatBody = (obj) => {
+      let formatted = '';
+      for (const key in obj) {
+        if (obj.hasOwnProperty(key)) {
+          formatted += `${key}: ${obj[key]}, `;
         }
+      }
+      return formatted.slice(0, -2); // Remove a última vírgula e espaço
+    };
+    const bodyString = formatBody(data)
+    registrarLog('elaboradores', 'create', `Cadastrou Elaborador`, `${nome}`, tenant, new Date(), bodyString);
 
-        const formatBody = (obj) => {
-          let formatted = '';
-          for (const key in obj) {
-            if (obj.hasOwnProperty(key)) {
-              formatted += `${key}: ${obj[key]}, `;
-            }
-          }
-          return formatted.slice(0, -2); // Remove a última vírgula e espaço
-        };
-        const bodyString = formatBody(data)
-
-        registrarLog('elaboradores', 'create', `Cadastrou Elaborador`, `${nome}`, tenant, new Date(), bodyString);
-
-        return res.status(200).json(`Registro concluido com sucesso!`)
-      });
-
-      con.release();
-    })
+    con.release();
   })
+
+});
+
+// router.route('/:table')
+//   .post(async (req, res) => {
+//     const table = req.params.table;
+//     const data = req.body;
+    // const nome = req.query.nome_usuario
+//     const tenant = req.query.tenant_code
+
+//     const q = `INSERT INTO ${table} SET ?`
+
+//     pool.getConnection((err, con) => {
+//       if (err) return next(err);
+
+//       con.query(q, data, (err, result) => {
+//         if (err) {
+//           console.error(`Erro ao registrar dado na tabela ${table}. Status: ${err}`);
+//           return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
+//         }
+
+        // const formatBody = (obj) => {
+        //   let formatted = '';
+        //   for (const key in obj) {
+        //     if (obj.hasOwnProperty(key)) {
+        //       formatted += `${key}: ${obj[key]}, `;
+        //     }
+        //   }
+        //   return formatted.slice(0, -2); // Remove a última vírgula e espaço
+        // };
+        // const bodyString = formatBody(data)
+
+//         registrarLog('elaboradores', 'create', `Cadastrou Elaborador`, `${nome}`, tenant, new Date(), bodyString);
+
+//         return res.status(200).json(`Registro concluido com sucesso!`)
+//       });
+
+//       con.release();
+//     })
+//   })
 
 
 //Tabela Elaboradores

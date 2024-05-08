@@ -51,6 +51,7 @@ function CadastroEpi({ onEdit, get, epis, setOnEdit }) {
       const medidasData = {
         descricao_medida: nome || null,
         grupo_medida: 'MI',
+        tenant_code: tenant,
       };
 
       const url = onEdit
