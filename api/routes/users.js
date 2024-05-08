@@ -2589,27 +2589,7 @@ router.put("/global_sprm/:id_global_sprm", (req, res) => {
 
 
 
-// Generic Function
 router.route('/:table')
-  // Obter Registros
-  // .get(async (req, res) => {
-  //   const table = req.params.table;
-  //   const q = `SELECT * FROM ${table}`;
-
-  //   pool.getConnection((err, con) => {
-  //     if (err) return next(err);
-
-  //     con.query(q, (err, data) => {
-  //       if (err) {
-  //         console.error(`Erro ao buscar tabela: ${table}. Status: ${err}`)
-  //         return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
-  //       }
-
-  //       return res.status(200).json(data);
-  //     })
-  //   })
-  // })
-  // Criar Registros
   .post(async (req, res) => {
     const table = req.params.table;
     const data = req.body;
@@ -2646,54 +2626,6 @@ router.route('/:table')
       con.release();
     })
   })
-
-// router.put("/:table/:id", (req, res) => {
-//   const table = req.params.table;
-//   const idName = req.query.idFieldName || 'id';
-//   const id = req.params.id;
-//   const nome = req.query.nome_usuario
-//   const tenant = req.query.tenant_code
-//   const columns = Object.keys(req.body);
-//   const values = Object.values(req.body);
-
-//   const setClause = columns.map(column => `${column} = ?`).join(', ');
-
-//   const q = `
-//       UPDATE ${table}
-//       SET ${setClause}
-//       WHERE ${idName} = ?
-//     `;
-
-//   const finalValues = [...values, id];
-
-//   pool.getConnection((err, con) => {
-//     con.release();
-
-//     if (err) return next(err);
-
-//     con.query(q, finalValues, (err) => {
-//       if (err) {
-//         console.error(`Erro ao atualizar registro na tabela ${table}:`, err);
-//         return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
-//       }
-
-//       const formatBody = (obj) => {
-//         let formatted = '';
-//         for (const key in obj) {
-//           if (obj.hasOwnProperty(key)) {
-//             formatted += `${key}: ${obj[key]}, `;
-//           }
-//         }
-//         return formatted.slice(0, -2); // Remove a última vírgula e espaço
-//       };
-//       const bodyString = formatBody(finalValues)
-
-//       registrarLog('elaboradores', 'put', `Alterou Elaborador`, `${nome}`, tenant, new Date(), bodyString);
-
-//       return res.status(200).json(`${table} atualizado com sucesso!`);
-//     });
-//   })
-// });
 
 
 //Tabela Elaboradores

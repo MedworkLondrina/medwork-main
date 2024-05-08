@@ -33,6 +33,7 @@ function CadastroCargo() {
     setUnidades(units);
     const sectors = await fetchSetores();
     setSetores(sectors);
+    console.log(sectors)
   };
   
   const getCargos = async () => {

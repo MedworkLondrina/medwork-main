@@ -3,10 +3,11 @@ import { toast } from "react-toastify";
 import { connect, supabase } from '../../../../services/api' //Conexão com o banco de dados
 import icon_lupa from '../../../media/icon_lupa.svg'
 import icon_sair from '../../../media/icon_sair.svg'
+
 import ModalSearchSetor from '../components/Modal/ModalSearchSetor'
 
 
-function FrmCadastroCargo({ onEdit, setOnEdit, getCargo, set, setor, unidades }) {
+function FrmCadastroCargo({ onEdit, setOnEdit, getCargo, set, setor }) {
 
   // Instanciando a variavel que vai referenciar o formulario
   const ref = useRef(null);
@@ -97,7 +98,7 @@ function FrmCadastroCargo({ onEdit, setOnEdit, getCargo, set, setor, unidades })
 
     handleClear();
     getCargo();
-  }
+  };
 
   const handleClear = () => {
     // Limpa todos os campos do formulário
@@ -150,7 +151,7 @@ function FrmCadastroCargo({ onEdit, setOnEdit, getCargo, set, setor, unidades })
     } else {
       setFuncMasc(funcMasc)
     }
-  }
+  };
 
   const handleFocusInputFuncFem = (e) => {
     const inputValue = e.target.value;
@@ -160,7 +161,7 @@ function FrmCadastroCargo({ onEdit, setOnEdit, getCargo, set, setor, unidades })
     } else {
       setFuncFem(funcFem)
     }
-  }
+  };
 
   const handleFocusInputFuncMenor = (e) => {
     const inputValue = e.target.value;
@@ -170,7 +171,7 @@ function FrmCadastroCargo({ onEdit, setOnEdit, getCargo, set, setor, unidades })
     } else {
       setFuncMenor(funcMenor)
     }
-  }
+  };
 
   return (
     <div className="flex justify-center">
