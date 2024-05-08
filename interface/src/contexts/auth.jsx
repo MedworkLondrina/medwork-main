@@ -645,8 +645,8 @@ export const AuthProvider = ({ children }) => {
       }
 
       const data = await response.json();
-      setConclusoes(data)
-    } catch (error) {
+      return data
+       } catch (error) {
       console.log(`Erro ao buscar conclusões. ${error}`);
     }
   };

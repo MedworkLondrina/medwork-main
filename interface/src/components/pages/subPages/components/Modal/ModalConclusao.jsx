@@ -20,8 +20,21 @@ const ModalConclusaoLtcat = ({ onCancel, isOpen, riscoId, riscos, lip, ltcat, in
   const [att, setAtt] = useState(false);
 
   useEffect(() => {
-    getConclusoes(riscoId);
+    get(riscoId);
   }, [isOpen])
+
+
+  const get = async () => {
+    const conclusoes = await getConclusoes(riscoId);
+    if (conclusoes) {
+      const order = conclusoes.sort((a, b) => b.ativo - a.ativo);
+      setConclusao(order);
+    }
+  };
+  useEffect(() => {
+    get()
+  },[conclusao])
+
   console.log(conclusoes)
   useEffect(() => {
     if (onEdit) {
@@ -88,7 +101,7 @@ const ModalConclusaoLtcat = ({ onCancel, isOpen, riscoId, riscos, lip, ltcat, in
       console.log("Erro ao adicionar conclusão", error)
     }
     handleClear();
-    getConclusoes();
+    ;
     setAtt(!att);
     setOnEdit(null);
   };
