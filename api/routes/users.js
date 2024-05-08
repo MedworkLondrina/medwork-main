@@ -410,10 +410,10 @@ router.post("/unidades", (req, res) => {
                     formatted += `${key}: ${obj[key]}, `;
                   }
                 }
-                return formatted.slice(0, -2); // Remove a última vírgula e espaço
+                return formatted.slice(0, -2);
               };
-              const bodyString_unidade = formatBody(data.unidade_data)
-              const bodyString_contato = formatBody(data.contato_data)
+              const bodyString_unidade = formatBody(unidade_data)
+              const bodyString_contato = formatBody(contato_data)
 
               registrarLog('unidades', 'create', `Cadastrou Unidade`, `${nomeUsuario}`, tenant, new Date(), bodyString_unidade);
               registrarLog('contatos', 'create', `Cadastrou Contato`, `${nomeUsuario}`, tenant, new Date(), bodyString_contato);

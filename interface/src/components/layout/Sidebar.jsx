@@ -105,10 +105,12 @@ function Sidebar() {
     setContatos(resCon);
   };
 
+  // Secondary
   useEffect(() => {
     get();
   }, [loginUser]);
 
+  // User, Tenant, Empresas
   const get = async () => {
     const userCheck = await checkSignIn();
     setUser(userCheck);
@@ -123,9 +125,10 @@ function Sidebar() {
     setEmpresas(empresasCheck);
   };
 
+  // First
   useEffect(() => {
     getCompany();
-  }, [companyId]);
+  }, [companyId, loginUser]);
 
   const clearLocalSotrageCompany = () => {
     navigate("/");
@@ -173,7 +176,9 @@ function Sidebar() {
     }
   }, [searchTerm, empresas]);
 
-  const handleSearch = (e) => {
+  const handleSearch = async (e) => {
+    const empresasCheck = await fetchEmpresas();
+    setEmpresas(empresasCheck);
     const term = e.target.value;
     setSearchTerm(term);
     openSearchCompany();

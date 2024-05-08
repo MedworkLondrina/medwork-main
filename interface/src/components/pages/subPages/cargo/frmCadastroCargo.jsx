@@ -13,9 +13,9 @@ function FrmCadastroCargo({ onEdit, setOnEdit, getCargo, set, setor }) {
   const ref = useRef(null);
   const [setorId, setSetorId] = useState(null);
   const [setorNome, setSetorNome] = useState(null);
-  const [funcMasc, setFuncMasc] = useState('');
-  const [funcFem, setFuncFem] = useState('');
-  const [funcMenor, setFuncMenor] = useState('');
+  const [funcMasc, setFuncMasc] = useState('0');
+  const [funcFem, setFuncFem] = useState('0');
+  const [funcMenor, setFuncMenor] = useState('0');
   const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {

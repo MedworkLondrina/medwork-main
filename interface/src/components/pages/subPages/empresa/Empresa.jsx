@@ -31,7 +31,8 @@ function Empresa() {
   const get = async () => {
     const companys = await fetchEmpresas();
     if (companys) {
-      setEmpresas(companys);
+      const order = companys.sort((a, b) => b.ativo - a.ativo);
+      setEmpresas(order);
     }
   };
 
@@ -43,7 +44,6 @@ function Empresa() {
     if (selectedEmpresa.fk_contato_id) {
       const contacts = await fetchContatos(selectedEmpresa.id_empresa);
       const contactData = contacts.find((c) => c.id_contato === selectedEmpresa.fk_contato_id);
-      console.log(contactData);
       if (contactData) {
         setContactInfo(contactData)
       }

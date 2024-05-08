@@ -13,8 +13,14 @@ function ProfileTenant({ tenant }) {
 
   useEffect(() => {
     const fetchImageURL = async () => {
-      const downloadURL = await getDownloadURL(storageRef);
-      setImageURL(downloadURL);
+      try {
+        const downloadURL = await getDownloadURL(storageRef);
+        if (downloadURL) {
+          setImageURL(downloadURL);
+        }
+      } catch (error) {
+        console.error(`Erro ao carregar logo: ${error}`);
+      }
     };
 
     fetchImageURL();
@@ -47,7 +53,6 @@ function ProfileTenant({ tenant }) {
         },
         () => {
           getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-            console.log('File available at', downloadURL);
             setImageURL(downloadURL);
             toast.success("Logo atualizada com sucesso!");
           });
@@ -83,6 +88,7 @@ function ProfileTenant({ tenant }) {
         </div>
         <div className="px-4 mt-3">
           <form onSubmit={updateTenant}>
+            {/* Logo */}
             {imageURL ? (
               <>
                 <div className="bg-gray-100 py-3 px-6 rounded shadow inline-block max-h-[30vh] max-w[50vh]" onClick={() => setLogoChange(!logoChange)}>
@@ -96,6 +102,8 @@ function ProfileTenant({ tenant }) {
                 </div>
               </>
             )}
+
+            {/* Upload Logo */}
             {logoChange && (
               <>
                 <div className="flex gap-2 mt-1">

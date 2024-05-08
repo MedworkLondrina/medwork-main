@@ -88,7 +88,8 @@ function CadastroProcesso({ onEdit, getProcessos, setOnEdit, setSearchTerm, proc
       }
 
       const processoData = {
-        nome_processo: processo || null,
+        nome_processo: processo,
+        tenant_code: tenant,
       };
 
       const url = onEdit
