@@ -132,6 +132,7 @@ function FrmCadastroUnidade({ onEdit, setOnEdit, getUnidades, contato, companyId
     setEstado("");
     setCnpj("");
     setCep("");
+    setContatoId(null);
     setContatoModal(null);
     setOnEdit(null);
   };
@@ -147,6 +148,7 @@ function FrmCadastroUnidade({ onEdit, setOnEdit, getUnidades, contato, companyId
     if (contato) {
       closeModalContato();
       setContatoModal(contato);
+      setContatoId(contato.id_contato);
     }
   }, [closeModalContato, setContatoModal]);
 

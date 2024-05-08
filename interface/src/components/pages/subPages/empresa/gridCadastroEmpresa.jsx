@@ -2,18 +2,23 @@
 import { BsFillPencilFill } from 'react-icons/bs'; //Icone de Edição
 import { toast } from 'react-toastify';
 import { connect } from '../../../../services/api'; //Conexão com o banco de dados
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { IoMdArrowDropleft } from "react-icons/io";
 import { IoMdArrowDropright } from "react-icons/io";
 
-function GridCadastroEmpresa({ empresa, setEmpresa, setOnEdit, fetchEmpresas, setCompanyId }) {
+function GridCadastroEmpresa({ empresa, setOnEdit, fetchEmpresas, setCompanyId }) {
 
   const [page, setPage] = useState(0);
-  const itemsPerPage = 10;
-  const totalPages = Math.ceil(empresa.length / itemsPerPage);
-  const startIndex = page * itemsPerPage;
-  const endIndex = Math.min(startIndex + itemsPerPage, empresa.length);
-  const visibleItems = empresa.slice(startIndex, endIndex);
+  const [totalPages, setTotalPages] = useState(null);
+  const [visibleItems, setVisibleItems] = useState([]);
+
+  useEffect(() => {
+    const itemsPerPage = 10;
+    setTotalPages(Math.ceil(empresa.length / itemsPerPage));
+    const startIndex = page * itemsPerPage;
+    const endIndex = Math.min(startIndex + itemsPerPage, empresa.length);
+    setVisibleItems(empresa.slice(startIndex, endIndex));
+  }, [empresa, page])
 
   const handleNextPage = () => {
     setPage((prevPage) => Math.min(prevPage + 1, totalPages - 1));
@@ -47,10 +52,6 @@ function GridCadastroEmpresa({ empresa, setEmpresa, setOnEdit, fetchEmpresas, se
         throw new Error('Erro ao atualizar status da empresa.');
       }
 
-      const novaEmpresa = empresa.map(item =>
-        item.id_empresa === id ? { ...item, ativo: !ativo } : item
-      );
-      setEmpresa(novaEmpresa);
       fetchEmpresas();
       toast.info(`Empresa ${!ativo ? 'ativado' : 'inativado'} com sucesso!`);
     } catch (error) {

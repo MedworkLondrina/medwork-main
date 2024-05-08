@@ -2,7 +2,6 @@
 import { useRef, useEffect, useState, useCallback } from "react";
 import { toast } from "react-toastify";
 import { connect } from "../../../../services/api"; //Conexão com o banco de dados
-import { IoIosHelpCircle } from "react-icons/io";
 
 import ModarSearchContato from "../components/Modal/ModalSearchContato";
 import ModalSearchCnae from '../components/Modal/ModalSearchCnae';
@@ -53,6 +52,7 @@ function CadastroEmpresa({ onEdit, setOnEdit, fetchEmpresas, contact }) {
       }
 
       if (contact && onEdit?.fk_contato_id) {
+        setContatoModal(contact);
         setContactName(contact.nome_contato);
         setContactId(contact.id_contato);
       } else {
@@ -163,12 +163,11 @@ function CadastroEmpresa({ onEdit, setOnEdit, fetchEmpresas, contact }) {
 
   const handleCnaeSelected = (cnae) => {
     if (cnae) {
-      setSelectedCnaes(cnae);
-      setCnae(cnae[0]?.subclasse_cnae);
-      setGrauRisco(cnae[0]?.grau_risco_cnae);
-      setDescricao(cnae[0].descricao_cnae);
+      setSelectedCnaes(cnae || '');
+      setCnae(cnae[0]?.subclasse_cnae || '');
+      setGrauRisco(cnae[0]?.grau_risco_cnae || '');
+      setDescricao(cnae[0]?.descricao_cnae || '');
     } else {
-      console.log("Teste")
       setCnae('');
       setGrauRisco('');
       setDescricao('');

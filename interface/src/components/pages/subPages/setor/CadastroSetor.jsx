@@ -70,6 +70,7 @@ function CadastroSetor() {
 	return (
 		<div className="mb-10">
 
+			{/* Poopover */}
 			<div className="flex w-full" onMouseLeave={() => setVisible(false)}>
 				<div className="fixed z-50 m-2">
 					<div className={`bg-gray-700 rounded-lg px-6 py-2 ${visible ? 'block' : 'hidden'} text-white`}>
@@ -89,7 +90,7 @@ function CadastroSetor() {
 				</div>
 			</div>
 
-
+			{/* Cabeçalho */}
 			<div className="grid grid-cols-3 mb-10 mt-10">
 				{/* Botão para voltar */}
 				<div className="">
@@ -111,7 +112,7 @@ function CadastroSetor() {
 			<FrmCadastroSetor
 				onEdit={onEdit}
 				setOnEdit={setOnEdit}
-				getSetor={fetchSetores}
+				getSetor={get}
 				unidades={nomeUnidade}
 				setor={setores}
 				unidade={unidades}
