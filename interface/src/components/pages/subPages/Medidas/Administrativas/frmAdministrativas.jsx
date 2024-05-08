@@ -54,6 +54,7 @@ function CadastroAdminitrativas({ onEdit, setOnEdit, get, medidas }) {
       const medidasData = {
         descricao_medida: descricao || null,
         grupo_medida: 'MA',
+        tenant_code: tenant
       };
 
       const url = onEdit

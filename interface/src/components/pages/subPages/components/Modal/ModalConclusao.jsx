@@ -20,9 +20,9 @@ const ModalConclusaoLtcat = ({ onCancel, isOpen, riscoId, riscos, lip, ltcat, in
   const [att, setAtt] = useState(false);
 
   useEffect(() => {
-    getConclusoes();
+    getConclusoes(riscoId);
   }, [isOpen])
-
+  console.log(conclusoes)
   useEffect(() => {
     if (onEdit) {
       setNome(onEdit.nome_conclusao);

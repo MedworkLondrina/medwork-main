@@ -71,7 +71,10 @@ function GridElaborador({ data, setOnEdit, setData}) {
           </thead>
           <tbody className="text-center">
             {data.map((item, i) => (
-              <tr key={i} className={`border-b bg-white`}>
+              <tr
+                key={i}
+                className={`border-b bg-white items-center ${!item.ativo ? 'opacity-25' : ''}`}
+              >
                 <th scope="row" className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
                   {item.id_elaborador}
                 </th>

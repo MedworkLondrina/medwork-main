@@ -11,20 +11,22 @@ import ModalConclusao from "../components/Modal/ModalConclusao";
 
 function CadastroRisco({ onEdit, setOnEdit, getRiscos, riscos }) {
 
-  const [riscoId, setRiscoId] = useState(false);
+  const [riscoId, setRiscoId] = useState({});
   const [pgr, setPgr] = useState(false);
   const [ltcat, setLtcat] = useState(false);
-  const [ltcatSave, setLtcatSave] = useState(false);
   const [lip, setLip] = useState(false);
-  const [lipSave, setLipSave] = useState(false);
   const [classificacao, setClassificacao] = useState(false);
   const [avaliacao, setAvaliacao] = useState("0");
   const [esocial, setEsocial] = useState('');
   const [inespecific, setInespecific] = useState(false);
-
+  const [riscoData, setRiscoData] = useState([]);
   const [showModalLtcat, setShowModalLtcat] = useState(false);
+  const [ltcatConclusao, setLtcatConclusao] = useState(false);
+  const [lipConclusao, setLipConclusao] = useState(false);
 
   const ref = useRef(null);
+
+  
 
   useEffect(() => {
     if (onEdit) {
@@ -43,7 +45,7 @@ function CadastroRisco({ onEdit, setOnEdit, getRiscos, riscos }) {
         severidade_risco,
       } = user;
 
-      setRiscoId(onEdit.id_risco);
+      setRiscoData(onEdit);
       nome_risco.value = onEdit.nome_risco;
       setAvaliacao(onEdit.grupo_risco);
       if (onEdit.grupo_risco === 'Inespecífico') {
@@ -67,17 +69,17 @@ function CadastroRisco({ onEdit, setOnEdit, getRiscos, riscos }) {
         setPgr(false);
       }
       if (onEdit.ltcat_risco === 1) {
-        setLtcatSave(true);
+        setLtcatConclusao(true);
         setLtcat(true);
       } else {
-        setLtcatSave(false);
+        setLtcatConclusao(false);
         setLtcat(false);
       }
       if (onEdit.lip_risco === 1) {
-        setLipSave(true);
+        setLipConclusao(true);
         setLip(true)
       } else {
-        setLipSave(false);
+        setLipConclusao(false);
         setLip(false);
       }
     }
@@ -89,21 +91,21 @@ function CadastroRisco({ onEdit, setOnEdit, getRiscos, riscos }) {
     const userData = JSON.parse(localStorage.getItem("user"));
     const tenant = userData.tenant_code;
     const nome = userData.nome_usuario;
-    const queryParams = new URLSearchParams({ tenant_code: tenant , nome_usuario:nome}).toString();
+    const queryParams = new URLSearchParams({ tenant_code: tenant, nome_usuario:nome}).toString();
     const user = ref.current;
-
+  
     if (!user.nome_risco.value ||
-      !user.grupo_risco.value ||
-      !user.danos_saude_risco.value ||
-      !user.severidade_risco.value ||
-      !user.classificacao_risco.value ||
-      !user.meio_propagacao_risco.value ||
-      !user.nivel_acao_risco.value ||
-      !user.limite_tolerancia_risco.value ||
-      !user.metodologia_risco.value) {
+       !user.grupo_risco.value ||
+       !user.danos_saude_risco.value ||
+       !user.severidade_risco.value ||
+       !user.classificacao_risco.value ||
+       !user.meio_propagacao_risco.value ||
+       !user.nivel_acao_risco.value ||
+       !user.limite_tolerancia_risco.value ||
+       !user.metodologia_risco.value) {
       return toast.warn("Preencha todos os campos!");
     }
-
+  
     try {
       const riscoData = {
         nome_risco: user.nome_risco.value,
@@ -120,14 +122,15 @@ function CadastroRisco({ onEdit, setOnEdit, getRiscos, riscos }) {
         pgr_risco: pgr,
         ltcat_risco: ltcat,
         lip_risco: lip,
+        tenant_code : tenant
       };
-
+  
       const url = onEdit
-        ? `${connect}/riscos/${onEdit.id_risco}?${queryParams}`
+       ? `${connect}/riscos/${onEdit.id_risco}?${queryParams}`
         : `${connect}/riscos?${queryParams}`
-
-      const method = onEdit ? 'PUT' : 'POST';
-
+  
+      const method = onEdit? 'PUT' : 'POST';
+  
       const response = await fetch(url, {
         method,
         headers: {
@@ -135,32 +138,32 @@ function CadastroRisco({ onEdit, setOnEdit, getRiscos, riscos }) {
         },
         body: JSON.stringify(riscoData),
       });
-
+  
       if (!response.ok) {
         toast.error("Erro ao cadastrar/editar risco!")
         throw new Error(`Erro ao cadastrar/editar risco. Status: ${response.status}`)
       }
-
-      const responseData = await response.json();
-      setRiscoId(responseData.id);
-      setLtcatSave(ltcat);
-      setLipSave(lip);
       console.log(riscoId)
-      console.log(ltcatSave)
-      console.log(lipSave)
-
+      const responseData = await response.json();
+      setRiscoData(responseData);
+      setLtcatConclusao(ltcat);
+      setLipConclusao(lip)
+      console.log("Resposta da API:", responseData.id); // Adicione esta linha para verificar a resposta
+      setRiscoId(responseData.id); // Atualiza o estado com o valor retornado da API
+      console.log(riscoId)
+      
+      
       toast.success(responseData.message);
     } catch (error) {
       console.log("Erro ao inserir risco: ", error)
     }
-
     handleClear();
-
+  
     window.scrollTo({ top: 500, behavior: 'smooth' });
-
+  
     getRiscos();
   };
-
+  
   const handleClear = () => {
 
     const user = ref.current;
@@ -180,11 +183,11 @@ function CadastroRisco({ onEdit, setOnEdit, getRiscos, riscos }) {
     setPgr(false);
     setLtcat(false);
     setLip(false);
-    setLtcatSave(false);
-    setLipSave(false);
+    setLtcatConclusao(false);
+    setLipConclusao(false);
     setOnEdit(null);
     setEsocial('');
-    setRiscoId(false);
+    setRiscoId('');
     setInespecific(false);
   };
 
@@ -195,14 +198,14 @@ function CadastroRisco({ onEdit, setOnEdit, getRiscos, riscos }) {
   const checkedLtcat = () => {
     setLtcat(!ltcat);
     if (onEdit) {
-      setLtcatSave(!ltcatSave);
+      setLtcatConclusao(!ltcatConclusao);
     }
   };
 
   const checkedLip = () => {
     setLip(!lip);
     if (onEdit) {
-      setLipSave(!lipSave);
+      setLipConclusao(!lipConclusao);
     }
   };
 
@@ -560,7 +563,7 @@ function CadastroRisco({ onEdit, setOnEdit, getRiscos, riscos }) {
 
         {/* Conclusões */}
         {
-          (riscoId) && (
+          (riscoData.id_risco) && (
             <>
               <div className="mb-6 mx-3">
                 <h3 className="flex justify-center text-sky-700 text-2xl font-bold mt-4 mb-1">Conclusões</h3>
@@ -568,7 +571,7 @@ function CadastroRisco({ onEdit, setOnEdit, getRiscos, riscos }) {
                 <div className="px-4 py-2">
                   <div className={`flex w-full justify-start`}>
 
-                    {(ltcatSave || lipSave) && (
+                    {(ltcatConclusao || lipConclusao) && (
                       <>
                         <div
                           className={`flex w-1/3 justify-center items-center px-4 py-2 bg-gray-50 rounded shadow hover:bg-gray-100 cursor-pointer gap-4`}
@@ -597,9 +600,9 @@ function CadastroRisco({ onEdit, setOnEdit, getRiscos, riscos }) {
       <ModalConclusao
         isOpen={showModalLtcat}
         onCancel={closeModalLtcat}
-        riscoId={riscoId}
-        ltcat={ltcatSave}
-        lip={lipSave}
+        riscoId={riscoData.id_risco}
+        ltcat={ltcatConclusao}
+        lip={lipConclusao}
         riscos={riscos}
       />
     </div >

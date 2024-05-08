@@ -44,6 +44,7 @@ const mysqlTransport = new MySQLTransport({
          'INSERT INTO logs SET ?',
          adjustedData,
          (error, results) => {
+          
            if (error) {
              callback(error);
              return;
