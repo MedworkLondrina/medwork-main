@@ -1,4 +1,4 @@
-import { createContext, useState } from "react";
+import { createContext, useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { connect } from "../services/api";
 
@@ -31,6 +31,12 @@ export const AuthProvider = ({ children }) => {
   const [laudoVersion, setLaudoVersion] = useState([]);
   const [conclusoes, setConclusoes] = useState([]);
   const [loginUser, setLoginUser] = useState(false);
+
+  useEffect(() => {
+    if (loginUser) {
+      setLoginUser(false);
+    }
+  }, [loginUser]);
 
   const handleSetCompanyId = () => {
     try {
@@ -578,23 +584,23 @@ export const AuthProvider = ({ children }) => {
 
   const getUsuarios = async () => {
     try {
-      const response = await fetch(`${connect}/usuarios`);
+      const code = await checkTenantCode();
+      if (!code) return;
+
+      const queryParams = new URLSearchParams({ tenant_code: code }).toString();
+      const response = await fetch(`${connect}/usuarios?${queryParams}`);
 
       if (!response.ok) {
         throw new Error(`Erro ao buscar Usuários. Status: ${response.status}`)
       }
 
       const data = await response.json();
-      data.sort((a, b) => a.nome_usuario.localeCompare(b.nome_usuario));
-      setUsuarios(data)
+      setUsuarios(data);
+      return data;
     } catch (error) {
       console.log(`Erro ao buscar Usuários. ${error}`);
     }
   };
-
-  const fetchUsuarios = async () => {
-
-  }
 
   const getAparelhos = async () => {
     try {
@@ -646,7 +652,7 @@ export const AuthProvider = ({ children }) => {
 
       const data = await response.json();
       return data
-       } catch (error) {
+    } catch (error) {
       console.log(`Erro ao buscar conclusões. ${error}`);
     }
   };

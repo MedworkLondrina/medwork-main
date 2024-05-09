@@ -12,7 +12,6 @@ function GridCadastroUnidade({ unidade, setUnidades, getUnidades, setOnEdit, con
 
   //Função para encontrar o nome do contato
   const findContactName = (fkContatoId) => {
-    console.log(contato)
     if (!contato) {
       return 'N/A';
     }

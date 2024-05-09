@@ -43,6 +43,12 @@ function Login() {
 
       const resVerifyTenant = await verifyTenant.json();
 
+      if (resVerifyTenant.message === "Conta inativa") {
+        setEmail("");
+        setPassword("");
+        return toast.warn("Conta inativa");
+      };
+
       fetch(`${connect}/api/protected`, {
         method: 'GET',
         headers: {
@@ -98,7 +104,7 @@ function Login() {
   };
 
   const forgotpasd = () => {
-    toast.info("Fale com um adminitrador!")
+    toast.info("Fale com um adminitrador!");
   };
 
   return (

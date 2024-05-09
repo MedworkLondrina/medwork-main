@@ -12,7 +12,6 @@ const ModalSearchEmpresa = ({ onCancel, isOpen, children, onContactSelect, conta
   const [filteredChildren, setFilteredChildren] = useState([]);
 
   useEffect(() => {
-    console.log(children)
     if (children && children.length > 0) {
       setShowForm(false);
 

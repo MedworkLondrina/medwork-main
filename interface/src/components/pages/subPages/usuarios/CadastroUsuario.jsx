@@ -30,10 +30,6 @@ function CadastroUsuario() {
     setSearchTerm(term);
   };
 
-  const handleSearchTypeChange = (type) => {
-    setSearchType(type);
-  };
-
   const handleFilterOptionChange = (option) => {
     setFilterOption(option);
     if (option === 'Nome') {
