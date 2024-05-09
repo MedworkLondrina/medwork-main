@@ -39,7 +39,7 @@ function CadastroUnidade() {
   };
 
   const getContatos = async () => {
-    const data = await fetchContatos();
+    const data = await fetchContatos(companyId);
     setContatos(data);
   };
 
@@ -114,6 +114,7 @@ function CadastroUnidade() {
         onEdit={onEdit}
         setOnEdit={setOnEdit}
         getUnidades={get}
+        getContatos={getContatos}
         contato={contatos}
         companyId={companyId}
       />

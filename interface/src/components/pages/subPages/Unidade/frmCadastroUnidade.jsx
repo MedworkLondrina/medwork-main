@@ -6,7 +6,7 @@ import ModalSearchContato from '../components/Modal/ModalSearchContato';
 import icon_add from '../../../media/icon_add.svg';
 import icon_sair from '../../../media/icon_sair.svg';
 
-function FrmCadastroUnidade({ onEdit, setOnEdit, getUnidades, contato, companyId }) {
+function FrmCadastroUnidade({ onEdit, setOnEdit, getUnidades, contato, companyId, getContatos }) {
 
   // Instanciando a variavel que vai referenciar o formulario
   const ref = useRef(null);
@@ -56,6 +56,7 @@ function FrmCadastroUnidade({ onEdit, setOnEdit, getUnidades, contato, companyId
 
   //Função para adicionar ou atualizar dados
   const handleSubmit = async (e) => {
+    console.log(ContatoModal)
     e.preventDefault();
     const userData = JSON.parse(localStorage.getItem("user"));
     const tenant = userData.tenant_code;
@@ -119,6 +120,7 @@ function FrmCadastroUnidade({ onEdit, setOnEdit, getUnidades, contato, companyId
 
     handleClear();
     getUnidades();
+    getContatos();
   };
 
   //Função para limpar os campos

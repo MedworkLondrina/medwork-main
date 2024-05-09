@@ -473,10 +473,6 @@ router.post("/unidades", (req, res) => {
   });
 });
 
-
-
-
-
 router.put("/unidades/:id_unidade", (req, res, next) => {
   const id_unidade = req.params.id_unidade;
   const data = req.body;
@@ -546,12 +542,13 @@ router.put("/unidades/:id_unidade", (req, res, next) => {
     fk_empresa_id,
     id_unidade,
   ];
+
   const contatoValues = [
     nome_contato,
     telefone_contato,
     email_contato,
     email_secundario_contato,
-  ]
+  ];
 
   pool.getConnection((err, con) => {
     if (err) return next(err);
