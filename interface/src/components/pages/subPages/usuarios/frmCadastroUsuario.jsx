@@ -80,21 +80,30 @@ function FrmCadastroUsuario({ onEdit, setOnEdit, getUsuario, usuarios }) {
 		const nome = userData.nome_usuario;
 		const queryParams = new URLSearchParams({ tenant_code: tenant, nome_usuario: nome }).toString();
 		const form = ref.current;
-
-		const res = await signIn(email, form.nome_usuario.value);
-
-		if (res === "existe") {
-			handleClear();
-			return;
-		} else {
-			if (
-				!form.nome_usuario.value ||
-				!form.cpf_usuario.value ||
-				!form.email.value ||
-				tipo === '0') {
-				return toast.warn("Preencha Todos os Campos!")
+	
+		if (
+			!form.nome_usuario.value ||
+			!form.cpf_usuario.value ||
+			!form.email.value ||
+			tipo === '0'
+		) {
+			return toast.warn("Preencha Todos os Campos!")
+		}
+	
+		try {
+			const existingUser = usuarios.find((user) => user.email === email);
+			if (existingUser) {
+				toast.warn("E-mail de usuário já cadastrado!");
+				handleClear()
+				return;
 			}
-			try {
+	
+			const res = await signIn(email, password, form.nome_usuario.value);
+	
+			if (res === "existe") {
+				handleClear();
+				return;
+			} else {
 				const formData = {
 					nome_usuario: form.nome_usuario.value || "",
 					cpf_usuario: cpf || "",
@@ -102,14 +111,13 @@ function FrmCadastroUsuario({ onEdit, setOnEdit, getUsuario, usuarios }) {
 					tipo: tipo || "0",
 					fk_tenant_code: tenant,
 				}
-
+	
 				const url = onEdit
 					? `${connect}/usuarios/${onEdit.id_usuario}?${queryParams}`
 					: `${connect}/usuarios?${queryParams}`;
-
-
+	
 				const method = onEdit ? 'PUT' : 'POST';
-
+	
 				const response = await fetch(url, {
 					method,
 					headers: {
@@ -117,23 +125,26 @@ function FrmCadastroUsuario({ onEdit, setOnEdit, getUsuario, usuarios }) {
 					},
 					body: JSON.stringify(formData),
 				});
-
+	
 				if (!response.ok) {
 					throw new Error(`Erro ao cadastrar/Editar Usuário. Status: ${response.status}`);
 				};
-
+	
 				const responseData = await response.json();
-
+	
 				toast.success(responseData);
-			} catch (error) {
-				toast.warn("Erro ao cadastrar/atualizar o usuário")
-				console.log("Erro ao cadastrar/atualizar Usuário", error)
 			}
-			handleClear();
-			setOnEdit(null);
-			getUsuario();
+		} catch (error) {
+			toast.error("Ocorreu um erro ao cadastrar o usuário.");
+			console.error("Erro ao cadastrar usuário:", error);
 		}
+	
+		handleClear();
+		setOnEdit(null);
+		getUsuario();
 	}
+	
+	
 
 	const handleClear = () => {
 		const user = ref.current;
