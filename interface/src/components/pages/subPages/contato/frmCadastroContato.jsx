@@ -23,6 +23,10 @@ function FrmCadastroContato({ setContatoData, onEdit, contact }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const user = ref.current;
+    const userData = JSON.parse(localStorage.getItem("selectedCompanyData"));
+    console.log(userData)
+    const companyId = userData.id_empresa
+    console.log(companyId)
 
     if (
       !user.nome_contato.value) {
@@ -40,6 +44,7 @@ function FrmCadastroContato({ setContatoData, onEdit, contact }) {
         email_contato: user.email_contato.value || '',
         email_secundario_contato: user.email_secundario_contato.value || '',
         ativo: 1,
+        fk_empresa_id: companyId
       }
       setContatoData(contatoData);
     } catch (error) {
