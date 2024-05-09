@@ -3,7 +3,6 @@ import React, { useState } from "react";
 import { BsFillPencilFill } from 'react-icons/bs';
 import { FiLink } from "react-icons/fi";
 import ModalRiscoMedidas from "../components/Modal/ModalRiscoMedidas";
-import { toast } from "react-toastify";
 
 function GridRiscos({ riscos, setOnEdit }) {
 
@@ -56,20 +55,12 @@ function GridRiscos({ riscos, setOnEdit }) {
 
   return (
     <>
-      <div className="relative flex justify-center -mb-8 mt-4 px-1">
-        <div className='w-5/6 flex justify-end'>
-          <p className='text-sm'>Legenda - <span className='font-medium'>L:</span> Local <span className='font-medium'>G:</span> Global </p>
-        </div>
-      </div>
       <div className="relative overflow-x-auto sm:rounded-lg flex sm:justify-center">
         <table className="w-full xl:w-5/6 shadow-md text-sm m-8 text-left rtl:text-right text-gray-500">
           <thead className="text-xs text-gray-700 uppercase bg-gray-50">
             <tr>
-              <th scope="col" className="px-4 py-3 text-center">
+              <th scope="col" className="px-4 py-3">
                 ID
-              </th>
-              <th scope="col" className="px-4 py-3 text-center">
-                Tipo
               </th>
               <th scope="col" className="px-4 py-3">
                 Risco
@@ -77,7 +68,7 @@ function GridRiscos({ riscos, setOnEdit }) {
               <th scope="col" className="px-4 py-3">
                 Grupo
               </th>
-              <th scope="col" className="px-4 py-3 text-center">
+              <th scope="col" className="px-4 py-3">
                 E-social
               </th>
               <th scope="col" className="px-4 py-3 text-center">
@@ -95,69 +86,44 @@ function GridRiscos({ riscos, setOnEdit }) {
             </tr>
           </thead>
           <tbody>
-            {riscos.sort((a, b) => {
-              if (a.tenant_code !== null && b.tenant_code !== null) {
-                return a.tenant_code - b.tenant_code;
-              }
-              if (a.tenant_code !== null) {
-                return -1;
-              }
-              if (b.tenant_code !== null) {
-                return 1;
-              }
-              return a.id_risco - b.id_risco;
-            })
-              .map((item, i) => (
-                <tr
-                  key={i}
-                  className={`border-b bg-white`}
-                >
-                  <th scope="row" className="px-4 py-4 font-medium text-gray-900 whitespace-nowrap text-center">
-                    {item.id_risco}
-                  </th>
-                  <th scope="row" className="px-4 py-4 font-medium text-gray-900 whitespace-nowrap text-center">
-                    {item.tenant_code !== null ? (
-                      <p className='text-gray-700 font-bold'>L</p>
-                    ) : (
-                      <p className='text-gray-500 font-semibold'>G</p>
-                    )}
-                  </th>
-                  <th scope="row" className="px-4 py-4 font-medium text-gray-900 whitespace-nowrap">
-                    {item.nome_risco}
-                  </th>
-                  <td className="px-4 py-4">
-                    {item.grupo_risco}
-                  </td>
-                  <td className="px-4 py-4 text-center">
-                    {item.codigo_esocial_risco}
-                  </td>
-                  <td className="px-4 py-4 text-center">
-                    {item.nivel_acao_risco} {item.unidade_medida_risco}
-                  </td>
-                  <td className="px-4 py-4 text-center">
-                    {item.limite_tolerancia_risco} {item.unidade_medida_risco}
-                  </td>
-                  <td className="px-4 py-4 text-center">
-                    {filterSeverity(item.severidade_risco)}
-                  </td>
-                  <td className="py-4 px-2">
-                    <div className="gap-4 flex justify-center items-center">
-                      {item.tenant_code !== null ? (
-                        <a className="font-medium text-blue-400 hover:text-blue-800 cursor-pointer">
-                          <BsFillPencilFill onClick={() => handleEdit(item)} />
-                        </a>
-                      ) : (
-                        <a className="font-medium text-gray-300 cursor-not-allowed">
-                          <BsFillPencilFill onClick={() => toast.warn("Não é possível fazer alterações em um risco global!")} />
-                        </a>
-                      )}
-                      <a className={`cursor-pointer text-yellow-500 text-lg`} onClick={() => handleSetModal(item)}>
-                        <FiLink />
-                      </a>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+            {riscos.map((item, i) => (
+              <tr
+                key={i}
+                className={`border-b bg-white`}
+              >
+                <th scope="row" className="px-4 py-4 font-medium text-gray-900 whitespace-nowrap">
+                  {item.id_risco}
+                </th>
+                <th scope="row" className="px-4 py-4 font-medium text-gray-900 whitespace-nowrap">
+                  {item.nome_risco}
+                </th>
+                <td className="px-4 py-4">
+                  {item.grupo_risco}
+                </td>
+                <td className="px-4 py-4">
+                  {item.codigo_esocial_risco}
+                </td>
+                <td className="px-4 py-4 text-center">
+                  {item.nivel_acao_risco} {item.unidade_medida_risco}
+                </td>
+                <td className="px-4 py-4 text-center">
+                  {item.limite_tolerancia_risco} {item.unidade_medida_risco}
+                </td>
+                <td className="px-4 py-4 text-center">
+                  {filterSeverity(item.severidade_risco)}
+                </td>
+                <td className="py-4 px-2">
+                  <div className="gap-4 flex justify-center items-center">
+                    <a className="font-medium text-blue-400 hover:text-blue-800 cursor-pointer">
+                      <BsFillPencilFill onClick={() => handleEditClick(item)} />
+                    </a>
+                    <a className={`cursor-pointer text-yellow-500 text-lg`} onClick={() => handleSetModal(item)}>
+                      <FiLink />
+                    </a>
+                  </div>
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>

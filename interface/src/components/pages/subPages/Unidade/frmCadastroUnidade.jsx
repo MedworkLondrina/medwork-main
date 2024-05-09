@@ -81,7 +81,7 @@ function FrmCadastroUnidade({ onEdit, setOnEdit, getUnidades, contato, companyId
         cidade_unidade: user.cidade_unidade.value || null,
         bairro_unidade: user.bairro_unidade.value || null,
         uf_unidade: user.uf_unidade.value || null,
-        fk_contato_id: contatoId || null,
+        fk_contato_id: user.fk_contato_id || 1,
         fk_empresa_id: companyId || null,
         ativo: 1,
       };

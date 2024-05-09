@@ -229,22 +229,22 @@ router.put("/empresas/:id_empresa", (req, res, next) => {
     con.beginTransaction((err) => {
       if (err) return next(err);
 
-        con.query(qEmpresa, [...empresaValues, idEmpresa], (err, result) => {
+      con.query(qEmpresa, [...empresaValues, idEmpresa], (err, result) => {
+        if (err) return con.rollback(() => next(err));
+
+        if (result.affectedRows === 0) {
+          return res.status(404).json({ error: 'Empresa não encontrada' });
+        }
+
+        con.query(qObterFkContatoId, [idEmpresa], (err, result) => {
           if (err) return con.rollback(() => next(err));
 
-          if (result.affectedRows === 0) {
-            return res.status(404).json({ error: 'Empresa não encontrada' });
-          }
+          const fkContatoId = result[0].fk_contato_id;
+          console.log(fkContatoId)
 
-          con.query(qObterFkContatoId, [idEmpresa], (err, result) => {
-            if (err) return con.rollback(() => next(err));
-    
-            const fkContatoId = result[0].fk_contato_id;
-            console.log(fkContatoId)
-    
-            if (!fkContatoId) {
-              return res.status(404).json({ error: 'Contato não encontrado para a empresa' });
-            }
+          if (!fkContatoId) {
+            return res.status(404).json({ error: 'Contato não encontrado para a empresa' });
+          }
           // Atualiza os dados do contato
           con.query(qContato, [...contatoValues, fkContatoId], (err) => {
             if (err) return con.rollback(() => next(err));
@@ -337,23 +337,23 @@ router.post("/unidades", (req, res) => {
   const { unidade_data, contato_data } = req.body;
   const nomeUsuario = req.query.nome_usuario;
   const tenant = req.query.tenant_code;
+  const data = req.body;
 
-  const insertUnidadeQuery = "INSERT INTO unidades SET?";
-  const updateUnidadeQuery = "UPDATE unidades SET fk_contato_id =? WHERE id_unidade =?";
-  const selectContatoQuery = "SELECT id_contato FROM contatos WHERE email_contato =?";
+  const insertContatoQuery = "INSERT INTO contatos SET ?";
+  const insertUnidadeQuery = "INSERT INTO unidades SET ?";
+  const updateUnidadeQuery = "UPDATE unidades SET fk_contato_id = ? WHERE id_unidade = ?";
+  const selectContatoQuery = "SELECT id_contato FROM contatos WHERE email_contato = ?";
 
   pool.getConnection((err, con) => {
     if (err) {
       console.error("Erro ao obter conexão do pool", err);
       return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
     }
-
     con.beginTransaction((err) => {
       if (err) {
         console.error("Erro ao iniciar transação", err);
         return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
       }
-
       con.query(insertUnidadeQuery, unidade_data, (err, unidadeResult) => {
         if (err) {
           console.error("Erro ao inserir unidade na tabela", err);
@@ -375,11 +375,11 @@ router.post("/unidades", (req, res) => {
             });
           }
 
-          let id_contato = contatoResult[0].id_contato;
+          let id_contato;
 
           // Se o contato não existir, insira-o e obtenha o ID
-          if (!id_contato) {
-            con.query(insertContatoQuery, contato_data, (err, contatoResult) => {
+          if (contatoResult.length === 0) {
+            con.query(insertContatoQuery, contato_data, (err, contatoInsertResult) => {
               if (err) {
                 console.error("Erro ao inserir contato na tabela", err);
                 con.rollback(() => {
@@ -387,64 +387,102 @@ router.post("/unidades", (req, res) => {
                   return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
                 });
               } else {
-                id_contato = contatoResult.insertId;
+                id_contato = contatoInsertResult.insertId;
+                // Atualiza a unidade com o ID do novo contato
+                con.query(updateUnidadeQuery, [id_contato, id_unidade], (err, result) => {
+                  if (err) {
+                    console.error("Erro ao atualizar unidade na tabela", err);
+                    con.rollback(() => {
+                      console.error("Transação revertida devido a erro", err);
+                      return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
+                    });
+                    return; // Retornar após o rollback
+                  }
+                  con.commit((err) => {
+                    if (err) {
+                      console.error("Erro ao confirmar transação", err);
+                      con.rollback(() => {
+                        console.error("Transação revertida devido a erro", err);
+                        return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
+                      });
+                    }
+
+                    const formatBody = (obj) => {
+                      let formatted = '';
+                      for (const key in obj) {
+                        if (obj.hasOwnProperty(key)) {
+                          formatted += `${key}: ${obj[key]}, `;
+                        }
+                      }
+                      return formatted.slice(0, -2); // Remove a última vírgula e espaço
+                    };
+                    const bodyString_unidade = formatBody(data.unidade_data)
+                    const bodyString_contato = formatBody(data.contato_data)
+
+                    registrarLog('unidades', 'create', `Cadastrou Unidade`, `${nomeUsuario}`, tenant, new Date(), bodyString_unidade);
+                    registrarLog('contatos', 'create', `Cadastrou Contato`, `${nomeUsuario}`, tenant, new Date(), bodyString_contato);
+
+                    return res.status(200).json(`Unidade e Contato cadastrados com sucesso!`);
+                  });
+                });
               }
             });
-          }
-
-          // Atualiza a unidade com o ID do contato
-          con.query(updateUnidadeQuery, [id_contato, id_unidade], (err, result) => {
-            if (err) {
-              console.error("Erro ao atualizar unidade na tabela", err);
-              con.rollback(() => {
-                console.error("Transação revertida devido a erro", err);
-                return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
-              });
-              return; // Retornar após o rollback
-            }
-
-            con.commit((err) => {
+          } else {
+            id_contato = contatoResult[0].id_contato;
+            // Atualiza a unidade com o ID do contato existente
+            con.query(updateUnidadeQuery, [id_contato, id_unidade], (err, result) => {
               if (err) {
-                console.error("Erro ao confirmar transação", err);
+                console.error("Erro ao atualizar unidade na tabela", err);
                 con.rollback(() => {
                   console.error("Transação revertida devido a erro", err);
                   return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
                 });
+                return; // Retornar após o rollback
               }
-
-              const formatBody = (obj) => {
-                let formatted = '';
-                for (const key in obj) {
-                  if (obj.hasOwnProperty(key)) {
-                    formatted += `${key}: ${obj[key]}, `;
-                  }
+              con.commit((err) => {
+                if (err) {
+                  console.error("Erro ao confirmar transação", err);
+                  con.rollback(() => {
+                    console.error("Transação revertida devido a erro", err);
+                    return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
+                  });
                 }
-                return formatted.slice(0, -2);
-              };
-              const bodyString_unidade = formatBody(unidade_data)
-              const bodyString_contato = formatBody(contato_data)
 
-              registrarLog('unidades', 'create', `Cadastrou Unidade`, `${nomeUsuario}`, tenant, new Date(), bodyString_unidade);
-              registrarLog('contatos', 'create', `Cadastrou Contato`, `${nomeUsuario}`, tenant, new Date(), bodyString_contato);
+                const formatBody = (obj) => {
+                  let formatted = '';
+                  for (const key in obj) {
+                    if (obj.hasOwnProperty(key)) {
+                      formatted += `${key}: ${obj[key]}, `;
+                    }
+                  }
+                  return formatted.slice(0, -2); // Remove a última vírgula e espaço
+                };
+                const bodyString_unidade = formatBody(data.unidade_data)
+                const bodyString_contato = formatBody(data.contato_data)
 
-              return res.status(200).json(`Unidade e Contato cadastrados com sucesso`);
+                registrarLog('unidades', 'create', `Cadastrou Unidade`, `${nomeUsuario}`, tenant, new Date(), bodyString_unidade);
+                // Não é necessário registrar o contato existente, pois não foi criado um novo
+                return res.status(200).json(`Unidade cadastrada com sucesso e associada ao Contato existente!`);
+              });
             });
-          });
+          }
         });
       });
     });
-
     con.release();
   });
 });
 
-//Update row in table
+
+
+
+
 router.put("/unidades/:id_unidade", (req, res, next) => {
-  const id_unidade = req.params.id_unidade; // Obtém o ID da unidade da URL
+  const id_unidade = req.params.id_unidade;
   const data = req.body;
-  console.log(data)
   const nome = req.query.nome_usuario;
   const tenant = req.query.tenant_code;
+
   const {
     unidade_data: {
       nome_unidade,
@@ -456,43 +494,45 @@ router.put("/unidades/:id_unidade", (req, res, next) => {
       bairro_unidade,
       cidade_unidade,
       uf_unidade,
-      fk_contato_id,
       fk_empresa_id,
-
     },
     contato_data: {
       nome_contato,
       telefone_contato,
       email_contato,
       email_secundario_contato,
+      ativo,
     }
   } = data;
-  console.log(data)
+
+  // Query para atualizar a unidade
   const qUnidade = `
-  UPDATE unidades
-  SET nome_unidade = ?,
-  cnpj_unidade = ?,
-  cep_unidade = ?,
-  endereco_unidade = ?,
-  numero_unidade = ?,
-  complemento = ?,
-  bairro_unidade = ?,
-  cidade_unidade = ?,
-  uf_unidade = ?,
-  fk_contato_id = ?,
-  fk_empresa_id = ?
-  WHERE id_unidade = ?
-`;
+      UPDATE unidades
+      SET nome_unidade =?,
+          cnpj_unidade =?,
+          cep_unidade =?,
+          endereco_unidade =?,
+          numero_unidade =?,
+          complemento =?,
+          bairro_unidade =?,
+          cidade_unidade =?,
+          uf_unidade =?,
+          fk_empresa_id =?
+      WHERE id_unidade =?
+  `;
 
+  // Query para atualizar o contato
   const qContato = `
-  UPDATE contatos
-  SET nome_contato = ?,
-  telefone_contato = ?,
-  email_contato = ?,
-  email_secundario_contato = ?
-  WHERE id_contato = ?
-`;
+      UPDATE contatos
+      SET nome_contato =?,
+          telefone_contato =?,
+          email_contato =?,
+          email_secundario_contato =?,
+          ativo = 1
+      WHERE id_contato =?
+  `;
 
+  // Valores para a unidade
   const unidadeValues = [
     nome_unidade,
     cnpj_unidade,
@@ -503,56 +543,71 @@ router.put("/unidades/:id_unidade", (req, res, next) => {
     bairro_unidade,
     cidade_unidade,
     uf_unidade,
-    fk_contato_id,
     fk_empresa_id,
     id_unidade,
   ];
-
   const contatoValues = [
     nome_contato,
     telefone_contato,
     email_contato,
     email_secundario_contato,
-    fk_contato_id
-  ];
+  ]
 
   pool.getConnection((err, con) => {
     if (err) return next(err);
-
     // Inicia a transação
     con.beginTransaction((err) => {
       if (err) return next(err);
-
       // Atualiza os dados da unidade
       con.query(qUnidade, unidadeValues, (err, resultUnidade) => {
         if (err) return con.rollback(() => next(err));
-
         if (resultUnidade.affectedRows === 0) {
           return res.status(404).json({ error: 'Unidade não encontrada' });
         }
 
-        // Atualiza os dados do contato
-        con.query(qContato, contatoValues, (err, resultContato) => {
-          if (err) return con.rollback(() => next(err));
-
-          // Commit da transação se todas as consultas forem bem-sucedidas
-          con.commit((err) => {
+        const qObterFkContatoId = `SELECT fk_contato_id FROM unidades WHERE id_unidade =?`;
+        con.query(qObterFkContatoId, [id_unidade], (err, resultContatoId) => {
             if (err) return con.rollback(() => next(err));
+        
+            const fkContatoId = resultContatoId[0].fk_contato_id;
+            console.log(`fkContatoId: ${fkContatoId}`);
+            // Agora, atualize a tabela de contatos usando o fk_empresa_id obtido
+            con.query(qContato, [...contatoValues, fkContatoId], (err, resultContato) => {
+              if (err) return con.rollback(() => next(err));
 
-            // Se a transação for bem-sucedida, registra o log e envia a resposta
-            registrarLog('unidades', 'put', `Alterou Unidade`, `${nome}`, tenant, new Date());
-            registrarLog('contatos', 'put', `Alterou Contato`, `${nome}`, tenant, new Date());
+            // Commit da transação se todas as consultas forem bem-sucedidas
+            con.commit((err) => {
+              if (err) return con.rollback(() => next(err));
 
-            res.status(200).json("Unidade atualizada com sucesso!");
+              // Se a transação for bem-sucedida, registra o log e envia a resposta
+              const formatBody = (obj) => {
+                let formatted = '';
+                for (const key in obj) {
+                  if (obj.hasOwnProperty(key)) {
+                    formatted += `${key}: ${obj[key]}, `;
+                  }
+                }
+                return formatted.slice(0, -2); // Remove a última vírgula e espaço
+              };
+
+              const bodyString_unidade = formatBody(data.unidade_data)
+              const bodyString_contato = formatBody(data.contato_data)
+
+              registrarLog('unidades', 'put', `Alterou Unidade`, `${nome}`, tenant, new Date(), bodyString_unidade);
+              registrarLog('contatos', 'put', `Alterou Contato`, `${nome}`, tenant, new Date(), bodyString_contato);
+              res.status(200).json("Unidade atualizada com sucesso!");
+            });
           });
-        });
-      });
 
-      // Libera a conexão somente após a conclusão da transação
-      con.release();
-    });
+
+        });
+      })
+    })
+    con.release();
   });
 });
+
+
 
 //Desactivate row in table
 router.put("/unidades/activate/:id_unidade", (req, res) => {
@@ -1290,7 +1345,7 @@ router.get("/conclusoes", (req, res) => {
   pool.getConnection((err, con) => {
     if (err) return next(err);
 
-    con.query(q, riscoid,(err, data) => {
+    con.query(q, riscoid, (err, data) => {
       if (err) return res.status(500).json(err);
 
       return res.status(200).json(data);
@@ -2787,7 +2842,7 @@ router.post("/elaboradores", (req, res) => {
 //   .post(async (req, res) => {
 //     const table = req.params.table;
 //     const data = req.body;
-    // const nome = req.query.nome_usuario
+// const nome = req.query.nome_usuario
 //     const tenant = req.query.tenant_code
 
 //     const q = `INSERT INTO ${table} SET ?`
@@ -2801,16 +2856,16 @@ router.post("/elaboradores", (req, res) => {
 //           return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
 //         }
 
-        // const formatBody = (obj) => {
-        //   let formatted = '';
-        //   for (const key in obj) {
-        //     if (obj.hasOwnProperty(key)) {
-        //       formatted += `${key}: ${obj[key]}, `;
-        //     }
-        //   }
-        //   return formatted.slice(0, -2); // Remove a última vírgula e espaço
-        // };
-        // const bodyString = formatBody(data)
+// const formatBody = (obj) => {
+//   let formatted = '';
+//   for (const key in obj) {
+//     if (obj.hasOwnProperty(key)) {
+//       formatted += `${key}: ${obj[key]}, `;
+//     }
+//   }
+//   return formatted.slice(0, -2); // Remove a última vírgula e espaço
+// };
+// const bodyString = formatBody(data)
 
 //         registrarLog('elaboradores', 'create', `Cadastrou Elaborador`, `${nome}`, tenant, new Date(), bodyString);
 

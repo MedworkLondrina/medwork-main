@@ -28,13 +28,13 @@ function GridProcesso({ processos, setOnEdit }) {
 
   return (
     <>
-      <div className="relative flex justify-center mt-4 -mb-8 px-1">
+      <div className="relative flex justify-center">
         <div className='w-5/6 flex justify-end'>
           <p className='text-sm'>Legenda - <span className='font-medium'>L:</span> Local <span className='font-medium'>G:</span> Global </p>
         </div>
       </div>
       <div className="relative overflow-x-auto sm:rounded-lg flex sm:justify-center">
-        <table className="w-full xl:w-5/6 shadow-md text-sm m-8 text-left rtl:text-right text-gray-500">
+        <table className="w-full xl:w-5/6 shadow-md text-sm mb-8 text-left rtl:text-right text-gray-500">
           <thead className="text-xs text-gray-700 uppercase bg-gray-50">
             <tr>
               <th scope="col" className="px-4 py-3 text-center w-1/12">
