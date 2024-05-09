@@ -58,8 +58,8 @@ function Gestao() {
             </Link>
           </figure>
           {/* Import */}
-          <figure className="flex flex-col justify-center">
-            <Link to="/importxlsx">
+          <figure className="flex flex-col justify-center opacity-25">
+            <Link to="/gestao" className="cursor-not-allowed">
               <BotaoImportCsv />
             </Link>
           </figure>

@@ -1800,12 +1800,13 @@ router.put("/medidas_epc/:id_medida", (req, res) => {
 //Tabela Usuarios
 //Get table
 router.get("/usuarios", (req, res) => {
-  const q = `SELECT * FROM usuarios`;
+  const tenant = req.query.tenant_code;
+  const q = `SELECT * FROM usuarios WHERE fk_tenant_code = ?`;
 
   pool.getConnection((err, con) => {
     if (err) return next(err);
 
-    con.query(q, (err, data) => {
+    con.query(q, tenant, (err, data) => {
       if (err) return res.status(500).json(err);
 
       return res.status(200).json(data);
@@ -2156,8 +2157,13 @@ router.post('/login', async (req, res) => {
         console.error('Erro ao buscar usuário pelo email', err);
         return res.status(500).json({ message: 'Erro interno do servidor' });
       }
+
       if (!userData) {
         return res.status(401).json({ message: 'Usuário não encontrado' });
+      }
+
+      if (userData[0].ativo === 0) {
+        return res.status(401).json({ message: 'Conta inativa' });
       }
 
       const user = userData[0];

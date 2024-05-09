@@ -6,7 +6,7 @@ import useAuth from '../../../../hooks/useAuth'
 
 function FrmCadastroUsuario({ onEdit, setOnEdit, getUsuario, usuarios }) {
 
-	const { checkSignIn, user } = useAuth(null);
+	const { checkSignIn } = useAuth(null);
 
 	const ref = useRef(null);
 
@@ -41,10 +41,8 @@ function FrmCadastroUsuario({ onEdit, setOnEdit, getUsuario, usuarios }) {
 	const signIn = async (email, password, displayName) => {
 		try {
 			const users = usuarios.filter((i) => i.email === email);
-			console.log(users)
 
 			if (users.length > 0) {
-				// Envia os dados para a rota de atualização
 				const response = await fetch(`/usuarios/${users[0].id_usuario}`, {
 					method: 'PUT',
 					headers: {

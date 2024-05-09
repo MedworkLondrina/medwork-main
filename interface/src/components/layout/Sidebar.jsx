@@ -105,7 +105,7 @@ function Sidebar() {
     setContatos(resCon);
   };
 
-  // Secondary
+  // Second
   useEffect(() => {
     get();
   }, [loginUser]);

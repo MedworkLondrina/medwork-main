@@ -56,7 +56,6 @@ function FrmCadastroUnidade({ onEdit, setOnEdit, getUnidades, contato, companyId
 
   //Função para adicionar ou atualizar dados
   const handleSubmit = async (e) => {
-    console.log(ContatoModal)
     e.preventDefault();
     const userData = JSON.parse(localStorage.getItem("user"));
     const tenant = userData.tenant_code;
