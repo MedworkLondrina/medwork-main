@@ -517,60 +517,44 @@ router.put("/unidades/:id_unidade", (req, res, next) => {
       WHERE id_unidade =?
   `;
 
-  // Query para atualizar o contato
-  const qContato = `
-      UPDATE contatos
-      SET nome_contato =?,
-          telefone_contato =?,
-          email_contato =?,
-          email_secundario_contato =?,
-          ativo = 1
-      WHERE id_contato =?
-  `;
-
-  // Valores para a unidade
-  const unidadeValues = [
-    nome_unidade,
-    cnpj_unidade,
-    cep_unidade,
-    endereco_unidade,
-    numero_unidade,
-    complemento,
-    bairro_unidade,
-    cidade_unidade,
-    uf_unidade,
-    fk_empresa_id,
-    id_unidade,
-  ];
-
-  const contatoValues = [
-    nome_contato,
-    telefone_contato,
-    email_contato,
-    email_secundario_contato,
-  ];
-
+  // Verifique se o contato já existe no banco de dados
+  const qVerificarContatoExistente = `SELECT id_contato FROM contatos WHERE nome_contato = ? AND email_contato = ?`;
   pool.getConnection((err, con) => {
     if (err) return next(err);
     // Inicia a transação
     con.beginTransaction((err) => {
       if (err) return next(err);
-      // Atualiza os dados da unidade
-      con.query(qUnidade, unidadeValues, (err, resultUnidade) => {
+      // Verifica se o contato já existe
+      con.query(qVerificarContatoExistente, [nome_contato, email_contato], (err, resultContatoExistente) => {
         if (err) return con.rollback(() => next(err));
-        if (resultUnidade.affectedRows === 0) {
-          return res.status(404).json({ error: 'Unidade não encontrada' });
+
+        let novoFkContatoId;
+
+        // Se o contato existir, obtenha o id_contato correspondente
+        if (resultContatoExistente.length > 0) {
+          novoFkContatoId = resultContatoExistente[0].id_contato;
+        } else {
+          // Se o contato não existir, insira um novo contato e obtenha seu id_contato
+          const qInserirNovoContato = `INSERT INTO contatos (nome_contato, telefone_contato, email_contato, email_secundario_contato, ativo) VALUES (?, ?, ?, ?, 1)`;
+          const novoContatoValues = [nome_contato, telefone_contato, email_contato, email_secundario_contato];
+
+          con.query(qInserirNovoContato, novoContatoValues, (err, resultNovoContato) => {
+            if (err) return con.rollback(() => next(err));
+            novoFkContatoId = resultNovoContato.insertId;
+          });
         }
 
-        const qObterFkContatoId = `SELECT fk_contato_id FROM unidades WHERE id_unidade =?`;
-        con.query(qObterFkContatoId, [id_unidade], (err, resultContatoId) => {
+        // Atualize o fk_contato_id da unidade com o novo id_contato
+        const qAtualizarFkContatoId = `UPDATE unidades SET fk_contato_id = ? WHERE id_unidade = ?`;
+        con.query(qAtualizarFkContatoId, [novoFkContatoId, id_unidade], (err, resultAtualizarFkContatoId) => {
+          if (err) return con.rollback(() => next(err));
+
+          // Atualize os dados da unidade
+          con.query(qUnidade, [nome_unidade, cnpj_unidade, cep_unidade, endereco_unidade, numero_unidade, complemento, bairro_unidade, cidade_unidade, uf_unidade, fk_empresa_id, id_unidade], (err, resultUnidade) => {
             if (err) return con.rollback(() => next(err));
-        
-            const fkContatoId = resultContatoId[0].fk_contato_id;
-            console.log(`fkContatoId: ${fkContatoId}`);
-            // Agora, atualize a tabela de contatos usando o fk_empresa_id obtido
-            con.query(qContato, [...contatoValues, fkContatoId], (err, resultContato) => {
-              if (err) return con.rollback(() => next(err));
+            if (resultUnidade.affectedRows === 0) {
+              return res.status(404).json({ error: 'Unidade não encontrada' });
+            }
 
             // Commit da transação se todas as consultas forem bem-sucedidas
             con.commit((err) => {
@@ -595,14 +579,13 @@ router.put("/unidades/:id_unidade", (req, res, next) => {
               res.status(200).json("Unidade atualizada com sucesso!");
             });
           });
-
-
         });
-      })
-    })
+      });
+    });
     con.release();
   });
 });
+
 
 
 
