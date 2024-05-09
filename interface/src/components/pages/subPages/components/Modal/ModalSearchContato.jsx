@@ -3,6 +3,7 @@ import { IoAddCircle, IoSearchCircle } from "react-icons/io5";
 
 import FrmContato from '../../contato/frmCadastroContato';
 import SearchInput from '../SearchInput';
+import { toast } from 'react-toastify';
 
 const ModalSearchEmpresa = ({ onCancel, isOpen, children, onContactSelect, contact }) => {
 
@@ -11,6 +12,7 @@ const ModalSearchEmpresa = ({ onCancel, isOpen, children, onContactSelect, conta
   const [filteredChildren, setFilteredChildren] = useState([]);
 
   useEffect(() => {
+    console.log(children)
     if (children && children.length > 0) {
       setShowForm(false);
 
