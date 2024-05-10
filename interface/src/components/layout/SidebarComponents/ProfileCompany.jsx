@@ -1,15 +1,20 @@
 import React, { useEffect, useState } from "react";
 import useAuth from "../../../hooks/useAuth";
+import Swal from 'sweetalert2';
+
 import icon_alerta from '../../media/icons_sup/icon_alerta.png';
 import icon_perigo from '../../media/icons_sup/icon_perigo.png';
 import LoadingScreen from "../../pages/subPages/components/LoadingScreen";
 import { IoIosArrowDown } from "react-icons/io";
 import { IoIosArrowUp } from "react-icons/io";
 import { IoAddCircle } from "react-icons/io5";
+import { BsTrash3Fill } from "react-icons/bs";
 
 import ModalSetorProcesso from '../../pages/subPages/components/Modal/ModalSetorProcesso';
 import ModalProcessoRisco from '../../pages/subPages/components/Modal/ModalProcessoRisco';
 import ModalRiscoMedida from '../../pages/subPages/components/Modal/ModalRiscoMedidas';
+import { toast } from "react-toastify";
+import { connect } from "../../../services/api";
 
 function ProfileCompany({ companyId, empresas, contatos }) {
 
@@ -44,6 +49,8 @@ function ProfileCompany({ companyId, empresas, contatos }) {
   const [medidasData, setMedidasData] = useState([]);
   const [setorSelecionado, setSetorSelecionado] = useState('');
   const [loading, setLoading] = useState(false);
+  const [loadingRisco, setLoadingRisco] = useState(false);
+  const [loadingMedida, setLoadingMedida] = useState(false);
   const [showRiscosProc, setShowRiscosProc] = useState(false);
   const [showMedidasRisk, setShowMedidasRisk] = useState(false);
   const [selectedProcessoId, setSelectedProcessoId] = useState(null);
@@ -117,6 +124,7 @@ function ProfileCompany({ companyId, empresas, contatos }) {
 
   const carregarInformações = async (item) => {
     try {
+      setLoading(true);
       const sector = setoresData.find((i) => i.id_setor === item);
       setSelectedSetor(sector);
       if (sector) {
@@ -139,6 +147,7 @@ function ProfileCompany({ companyId, empresas, contatos }) {
         setSelectedSetor(null);
         setShowSetorData(false);
       }
+      setLoading(false);
     } catch (error) {
       console.error(`Erro ao buscar setores. Status ${error}`);
     }
@@ -146,6 +155,7 @@ function ProfileCompany({ companyId, empresas, contatos }) {
 
   const carregarRiscos = async (idProcesso) => {
     try {
+      setLoadingRisco(true);
       const procRisc = await getProcessosRiscos();
       const risc = await getRiscos();
 
@@ -156,6 +166,7 @@ function ProfileCompany({ companyId, empresas, contatos }) {
 
       const orderRiscos = filteredRiscos.sort((a, b) => b.id_risco - a.id_risco);
       setRiscosData(orderRiscos);
+      setLoadingRisco(false);
     } catch (error) {
       console.error(`Erro ao carregar riscos. Status: ${error}`);
     }
@@ -163,6 +174,7 @@ function ProfileCompany({ companyId, empresas, contatos }) {
 
   const carregarMedidas = async (idRisco) => {
     try {
+      setLoadingMedida(true);
       const riscMed = await getRiscosMedidas();
       const med = await fetchMedidas('all');
 
@@ -173,6 +185,7 @@ function ProfileCompany({ companyId, empresas, contatos }) {
 
       const orderMedidas = filteredMedidas.sort((a, b) => b.id_medida - a.id_medida);
       setMedidasData(orderMedidas);
+      setLoadingMedida(false);
     } catch (error) {
       console.error(`Erro ao carregar medidas. Status: ${error}`);
     }
@@ -261,20 +274,113 @@ function ProfileCompany({ companyId, empresas, contatos }) {
   const openModalRiscoMedida = () => setShowModalRiscoMedida(true);
 
   const closeModalSetorProcesso = async () => {
-    await carregarInformações(selectedSetor.id_setor);
     setShowModalSetorProcesso(false);
+    await carregarInformações(selectedSetor.id_setor);
   };
   const closeModalProcessoRisco = async () => {
+    setShowModalProcessoRisco(false);
     await carregarRiscos(selectedProcesso.id_processo);
     setSelectedProcessoId(selectedProcesso.id_processo);
     setShowRiscosProc(true);
-    setShowModalProcessoRisco(false);
   };
   const closeModalRiscoMedida = async () => {
+    setShowModalRiscoMedida(false);
     await carregarMedidas(selectedRisco.id_risco);
     setSelectedRiscoId(selectedRisco.id_risco);
     setShowMedidasRisk(true);
-    setShowModalRiscoMedida(false);
+  };
+
+  const handleDeleteProcesso = async (idProcesso) => {
+    try {
+      const result = await Swal.fire({
+        title: 'Tem certeza?',
+        text: 'Você está prestes a excluir este item!',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Sim, exclua!',
+        cancelButtonText: 'Cancelar',
+        reverseButtons: true,
+      });
+      if (result.isConfirmed) {
+        const setProc = await getSetoresProcessos();
+        const filterProc = setProc.filter((item) => item.fk_setor_id === selectedSetor.id_setor && item.fk_processo_id === idProcesso);
+        const response = await fetch(`${connect}/setores_processos/${filterProc[0].id_setor_processo}`, {
+          method: 'DELETE',
+        });
+
+        if (!response.ok) {
+          throw new Error(`Erro ao deletar vinculo entre processo e setor. Status: ${response.status}`);
+        }
+
+        const responseData = await response.json();
+        toast.success(responseData.message);
+        carregarInformações(selectedSetor.id_setor);
+      }
+    } catch (error) {
+      console.error(`Erro ao deletar processo e setor. Status: ${error}`);
+    }
+  };
+
+  const handleDeleteRisco = async (idRisco) => {
+    try {
+      const result = await Swal.fire({
+        title: 'Tem certeza?',
+        text: 'Você está prestes a excluir este item!',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Sim, exclua!',
+        cancelButtonText: 'Cancelar',
+        reverseButtons: true,
+      });
+      if (result.isConfirmed) {
+        const procRisc = await getProcessosRiscos();
+        const filterRisc = procRisc.filter((item) => item.fk_processo_id === selectedProcessoId && item.fk_risco_id === idRisco);
+        const response = await fetch(`${connect}/processos_riscos/${filterRisc[0].id_processo_risco}`, {
+          method: 'DELETE',
+        });
+
+        if (!response.ok) {
+          throw new Error(`Erro ao deletar vinculo entre risco e processo. Status: ${response.status}`);
+        }
+
+        const responseData = await response.json();
+        toast.success(responseData.message);
+        carregarRiscos(selectedProcessoId);
+      }
+    } catch (error) {
+      console.error(`Erro ao deletar vinculo entre risco e processo. Status: ${error}`);
+    }
+  };
+
+  const handleDeleteMedida = async (idMedida) => {
+    try {
+      const result = await Swal.fire({
+        title: 'Tem certeza?',
+        text: 'Você está prestes a excluir este item!',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Sim, exclua!',
+        cancelButtonText: 'Cancelar',
+        reverseButtons: true,
+      });
+      if (result.isConfirmed) {
+        const riscMed = await getRiscosMedidas();
+        const filterMed = riscMed.filter((item) => item.fk_risco_id === selectedRiscoId && item.fk_medida_id === idMedida);
+        const response = await fetch(`${connect}/riscos_medidas/${filterMed[0].id_risco_medida}`, {
+          method: 'DELETE',
+        });
+
+        if (!response.ok) {
+          throw new Error(`Erro ao deletar vinculo entre medida e risco. Status: ${response.status}`);
+        }
+
+        const responseData = await response.json();
+        toast.success(responseData.message);
+        carregarMedidas(selectedRiscoId);
+      }
+    } catch (error) {
+      console.error(`Erro ao deletar vinculo entre medida e risco. Status: ${error}`);
+    }
   };
 
   if (!companyId) {
@@ -338,13 +444,13 @@ function ProfileCompany({ companyId, empresas, contatos }) {
                       </div>
                     </div>
                     <div className='col-span-1 text-right px-2'>
-                      <h2 className='text-sky-700 font-bold text-2xl truncate'>{company.cnpj_empresa}</h2>
+                      <h2 className='text-sky-700 font-bold text-2xl truncate'>{showUnidadeData.cnpj_unidade}</h2>
                     </div>
                   </div>
                 </div>
               </>
             )}
-            
+
 
             {setoresData && (
               <div className='w-full grid grid-cols-3'>
@@ -369,7 +475,7 @@ function ProfileCompany({ companyId, empresas, contatos }) {
                   {showSetorData && (
                     <>
                       <h1 className="mb-1 ml-1 font-medium text-gray-600">Setor {selectedSetor.nome_setor}</h1>
-                      <div className='bg-white rounded-r-md px-4 py-2'>
+                      <div className='bg-white rounded-r-md px-4 py-2 relative'>
                         {loading && <LoadingScreen />}
                         <div className="">
                           {/* Cargos */}
@@ -409,7 +515,12 @@ function ProfileCompany({ companyId, empresas, contatos }) {
                                 <li key={item.id_processo}>
                                   <div className={`bg-gray-50 rounded px-4 py-2`}>
                                     <div>
-                                      <p className="text-sm text-gray-700 font-light -mb-1">Processo:</p>
+                                      <div className="flex justify-between items-center">
+                                        <p className="text-sm text-gray-700 font-light -mb-1">Processo:</p>
+                                        <div className="text-sm text-red-600 hover:text-red-700 cursor-pointer" onClick={() => handleDeleteProcesso(item.id_processo)}>
+                                          <BsTrash3Fill />
+                                        </div>
+                                      </div>
                                       <h2 className="text-sky-700 font-medium truncate hover:whitespace-normal">{item.nome_processo}</h2>
                                       <div>
                                         <p className="text-sm text-gray-700 font-light">Cnae's:</p>
@@ -423,7 +534,8 @@ function ProfileCompany({ companyId, empresas, contatos }) {
                                       </div>
                                     </div>
                                     <div className="border-b border-sky-600"></div>
-                                    <div className={`cursor-pointer rounded px-2 bg-white hover:shadow py-1 mt-1 ${showRiscosProc && selectedProcessoId === item.id_processo ? 'shadow' : ''}`}>
+                                    <div className={`relative cursor-pointer rounded px-2 bg-white hover:shadow py-1 mt-1 ${showRiscosProc && selectedProcessoId === item.id_processo ? 'shadow' : ''}`}>
+                                      {loadingRisco && <LoadingScreen />}
                                       <div className="flex items-center justify-between mt-1 mb-1" onClick={() => handleClickProcesso(item.id_processo)}>
                                         <p className="text-sm">Riscos</p>
                                         {/* Mostrar Riscos */}
@@ -461,10 +573,13 @@ function ProfileCompany({ companyId, empresas, contatos }) {
                                                       <p className="text-gray-600 font-bold text-lg">{risco.nome_risco}</p>
                                                     </div>
                                                   </div>
-                                                  <div className="col-span-1 flex justify-end">
+                                                  <div className="col-span-1 flex justify-end items-center gap-2">
                                                     <div className="text-end">
                                                       <p className="text-xs font-thin -mb-1 text-left">E-social:</p>
                                                       <p className="text-gray-600 font-bold text-lg">{risco.codigo_esocial_risco === "N/A" ? "-" : risco.codigo_esocial_risco}</p>
+                                                    </div>
+                                                    <div className="text-sm text-red-600 hover:text-red-700 cursor-pointer" onClick={() => handleDeleteRisco(risco.id_risco)}>
+                                                      <BsTrash3Fill />
                                                     </div>
                                                   </div>
                                                 </div>
@@ -496,7 +611,8 @@ function ProfileCompany({ companyId, empresas, contatos }) {
                                                   </div>
                                                 </div>
                                                 <hr />
-                                                <div className={`cursor-pointer rounded px-2 bg-gray-100 hover:shadow py-1 mt-1 ${showMedidasRisk && selectedRiscoId === risco.id_risco ? '' : ''}`}>
+                                                <div className={`relative cursor-pointer rounded px-2 bg-gray-100 hover:shadow py-1 mt-1 ${showMedidasRisk && selectedRiscoId === risco.id_risco ? '' : ''}`}>
+                                                  {loadingMedida && <LoadingScreen />}
                                                   <div className="flex justify-between items-center text-sky-700 mb-1" onClick={() => handleClickMedidas(risco.id_risco)}>
                                                     <h3 className="text-sm">Medidas</h3>
                                                     <div className="flex items-center gap-2">
@@ -532,8 +648,11 @@ function ProfileCompany({ companyId, empresas, contatos }) {
                                                                     <div className="col-span-3">
                                                                       <p className="text-sky-700 font-medium truncate">{medida.descricao_medida}</p>
                                                                     </div>
-                                                                    <div className="col-span-1 flex justify-end pr-2">
+                                                                    <div className="col-span-1 flex justify-end pr-2 items-center gap-3">
                                                                       <p className="text-sky-700 text-sm">{typeMedida(medida.grupo_medida)}</p>
+                                                                      <div className="text-sm text-red-600 hover:text-red-700 cursor-pointer" onClick={() => handleDeleteMedida(medida.id_medida)}>
+                                                                        <BsTrash3Fill />
+                                                                      </div>
                                                                     </div>
                                                                   </div>
                                                                 </div>

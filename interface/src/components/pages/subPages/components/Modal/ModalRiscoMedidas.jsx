@@ -35,7 +35,7 @@ const ModalRiscoMedidas = ({ onCancel, isOpen, childName, childId, children }) =
   useEffect(() => {
     fetchMedidasGeral();
     fetchRiscosMedidas();
-  }, [childId])
+  }, [isOpen])
 
 
   if (!isOpen) {

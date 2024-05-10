@@ -567,13 +567,13 @@ router.put("/unidades/:id_unidade", (req, res, next) => {
 
         const qObterFkContatoId = `SELECT fk_contato_id FROM unidades WHERE id_unidade =?`;
         con.query(qObterFkContatoId, [id_unidade], (err, resultContatoId) => {
+          if (err) return con.rollback(() => next(err));
+
+          const fkContatoId = resultContatoId[0].fk_contato_id;
+          console.log(`fkContatoId: ${fkContatoId}`);
+          // Agora, atualize a tabela de contatos usando o fk_empresa_id obtido
+          con.query(qContato, [...contatoValues, fkContatoId], (err, resultContato) => {
             if (err) return con.rollback(() => next(err));
-        
-            const fkContatoId = resultContatoId[0].fk_contato_id;
-            console.log(`fkContatoId: ${fkContatoId}`);
-            // Agora, atualize a tabela de contatos usando o fk_empresa_id obtido
-            con.query(qContato, [...contatoValues, fkContatoId], (err, resultContato) => {
-              if (err) return con.rollback(() => next(err));
 
             // Commit da transação se todas as consultas forem bem-sucedidas
             con.commit((err) => {
@@ -2310,8 +2310,6 @@ router.delete("/setores_processos/:id_setor_processo", (req, res) => {
     }
 
     con.query(sql, [id_setor_processo], (err, result) => {
-      con.release();
-
       if (err) {
         console.error("Erro ao deletar o vínculo", err);
         return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
@@ -2380,7 +2378,6 @@ router.delete("/processos_riscos/:id_processo_risco", (req, res) => {
     }
 
     con.query(sql, [id_processo_risco], (err, result) => {
-      con.release();
 
       if (err) {
         console.error("Erro ao deletar o vínculo", err);
@@ -2450,8 +2447,6 @@ router.delete("/riscos_medidas/:id_risco_medida", (req, res) => {
     }
 
     con.query(sql, [id_risco_medida], (err, result) => {
-      con.release();
-
       if (err) {
         console.error("Erro ao deletar o vínculo", err);
         return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
