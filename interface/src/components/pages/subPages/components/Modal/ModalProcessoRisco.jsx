@@ -36,7 +36,7 @@ const ModalProcessoRisco = ({ onCancel, isOpen, childName, childId, children }) 
   useEffect(() => {
     fetchRisco();
     fetchProcessoRisco();
-  }, [childId])
+  }, [isOpen])
 
 
   if (!isOpen) {

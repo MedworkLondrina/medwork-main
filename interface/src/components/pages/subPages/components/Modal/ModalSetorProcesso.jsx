@@ -36,7 +36,7 @@ const ModalProcesso = ({ onCancel, isOpen, setorName, setorId }) => {
   useEffect(() => {
     fetchSetorProcesso();
     fetchProcesso();
-  }, [setorId]);
+  }, [isOpen]);
 
   const findProcesso = (FkprocessoId) => {
     if (!processos) {
