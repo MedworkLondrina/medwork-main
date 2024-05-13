@@ -13,7 +13,6 @@ const ModalSearchProcesso = ({ onCancel, isOpen, children, onSetorSelect }) => {
     return null;
   };
 
-
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50">
       <div className="modal-overlay absolute inset-0 backdrop-blur-[1px] bg-black bg-opacity-10" onClick={onCancel}></div>
@@ -40,25 +39,25 @@ const ModalSearchProcesso = ({ onCancel, isOpen, children, onSetorSelect }) => {
           </div>
         </div>
         <ul className='space-y-3 py-3'>
-          {children.lenngth > 0 ? (
+          {children.length > 0 ? (
             <>
-              {children.filter((child) =>
-                child.nome_processo.toLowerCase().includes(searchTerm.toLowerCase())
+              {children.filter((children) =>
+                children.nome_processo.toLowerCase().includes(searchTerm.toLowerCase())
               )
-                .map((child, i) => (
+                .map((children, i) => (
                   <li
                     key={i}
                     className="py-3 hover:bg-gray-100 hover:shadow-sm shadow-sm bg-gray-50 cursor-pointer px-4 rounded-md"
-                    onClick={() => onSetorSelect(child.id_processo, child.nome_processo)}
+                    onClick={() => onSetorSelect(children.id_processo, children.nome_processo)}
                   >
                     <div className="flex items-center gap-12">
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-gray-700">
-                          {child.nome_processo}
+                          {children.nome_processo}
                         </p>
                       </div>
                       <div className="inline-flex items-center text-base font-semibold text-gray-900">
-                        {child.id_processo}
+                        {children.id_processo}
                       </div>
                     </div>
                   </li>

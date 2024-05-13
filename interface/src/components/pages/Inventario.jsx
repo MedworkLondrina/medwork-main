@@ -12,7 +12,7 @@ function Inventario() {
     fetchSetores,
     fetchCargos,
     getProcessos,
-    fetchRiscos,
+    getRiscos,
     fetchMedidas,
     getMedidasAdm, medidasAdm, getMedidasEpi, medidasEpi, getMedidasEpc, medidasEpc,
     getSetoresProcessos,
@@ -67,8 +67,8 @@ function Inventario() {
     setProcessos(response);
   };
 
-  const getRiscos = async () => {
-    const response = await fetchRiscos();
+  const fetchRiscos = async () => {
+    const response = await getRiscos();
     setRiscos(response);
   };
 
@@ -112,9 +112,11 @@ function Inventario() {
         getSetores={getSetores}
         processos={processos}
         getProcessos={fetchProcessos}
+        getRiscos={fetchRiscos}
         riscos={riscos}
         setoresProcessos={setoresProcessos}
         getSetoresProcessos={fetchSetoresProcessos}
+        getProcessosRiscos={fetchProcessosRiscos}
         processosRiscos={processosRiscos}
         onEdit={onEdit}
         companyId={companyId}
