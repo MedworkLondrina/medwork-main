@@ -605,7 +605,6 @@ export const AuthProvider = ({ children }) => {
   const getAparelhos = async () => {
     try {
       const code = user.tenant_code;
-      console.log(code)
       const queryParams = new URLSearchParams({ tenent_code: code }).toString();
       const response = await fetch(`${connect}/aparelhos?${queryParams}`)
 
@@ -614,16 +613,11 @@ export const AuthProvider = ({ children }) => {
       }
 
       const data = await response.json();
-      console.log(data)
       return data;
     } catch (error) {
       console.error(`Erro ao buscar os dados da empresa! Status: ${error}`)
     }
   };
-
-  const fetchAparelhos = async () => {
-
-  }
 
   const getLaudoVersion = async () => {
     try {
@@ -656,10 +650,6 @@ export const AuthProvider = ({ children }) => {
       console.log(`Erro ao buscar conclusões. ${error}`);
     }
   };
-
-  const fetchConclusoes = async () => {
-
-  }
 
   const getTenant = async (tenant) => {
     try {
