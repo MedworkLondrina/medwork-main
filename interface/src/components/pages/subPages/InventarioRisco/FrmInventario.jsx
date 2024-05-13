@@ -23,8 +23,8 @@ function FrmInventario({
   getSetores, setores,
   getSetoresProcessos, setoresProcessos,
   getProcessos, processos,
-  processosRiscos,
-  riscos,
+  getProcessosRiscos,processosRiscos,
+  getRiscos, riscos,
   onEdit,
   companyId,
   setOnEdit,
@@ -153,66 +153,93 @@ function FrmInventario({
       return `${ano}-${mes}-${dia}`;
     }
   };
-
-  // Função para atualizar a Unidade
+  useEffect(() => {
+    if (setores.length > 0) { 
+        const filtered = setores.filter((i) => i.fk_unidade_id === unidadeId);
+        setFilteredSetores(filtered);
+        console.log(filtered); 
+    }
+}, [setores, unidadeId]);
   const handleUnidadeSelect = async (unidadeId, nomeUnidade) => {
     closeModalUnidade();
     setUnidadeId(unidadeId)
     setNomeUnidade(nomeUnidade)
     handleClearSetor();
-    getSetores();
-    if (setores) {
-      try {
-        const filtered = setores.filter((i) => i.fk_unidade_id === unidadeId);
-        setFilteredSetores(filtered);
-      } catch (error) {
-        console.error("Erro ao buscar setroresa da unidade: ", nomeUnidade, " Status: ", error)
-      }
-    }
-  };
+    await getSetores();
 
-  const handleClearUnidade = () => {
+    if (setores) {
+        try {
+            const filtered = setores.filter((i) => i.fk_unidade_id === unidadeId);
+            setFilteredSetores(filtered);
+            console.log(setores)
+        } catch (error) {
+            console.error("Erro ao buscar setores da unidade: ", nomeUnidade, " Status: ", error)
+        }
+    }
+};
+
+
+const handleClearUnidade = () => {
+    // Limpa as variáveis de estado relacionadas à unidade selecionada
     setUnidadeId(null);
     setNomeUnidade(null);
     handleClearProcesso();
     handleClearRisco();
     handleClearSetor();
-    setFilteredSetores([]);
+    setFilteredSetores([]); // Limpa os setores filtrados
     setData('');
-  };
+};
 
-  // Função para atualizar o Setor
-  const handleSetorSelect = async (SetorId, SetorName) => {
+// Função para lidar com a seleção de um setor
+const handleSetorSelect = async (setorId, setorNome) => {
     closeModalSetor();
-    setSetorId(SetorId);
-    setSetorNome(SetorName);
-    handleClearProcesso();
+    setSetorId(setorId);
+    setSetorNome(setorNome);
+    handleClearProcesso(); // Limpa o processo selecionado ao mudar de setor
     setPessoasExpostas('');
 
-    getProcessos();
-    getSetoresProcessos();
+    await getProcessos(); // Obtém os processos associados ao setor selecionado de forma assíncrona
+    await getSetoresProcessos();
 
-    const filteredProcessosSetores = setoresProcessos.filter((i) => i.fk_setor_id === SetorId);
+    // Filtra os processos associados ao setor selecionado
+    const filteredProcessosSetores = setoresProcessos.filter((i) => i.fk_setor_id === setorId);
     const IdsProcesso = filteredProcessosSetores.map((item) => item.fk_processo_id);
+    console.log(processos)
     const filteredProcessos = processos.filter((i) => IdsProcesso.includes(i.id_processo));
 
-    setFilteredProcessos(filteredProcessos);
+    setFilteredProcessos(filteredProcessos); // Atualiza os processos filtrados
 
     getCargos();
-    const findCargo = cargos.find((i) => i.fk_setor_id === SetorId);
+    const findCargo = cargos.find((i) => i.fk_setor_id === setorId);
     const selectFuncMasc = findCargo ? findCargo.func_masc : 0
     const selectFuncFem = findCargo ? findCargo.func_fem : 0
     const selectFuncMenor = findCargo ? findCargo.func_menor : 0
 
     if (selectFuncFem != undefined || selectFuncMasc != undefined || selectFuncMenor != undefined) {
-      const sum = selectFuncFem + selectFuncMasc + selectFuncMenor;
-      if (sum === 0) {
-        setPessoasExpostas('0')
-      } else {
-        setPessoasExpostas(sum);
-      }
+        const sum = selectFuncFem + selectFuncMasc + selectFuncMenor;
+        if (sum === 0) {
+            setPessoasExpostas('0')
+        } else {
+            setPessoasExpostas(sum);
+        }
     }
-  };
+};
+
+  useEffect(() => {
+    if (setorId) {
+      const filteredProcessosSetores = setoresProcessos.filter((i) => i.fk_setor_id === setorId);
+      const IdsProcesso = filteredProcessosSetores.map((item) => item.fk_processo_id);
+      const filtered = processos.filter((i) => IdsProcesso.includes(i.id_processo));
+      setFilteredProcessos(filtered);
+
+      const findCargo = cargos.find((i) => i.fk_setor_id === setorId);
+      const sum = (findCargo?.func_fem || 0) + (findCargo?.func_masc || 0) + (findCargo?.func_menor || 0);
+      setPessoasExpostas(sum === 0 ? '0' : sum.toString());
+    }
+  }, [setorId, setoresProcessos, processos, cargos]);
+
+
+
 
   const handleClearSetor = () => {
     setSetorId(null);
@@ -229,6 +256,8 @@ function FrmInventario({
     setProcessoId(ProcessoId);
     setProcessoNome(ProcessoNome);
     handleClearRisco();
+    await getRiscos();
+    await getProcessosRiscos()
 
     const filteredProcessosRiscos = processosRiscos.filter((i) => i.fk_processo_id === ProcessoId);
     const idsRiscos = filteredProcessosRiscos.map((item) => item.fk_risco_id);
@@ -236,7 +265,15 @@ function FrmInventario({
 
     setFilteredRiscos(filteredRiscos);
   };
-
+  useEffect(() => {
+    if (processoId && processosRiscos.length > 0 && riscos.length > 0) {
+        // Filtra os riscos associados ao processo selecionado
+        const filteredProcessosRiscos = processosRiscos.filter((i) => i.fk_processo_id === processoId);
+        const idsRiscos = filteredProcessosRiscos.map((item) => item.fk_risco_id);
+        const filtered = riscos.filter((i) => idsRiscos.includes(i.id_risco));
+        setFilteredRiscos(filtered); // Atualiza os riscos filtrados
+    }
+}, [processoId, processosRiscos, riscos]);
   const handleClearProcesso = () => {
     setProcessoId(null);
     setProcessoNome(null);

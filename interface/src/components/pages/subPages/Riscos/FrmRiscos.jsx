@@ -148,17 +148,33 @@ function CadastroRisco({ onEdit, setOnEdit, getRiscos, riscos }) {
       setRiscoData(responseData);
       setLtcatConclusao(ltcat);
       setLipConclusao(lip)
-      console.log("Resposta da API:", responseData.id); // Adicione esta linha para verificar a resposta
-      setRiscoId(responseData.id); // Atualiza o estado com o valor retornado da API
+      console.log("Resposta da API:", responseData.id_risco); // Adicione esta linha para verificar a resposta
+      setRiscoId(responseData.id_risco); // Atualiza o estado com o valor retornado da API
       console.log(riscoId)
-      
-      
       toast.success(responseData.message);
     } catch (error) {
       console.log("Erro ao inserir risco: ", error)
     }
-    handleClear();
-  
+    user.nome_risco.value = "";
+    user.meio_propagacao_risco.value = "";
+    user.unidade_medida_risco.value = "";
+    user.classificacao_risco.value = '0';
+    setClassificacao(false);
+    user.nivel_acao_risco.value = "";
+    user.limite_tolerancia_risco.value = "";
+    user.danos_saude_risco.value = "";
+    user.metodologia_risco.value = "";
+    user.severidade_risco.value = "0";
+    setAvaliacao("0");
+
+    setPgr(false);
+    setLtcat(false);
+    setLip(false);
+    
+    setOnEdit(null);
+    setEsocial('');
+    setRiscoId('');
+    setInespecific(false);  
     window.scrollTo({ top: 500, behavior: 'smooth' });
   
     getRiscos();
