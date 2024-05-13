@@ -25,10 +25,9 @@ function SearchInput({ onSearch, placeholder, term }) {
           placeholder={placeholder}
           onChange={handleInputChange}
           value={searchTerm}
-          required
         />
         <button
-          type="submit"
+          type="button"
           className="text-gray-400 absolute end-2.5 bottom-2.5 focus:ring-4 focus:outline-none hover:text-gray-700 font-medium rounded-lg text-sm px-4 py-2">
           <svg
             className="h-4 text-gray-500 dark:text-gray-400 hover:text-gray-700"

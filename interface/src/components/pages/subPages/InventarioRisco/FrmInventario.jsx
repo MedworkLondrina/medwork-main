@@ -19,10 +19,10 @@ import icon_warn from "../../../media/icon_warn.svg";
 
 function FrmInventario({
   unidades,
-  cargos,
-  setores,
-  setoresProcessos,
-  processos,
+  getCargos, cargos,
+  getSetores, setores,
+  getSetoresProcessos, setoresProcessos,
+  getProcessos, processos,
   processosRiscos,
   riscos,
   onEdit,
@@ -35,7 +35,7 @@ function FrmInventario({
   getInventario,
   aparelhos,
   inventario,
-  conclusoes,
+  getConclusoes,
 }) {
 
   const user = useRef();
@@ -154,21 +154,21 @@ function FrmInventario({
     }
   };
 
-  useEffect(() => {
-    if (showModalSetor && unidadeId) {
-      const filtered = setores.filter((i) => i.fk_unidade_id === unidadeId);
-      setFilteredSetores(filtered);
-    }
-  }, [showModalSetor, unidadeId, setores]);
-
   // Função para atualizar a Unidade
   const handleUnidadeSelect = async (unidadeId, nomeUnidade) => {
     closeModalUnidade();
     setUnidadeId(unidadeId)
     setNomeUnidade(nomeUnidade)
     handleClearSetor();
-    setLoading(false);
-    setLoading(true);
+    getSetores();
+    if (setores) {
+      try {
+        const filtered = setores.filter((i) => i.fk_unidade_id === unidadeId);
+        setFilteredSetores(filtered);
+      } catch (error) {
+        console.error("Erro ao buscar setroresa da unidade: ", nomeUnidade, " Status: ", error)
+      }
+    }
   };
 
   const handleClearUnidade = () => {
@@ -189,13 +189,16 @@ function FrmInventario({
     handleClearProcesso();
     setPessoasExpostas('');
 
+    getProcessos();
+    getSetoresProcessos();
+
     const filteredProcessosSetores = setoresProcessos.filter((i) => i.fk_setor_id === SetorId);
     const IdsProcesso = filteredProcessosSetores.map((item) => item.fk_processo_id);
     const filteredProcessos = processos.filter((i) => IdsProcesso.includes(i.id_processo));
 
     setFilteredProcessos(filteredProcessos);
 
-
+    getCargos();
     const findCargo = cargos.find((i) => i.fk_setor_id === SetorId);
     const selectFuncMasc = findCargo ? findCargo.func_masc : 0
     const selectFuncFem = findCargo ? findCargo.func_fem : 0
@@ -287,6 +290,7 @@ function FrmInventario({
       setRiscosInput(riscoSelecionado);
     }
 
+    const conclusoes = await getConclusoes(RiscoId);
     const filteredConclusao = conclusoes.filter((i) => i.fk_risco_id === RiscoId);
 
     const filterLtcat = filteredConclusao.filter((i) => i.laudo === 'ltcat');
@@ -801,7 +805,6 @@ function FrmInventario({
       </div>
 
       {/* Formulário */}
-      {loading && <LoadingScreen />}
       <div className={`flex justify-center ${isVerify ? '' : 'mt-10'}`}>
         <form className="w-full max-w-7xl" ref={user} onSubmit={handleSubmit}>
           <div className="flex flex-wrap -mx-3 mb-6 p-3">
@@ -817,19 +820,21 @@ function FrmInventario({
                     <>
                       <button
                         className="flex appearance-none hover:shadow-sm text-sky-600 bg-gray-100 border-gray-200 mt-1 py-3 px-4 rounded leading-tight focus:outline-none with-text"
+                        type="button"
                         onClick={openModalUnidade}
                       >
                         <p className="font-bold">
                           {nomeUnidade}
                         </p>
                       </button>
-                      <button className="ml-4" onClick={handleClearUnidade}>
+                      <button type="button" className="ml-4" onClick={handleClearUnidade}>
                         <img src={icon_sair} alt="" className="h-9" />
                       </button>
                     </>
                   ) : (
                     <button
                       className="flex w-full appearance-none text-gray-400 bg-gray-100 border-gray-200 justify-center mt-1 py-3 px-4 rounded leading-tight focus:outline-none with-text"
+                      type="button"
                       onClick={openModalUnidade}
                     >
                       <p className="text-sm font-medium">
@@ -845,12 +850,6 @@ function FrmInventario({
                     <img src={icon_lupa} className="h-9" alt="Icone adicionar unidade"></img>
                   </button>
                 </div>
-                <ModalSearchUnidade
-                  isOpen={showModalUnidade}
-                  onCancel={closeModalUnidade}
-                  children={unidades}
-                  onContactSelect={handleUnidadeSelect}
-                />
               </div>
               {/* Setor */}
               <div className="w-full md:w-1/4 px-3">
@@ -862,13 +861,14 @@ function FrmInventario({
                     <>
                       <button
                         className="flex appearance-none hover:shadow-sm text-sky-600 bg-gray-100 border-gray-200 justify-center mt-1 py-3 px-4 rounded leading-tight focus:outline-none with-text"
+                        type="button"
                         onClick={openModalSetor}
                       >
                         <p className="font-bold">
                           {setorNome}
                         </p>
                       </button>
-                      <button className="ml-4" onClick={handleClearSetor}>
+                      <button className="ml-4" onClick={handleClearSetor} type="button">
                         <img src={icon_sair} alt="" className="h-9" />
                       </button>
                     </>
@@ -876,6 +876,7 @@ function FrmInventario({
                     <button
                       className="flex w-full appearance-none text-gray-400 bg-gray-100 border-gray-200 justify-center mt-1 py-3 px-4 rounded leading-tight focus:outline-none with-text"
                       onClick={openModalSetor}
+                      type="button"
                     >
                       <p className="px-2 text-sm font-medium">
                         Nenhum Setor Selecionado
@@ -891,12 +892,6 @@ function FrmInventario({
                     <img src={icon_lupa} className="h-9" alt="Icone adicionar unidade"></img>
                   </button>
                 </div>
-                <ModalSearchSetor
-                  isOpen={showModalSetor}
-                  onCancel={closeModalSetor}
-                  children={filteredSetores}
-                  onContactSelect={handleSetorSelect}
-                />
               </div>
               {/* Processo */}
               <div className="w-full md:w-1/4 px-3">
@@ -909,12 +904,13 @@ function FrmInventario({
                       <button
                         className="flex appearance-none hover:shadow-sm text-sky-600 bg-gray-100 border-gray-200 justify-center mt-1 py-3 px-4 rounded leading-tight focus:outline-none with-text"
                         onClick={openModalProcesso}
+                        type="button"
                       >
                         <p className="font-bold">
                           {processoNome}
                         </p>
                       </button>
-                      <button className="ml-4" onClick={handleClearProcesso}>
+                      <button className="ml-4" onClick={handleClearProcesso} type="button">
                         <img src={icon_sair} alt="" className="h-9" />
                       </button>
                     </>
@@ -922,6 +918,7 @@ function FrmInventario({
                     <button
                       className="flex w-full appearance-none text-gray-400 bg-gray-100 border-gray-200 justify-center mt-1 py-3 px-4 rounded leading-tight focus:outline-none with-text"
                       onClick={openModalProcesso}
+                      type="button"
                     >
                       <p className="px-2 text-sm font-medium">
                         Nenhum Processo Selecionado
@@ -937,13 +934,6 @@ function FrmInventario({
                     <img src={icon_lupa} className="h-9" alt="Icone adicionar Processo"></img>
                   </button>
                 </div>
-                <ModalSearchProcesso
-                  isOpen={showModalProcesso}
-                  onCancel={closeModalProcesso}
-                  children={filteredProcessos}
-                  setorName={setorNome}
-                  onSetorSelect={handleProcessoSelect}
-                />
               </div>
               {/* Risco */}
               <div className="w-full md:w-1/4 px-3">
@@ -956,12 +946,13 @@ function FrmInventario({
                       <button
                         className="flex appearance-none hover:shadow-sm text-sky-600 bg-gray-100 border-gray-200 justify-center mt-1 py-3 px-4 rounded leading-tight focus:outline-none with-text"
                         onClick={openModalRisco}
+                        type="button"
                       >
                         <p className="font-bold">
                           {riscoNome}
                         </p>
                       </button>
-                      <button className="ml-4" onClick={handleClearRisco}>
+                      <button className="ml-4" onClick={handleClearRisco} type="button">
                         <img src={icon_sair} alt="" className="h-9" />
                       </button>
                     </>
@@ -969,6 +960,7 @@ function FrmInventario({
                     <button
                       className="flex w-full appearance-none text-gray-400 bg-gray-100 border-gray-200 justify-center mt-1 py-3 px-4 rounded leading-tight focus:outline-none with-text"
                       onClick={openModalRisco}
+                      type="button"
                     >
                       <p className="px-2 text-sm font-medium">
                         Nenhum Risco Selecionado
@@ -984,13 +976,6 @@ function FrmInventario({
                     <img src={icon_lupa} className="h-9" alt="Icone adicionar Risco"></img>
                   </button>
                 </div>
-                <ModalSearchRisco
-                  isOpen={showModalRisco}
-                  onCancel={closeModalRisco}
-                  children={filteredRiscos}
-                  setorName={riscoNome}
-                  onSelect={handleRiscoSelect}
-                />
               </div>
             </div>
 
@@ -1517,6 +1502,34 @@ function FrmInventario({
           </div>
         </form >
       </div >
+
+      {/* Modais */}
+      <ModalSearchUnidade
+        isOpen={showModalUnidade}
+        onCancel={closeModalUnidade}
+        children={unidades}
+        onContactSelect={handleUnidadeSelect}
+      />
+      <ModalSearchSetor
+        isOpen={showModalSetor}
+        onCancel={closeModalSetor}
+        children={filteredSetores}
+        onContactSelect={handleSetorSelect}
+      />
+      <ModalSearchProcesso
+        isOpen={showModalProcesso}
+        onCancel={closeModalProcesso}
+        children={filteredProcessos}
+        setorName={setorNome}
+        onSetorSelect={handleProcessoSelect}
+      />
+      <ModalSearchRisco
+        isOpen={showModalRisco}
+        onCancel={closeModalRisco}
+        children={filteredRiscos}
+        setorName={riscoNome}
+        onSelect={handleRiscoSelect}
+      />
     </>
   );
 }

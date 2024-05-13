@@ -7,45 +7,98 @@ import GridInventario from "./subPages/InventarioRisco/GridInventario";
 function Inventario() {
 
   const {
-    loadSelectedCompanyFromLocalStorage, companyId, selectedCompany,
-    getUnidades, unidades,
-    getSetores, setores, setSetores,
-    getCargos, cargos,
-    getProcessos, processos,
-    getRiscos, riscos,
+    loadSelectedCompanyFromLocalStorage,
+    fetchUnidades,
+    fetchSetores,
+    fetchCargos,
+    getProcessos,
+    fetchRiscos,
+    fetchMedidas,
     getMedidasAdm, medidasAdm, getMedidasEpi, medidasEpi, getMedidasEpc, medidasEpc,
-    getSetoresProcessos, setSetoresProcessos, setoresProcessos,
-    getProcessosRiscos, setProcessosRiscos, processosRiscos,
-    getRiscosMedidas, setRiscosMedidas, riscosMedidas,
+    getSetoresProcessos,
+    getProcessosRiscos,
+    getRiscosMedidas,
     getInventario, inventario,
     getGlobalSprm, setGlobalSprm, globalSprm, getGlobalSprmByRiscoId,
-    getAparelhos, aparelhos,
-    getConclusoes, conclusoes,
+    getAparelhos,
+    getConclusoes,
   } = useAuth(null);
 
+  const [companyId, setCompanyId] = useState(null);
+  const [unidades, setUnidades] = useState([]);
+  const [setores, setSetores] = useState([]);
+  const [cargos, setCargos] = useState([]);
+  const [processos, setProcessos] = useState([]);
+  const [riscos, setRiscos] = useState([]);
+  const [medidas, setMedidas] = useState([]);
+  const [setoresProcessos, setSetoresProcessos] = useState([]);
+  const [processosRiscos, setProcessosRiscos] = useState([]);
+  const [riscosMedidas, setRiscosMedidas] = useState([]);
+  const [aparelhos, setAparelhos] = useState([]);
+
   const [onEdit, setOnEdit] = useState(null);
-  const [nameCompany, setNameCompany] = useState(null);
+
+  const getCompany = async () => {
+    const selectCompany = await loadSelectedCompanyFromLocalStorage();
+    setCompanyId(selectCompany.id_empresa);
+  };
 
   useEffect(() => {
-    loadSelectedCompanyFromLocalStorage();
+    getCompany();
   }, []);
 
+  const getUnidades = async () => {
+    const response = await fetchUnidades();
+    setUnidades(response);
+  };
+
+  const getSetores = async () => {
+    const response = await fetchSetores();
+    setSetores(response);
+  };
+
+  const getCargos = async () => {
+    const response = await fetchCargos();
+    setCargos(response);
+  };
+
+  const fetchProcessos = async () => {
+    const response = await getProcessos();
+    setProcessos(response);
+  };
+
+  const getRiscos = async () => {
+    const response = await fetchRiscos();
+    setRiscos(response);
+  };
+
+  const getMedidas = async () => {
+    const response = await fetchMedidas('all');
+    setMedidas(response);
+  };
+
+  const fetchSetoresProcessos = async () => {
+    const response = await getSetoresProcessos();
+    setSetoresProcessos(response);
+  };
+
+  const fetchProcessosRiscos = async () => {
+    const response = await getProcessosRiscos();
+    setProcessosRiscos(response);
+  };
+
+  const fetchRiscosMedidas = async () => {
+    const response = await getRiscosMedidas();
+    setRiscosMedidas(response);
+  };
+
+  const fetchAparelhos = async () => {
+    const response = await getAparelhos();
+    setAparelhos(response);
+  };
+
   useEffect(() => {
-    setNameCompany(selectedCompany[0]?.nome_empresa)
     getUnidades();
-    getCargos();
-    getSetores();
-    getProcessos();
-    getRiscos();
-    getSetoresProcessos();
-    getProcessosRiscos();
-    getInventario();
-    getRiscosMedidas();
-    getMedidasAdm();
-    getMedidasEpi();
-    getMedidasEpc();
-    getAparelhos();
-    getConclusoes();
   }, [companyId]);
 
 
@@ -54,11 +107,14 @@ function Inventario() {
       <FrmInventario
         unidades={unidades}
         cargos={cargos}
+        getCargos={getCargos}
         setores={setores}
-        setSetores={setSetores}
+        getSetores={getSetores}
         processos={processos}
+        getProcessos={fetchProcessos}
         riscos={riscos}
         setoresProcessos={setoresProcessos}
+        getSetoresProcessos={fetchSetoresProcessos}
         processosRiscos={processosRiscos}
         onEdit={onEdit}
         companyId={companyId}
@@ -74,7 +130,7 @@ function Inventario() {
         getInventario={getInventario}
         aparelhos={aparelhos}
         inventario={inventario}
-        conclusoes={conclusoes}
+        getConclusoes={getConclusoes}
       />
 
       <GridInventario
@@ -85,7 +141,6 @@ function Inventario() {
         processo={processos}
         risco={riscos}
         companyId={companyId}
-        companyName={nameCompany}
         aparelhos={aparelhos}
       />
     </>

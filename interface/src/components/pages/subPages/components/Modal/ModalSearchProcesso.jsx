@@ -1,23 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import SearchInput from '../SearchInput';
 
-const ModalSearchProcesso = ({ onCancel, isOpen, children, onSetorSelect, setorName }) => {
+const ModalSearchProcesso = ({ onCancel, isOpen, children, onSetorSelect }) => {
 
   const [searchTerm, setSearchTerm] = useState('');
 
-  useEffect(() => {
-    if (!isOpen) {
-      setSearchTerm('');
-    }
-  }, [isOpen]);
+  const handleSearch = (term) => {
+    setSearchTerm(term);
+  };
 
   if (!isOpen) {
     return null;
-  }
+  };
 
-  const handleSearch = (term) => {
-    setSearchTerm(term);
-  }
 
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50">
@@ -38,42 +33,45 @@ const ModalSearchProcesso = ({ onCancel, isOpen, children, onSetorSelect, setorN
         </div>
         <div className='border-b border-gray-200'></div>
         <div className='flex justify-center items-center py-2'>
-          <p className='text-sm text-gray-500 text-center'>
-            Selecione o processo para vincular ao setor <span className='font-semibold text-sky-700'>{setorName}</span>
-          </p>
         </div>
         <div className="flex justify-center w-full mt-2 mb-2">
           <div className="w-5/6">
-            <SearchInput onSearch={handleSearch} placeholder="Buscar Empresa..." />
+            <SearchInput onSearch={handleSearch} placeholder="Buscar Processo..." />
           </div>
         </div>
         <ul className='space-y-3 py-3'>
-          {children
-            .filter((child) =>
-              child.nome_processo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-              child.ramo_trabalho.toLowerCase().includes(searchTerm.toLowerCase())
-            )
-            .map((child, i) => (
-              <li
-                key={i}
-                className="py-3 hover:bg-gray-100 hover:shadow-sm shadow-sm bg-gray-50 cursor-pointer px-4 rounded-md"
-                onClick={() => onSetorSelect(child.id_processo, child.nome_processo)}
-              >
-                <div className="flex items-center gap-12">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-700">
-                      {child.nome_processo}
-                    </p>
-                    <p className="text-sm text-gray-500 truncate">
-                      {child.ramo_trabalho}
-                    </p>
-                  </div>
-                  <div className="inline-flex items-center text-base font-semibold text-gray-900">
-                    {child.id_processo}
-                  </div>
-                </div>
+          {children.lenngth > 0 ? (
+            <>
+              {children.filter((child) =>
+                child.nome_processo.toLowerCase().includes(searchTerm.toLowerCase())
+              )
+                .map((child, i) => (
+                  <li
+                    key={i}
+                    className="py-3 hover:bg-gray-100 hover:shadow-sm shadow-sm bg-gray-50 cursor-pointer px-4 rounded-md"
+                    onClick={() => onSetorSelect(child.id_processo, child.nome_processo)}
+                  >
+                    <div className="flex items-center gap-12">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-700">
+                          {child.nome_processo}
+                        </p>
+                      </div>
+                      <div className="inline-flex items-center text-base font-semibold text-gray-900">
+                        {child.id_processo}
+                      </div>
+                    </div>
+                  </li>
+                ))}
+
+            </>
+          ) : (
+            <>
+              <li className='py-3 hover:bg-gray-100 hover:shadow-sm shadow-sm bg-gray-50 cursor-pointer px-4 rounded-md'>
+                <p>Nenhum processo encontrado</p>
               </li>
-            ))}
+            </>
+          )}
         </ul>
       </div>
     </div>
