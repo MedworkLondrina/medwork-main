@@ -29,6 +29,8 @@ function FrmInventario({
   companyId,
   setOnEdit,
   riscosMedidas,
+  medidas,
+  getMedidas,
   medidasAdm, medidasEpi, medidasEpc,
   getGlobalSprm, setGlobalSprm, globalSprm,
   companyName,
@@ -262,18 +264,18 @@ const handleSetorSelect = async (setorId, setorNome) => {
     const filteredProcessosRiscos = processosRiscos.filter((i) => i.fk_processo_id === ProcessoId);
     const idsRiscos = filteredProcessosRiscos.map((item) => item.fk_risco_id);
     const filteredRiscos = riscos.filter((i) => idsRiscos.includes(i.id_risco));
-
     setFilteredRiscos(filteredRiscos);
   };
-  useEffect(() => {
-    if (processoId && processosRiscos.length > 0 && riscos.length > 0) {
-        // Filtra os riscos associados ao processo selecionado
-        const filteredProcessosRiscos = processosRiscos.filter((i) => i.fk_processo_id === processoId);
-        const idsRiscos = filteredProcessosRiscos.map((item) => item.fk_risco_id);
-        const filtered = riscos.filter((i) => idsRiscos.includes(i.id_risco));
-        setFilteredRiscos(filtered); // Atualiza os riscos filtrados
-    }
-}, [processoId, processosRiscos, riscos]);
+
+ useEffect(() => {
+        if (processoId && processosRiscos.length > 0 && riscos.length > 0) {
+            // Filtra os riscos associados ao processo selecionado
+            const filteredProcessosRiscos = processosRiscos.filter((i) => i.fk_processo_id === processoId);
+            const idsRiscos = filteredProcessosRiscos.map((item) => item.fk_risco_id);
+            const filtered = riscos.filter((i) => idsRiscos.includes(i.id_risco));
+            setFilteredRiscos(filtered); // Atualiza os riscos filtrados
+        }
+    }, [processoId, processosRiscos, riscos]);
   const handleClearProcesso = () => {
     setProcessoId(null);
     setProcessoNome(null);
@@ -319,7 +321,7 @@ const handleSetorSelect = async (setorId, setorNome) => {
     setRiscoId(RiscoId);
     setRiscoNome(RiscoNome);
     setData(obterDataFormatada(onEdit ? onEdit.data_inventario : null));
-
+    console.log(medidas)
     const filteresRiscosMedidas = riscosMedidas.filter((i) => i.fk_risco_id === RiscoId);
     const riscoSelecionado = riscos.find((i) => i.id_risco === RiscoId);
 
@@ -348,69 +350,69 @@ const handleSetorSelect = async (setorId, setorNome) => {
     }
 
     // Criar um array para armazenar as medidas e tipos
-    const medidasTipos = filteresRiscosMedidas.map((filteredRiscosMedidas) => ({
-      medidaId: filteredRiscosMedidas.fk_medida_id,
-      medidaTipo: filteredRiscosMedidas.tipo,
-    }));
-    await handleRiscoEscolhido(RiscoId, medidasTipos);
+    // const medidasTipos = filteresRiscosMedidas.map((filteredRiscosMedidas) => ({
+    //   medidaId: filteredRiscosMedidas.fk_medida_id,
+    //   medidaTipo: filteredRiscosMedidas.tipo,
+    // }));
+    await handleRiscoEscolhido(RiscoId, medidas);
     await verify(RiscoId);
   };
 
-  const handleRiscoEscolhido = async (RiscoId, medidasTipos) => {
+  const handleRiscoEscolhido = async (RiscoId, medidas) => {
     try {
       if (!setorId) {
-        return
+        return;
       }
-      for (const { medidaId, medidaTipo } of medidasTipos) {
-        const verificarResponse = await fetch(
-          `${connect}/verificar_sprm?fk_setor_id=${setorId}&fk_processo_id=${processoId}&fk_risco_id=${RiscoId}&fk_medida_id=${medidaId}&tipo_medida=${medidaTipo}`,
-          {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-          }
-        );
-
-        if (!verificarResponse.ok) {
-          throw new Error(`Erro ao verificar a existência. Status: ${verificarResponse.status}`);
-        }
-
-        const verificarData = await verificarResponse.json();
-
-        if (verificarData.existeCombinação) {
-          continue;
-        }
-
-
-        // Caso contrário, adicione a nova medida
-        const adicionarResponse = await fetch(`${connect}/global_sprm`, {
-          method: 'POST',
+  
+      const verificarResponse = await fetch(
+        `${connect}/verificar_sprm?fk_setor_id=${setorId}&fk_processo_id=${processoId}&fk_risco_id=${RiscoId}&fk_medida_id=${medidas.id_medida}`,
+        {
+          method: 'GET',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({
-            fk_setor_id: setorId,
-            fk_processo_id: processoId,
-            fk_risco_id: RiscoId,
-            fk_medida_id: medidaId,
-            tipo_medida: medidaTipo,
-            status: 'Não Aplicavel',
-          }),
-        });
-
-        if (!adicionarResponse.ok) {
-          throw new Error(`Erro ao adicionar medida. Status: ${adicionarResponse.status}`);
         }
-
-        const adicionarData = await adicionarResponse.json();
-        toast.success("Medidas Adicionadas com sucesso!");
+      );
+      console.log(medidas)
+      if (!verificarResponse.ok) {
+        throw new Error(`Erro ao verificar a existência. Status: ${verificarResponse.status}`);
       }
+  
+      const verificarData = await verificarResponse.json();
+  
+      if (verificarData.existeCombinação) {
+        return; // Aqui você pode decidir o que fazer caso a combinação exista
+      }
+  
+      // Caso contrário, adicione a nova medida
+      const adicionarResponse = await fetch(`${connect}/global_sprm`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          fk_setor_id: setorId,
+          fk_processo_id: processoId,
+          fk_risco_id: RiscoId,
+          fk_medida_id: medidas.id_medida,
+          tipo_medida: medidas.grupo_medida, // Alterei de 'medidaTipo' para 'medidasTipo'
+          status: 'Não Aplicavel',
+        }),
+      });
+  
+      if (!adicionarResponse.ok) {
+        throw new Error(`Erro ao adicionar medida. Status: ${adicionarResponse.status}`);
+      }
+  
+      const adicionarData = await adicionarResponse.json();
+      toast.success("Medidas Adicionadas com sucesso!");
+    
       getGlobalSprm();
     } catch (error) {
       console.error("Erro ao adicionar medidas", error);
     }
   };
+  
 
   const handleClearRisco = () => {
     setLoading(true);
@@ -567,11 +569,10 @@ const handleSetorSelect = async (setorId, setorNome) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const medidasAplicadas = filteredGlobalSprm
-      .filter((item) => item.status === 'Aplica')
+    const medidasAplicadas = medidas
       .map((item) => ({
-        nome: find(item.fk_medida_id, item.tipo_medida),
-        tipo: tipoDefine(item.tipo_medida),
+        nome: item.descricao_medida,
+        tipo: item.grupo_medida,
       }));
 
     if (!nomeUnidade || !setorNome || !processoNome || !riscoNome || !medicao || !data) {
@@ -672,45 +673,45 @@ const handleSetorSelect = async (setorId, setorNome) => {
     setIsMedidasSet(true);
   };
 
-  const find = (item, tipo) => {
-    try {
-      if (!item) {
-        return 'N/A';
-      }
+  // const find = (item, tipo) => {
+  //   try {
+  //     if (!item) {
+  //       return 'N/A';
+  //     }
 
-      switch (tipo) {
-        case 1:
-          const admMedidas = medidasAdm.find((i) => i.id_medida_adm === item);
-          return admMedidas ? admMedidas.descricao_medida_adm : 'N/A';
-        case 2:
-          const epiMedidas = medidasEpi.find((i) => i.id_medida === item);
-          return epiMedidas ? epiMedidas.nome_medida : 'N/A';
-        case 3:
-          const epcMedidas = medidasEpc.find((i) => i.id_medida === item);
-          return epcMedidas ? epcMedidas.descricao_medida : 'N/A';
+  //     switch (tipo) {
+  //       case 1:
+  //         const admMedidas = medidasAdm.find((i) => i.id_medida_adm === item);
+  //         return admMedidas ? admMedidas.descricao_medida_adm : 'N/A';
+  //       case 2:
+  //         const epiMedidas = medidasEpi.find((i) => i.id_medida === item);
+  //         return epiMedidas ? epiMedidas.nome_medida : 'N/A';
+  //       case 3:
+  //         const epcMedidas = medidasEpc.find((i) => i.id_medida === item);
+  //         return epcMedidas ? epcMedidas.descricao_medida : 'N/A';
 
-        default:
-          return 'N/A';
-      }
-    } catch (error) {
-      console.log("Erro ao buscar Dados!", error);
-      return 'N/A';
-    }
-  };
+  //       default:
+  //         return 'N/A';
+  //     }
+  //   } catch (error) {
+  //     console.log("Erro ao buscar Dados!", error);
+  //     return 'N/A';
+  //   }
+  // };
 
-  const tipoDefine = (item) => {
-    switch (item) {
-      case 1:
-        return 'Adm'
-      case 2:
-        return 'EPI'
-      case 3:
-        return 'EPC'
+  // const tipoDefine = (item) => {
+  //   switch (item) {
+  //     case 1:
+  //       return 'Adm'
+  //     case 2:
+  //       return 'EPI'
+  //     case 3:
+  //       return 'EPC'
 
-      default:
-        return 'N/A'
-    }
-  };
+  //     default:
+  //       return 'N/A'
+  //   }
+  // };
 
   const handleChangeData = (event) => {
     setData(event.target.value);
@@ -1508,12 +1509,12 @@ const handleSetorSelect = async (setorId, setorNome) => {
                         <div className="flex items-center space-x-4 rtl:space-x-reverse bg-gray-100 px-4 py-2 rounded-md hover:bg-gray-50">
                           <div className="flex-1 min-w-0 pr-4">
                             <p className="text-sm font-medium text-gray-900">
-                              {find(item.fk_medida_id, item.tipo_medida)}
+                              {(item.id_medida, item.grupo_medida)}
                             </p>
                             <p className="text-sm text-gray-500 truncate"></p>
                           </div>
                           <div className="inline-flex items-center text-base font-semibold text-gray-900">
-                            {tipoDefine(item.tipo_medida)}
+                            {item.descricao_medida}
                           </div>
                         </div>
                       </li>
