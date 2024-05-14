@@ -113,6 +113,7 @@ function Inventario() {
         processos={processos}
         getProcessos={fetchProcessos}
         getRiscos={fetchRiscos}
+        getMedidas = {getMedidas}
         riscos={riscos}
         setoresProcessos={setoresProcessos}
         getSetoresProcessos={fetchSetoresProcessos}
