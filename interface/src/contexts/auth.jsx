@@ -576,6 +576,7 @@ export const AuthProvider = ({ children }) => {
 
       const data = await response.json();
       setGlobalSprm(data);
+      return data;
     } catch (error) {
       toast.warn("Erro ao buscar medidas do setor");
       console.log(`Erro ao buscar medidas do setor. ${error}`)

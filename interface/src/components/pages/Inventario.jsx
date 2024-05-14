@@ -19,7 +19,7 @@ function Inventario() {
     getProcessosRiscos,
     getRiscosMedidas,
     getInventario, inventario,
-    getGlobalSprm, setGlobalSprm, globalSprm, getGlobalSprmByRiscoId,
+    getGlobalSprm, getGlobalSprmByRiscoId,
     getAparelhos,
     getConclusoes,
   } = useAuth(null);
@@ -35,6 +35,7 @@ function Inventario() {
   const [processosRiscos, setProcessosRiscos] = useState([]);
   const [riscosMedidas, setRiscosMedidas] = useState([]);
   const [aparelhos, setAparelhos] = useState([]);
+  const [globalSprm, setGlobalSprm] = useState([]);
 
   const [onEdit, setOnEdit] = useState(null);
 
@@ -45,6 +46,7 @@ function Inventario() {
 
   useEffect(() => {
     getCompany();
+    getUnidades();
   }, []);
 
   const getUnidades = async () => {
@@ -97,6 +99,11 @@ function Inventario() {
     setAparelhos(response);
   };
 
+  const fetchGlobalSprm = async () => {
+    const response = await getGlobalSprm();
+    setGlobalSprm(response);
+  };
+
   useEffect(() => {
     getUnidades();
   }, [companyId]);
@@ -113,7 +120,8 @@ function Inventario() {
         processos={processos}
         getProcessos={fetchProcessos}
         getRiscos={fetchRiscos}
-        getMedidas = {getMedidas}
+        getMedidas={getMedidas}
+        medidas={medidas}
         riscos={riscos}
         setoresProcessos={setoresProcessos}
         getSetoresProcessos={fetchSetoresProcessos}
@@ -123,10 +131,11 @@ function Inventario() {
         companyId={companyId}
         setOnEdit={setOnEdit}
         riscosMedidas={riscosMedidas}
+        getRiscosMedidas={fetchRiscosMedidas}
         medidasAdm={medidasAdm}
         medidasEpi={medidasEpi}
         medidasEpc={medidasEpc}
-        getGlobalSprm={getGlobalSprm}
+        getGlobalSprm={fetchGlobalSprm}
         setGlobalSprm={setGlobalSprm}
         globalSprm={globalSprm}
         getGlobalSprmByRiscoId={getGlobalSprmByRiscoId}
