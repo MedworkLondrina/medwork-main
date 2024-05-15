@@ -199,19 +199,17 @@ function FrmInventario({
     closeModalSetor();
     setSetorId(setorId);
     setSetorNome(setorNome);
-    handleClearProcesso(); // Limpa o processo selecionado ao mudar de setor
+    handleClearProcesso();
     setPessoasExpostas('');
 
-    await getProcessos(); // Obtém os processos associados ao setor selecionado de forma assíncrona
+    await getProcessos();
     await getSetoresProcessos();
 
-    // Filtra os processos associados ao setor selecionado
     const filteredProcessosSetores = setoresProcessos.filter((i) => i.fk_setor_id === setorId);
     const IdsProcesso = filteredProcessosSetores.map((item) => item.fk_processo_id);
-    console.log(processos)
     const filteredProcessos = processos.filter((i) => IdsProcesso.includes(i.id_processo));
 
-    setFilteredProcessos(filteredProcessos); // Atualiza os processos filtrados
+    setFilteredProcessos(filteredProcessos);
 
     getCargos();
     const findCargo = cargos.find((i) => i.fk_setor_id === setorId);
@@ -562,6 +560,11 @@ function FrmInventario({
           setConclusaoLtcat(onEdit.conclusao_lp);
         }
 
+        if (onEdit && onEdit.medidas) {
+          const med = JSON.parse(onEdit.medidas);
+          setFilteredMedidas(med);
+        }
+
         setIsVerify(false);
         setIsMedidasSet(true);
       } catch (error) {
@@ -575,17 +578,11 @@ function FrmInventario({
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const medidasAplicadas = medidas
-      .map((item) => ({
-        nome: item.descricao_medida,
-        tipo: item.grupo_medida,
-      }));
-
     if (!nomeUnidade || !setorNome || !processoNome || !riscoNome || !medicao || !data) {
       toast.warn("Preencha todos os campos!");
       return
     }
-    console.log(data)
+
     try {
       const inventarioData = {
         data_inventario: data || '',
@@ -597,7 +594,7 @@ function FrmInventario({
         fk_risco_id: riscoId || '',
         fontes: descricao || '',
         medicao: medicao || '0',
-        medidas: JSON.stringify(medidasAplicadas) || '',
+        medidas: JSON.stringify(filteredMedidas) || '',
         probabilidade: probabilidade || '',
         nivel: probabilidade * severidade || '',
         frequencia: frequencia || '',

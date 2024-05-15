@@ -2579,12 +2579,13 @@ router.put("/plano/:id_plano", (req, res) => {
 //Inventário de Riscos
 //Get Table
 router.get("/inventario", (req, res) => {
-  const q = `SELECT * FROM inventario`;
+  const queryParams = req.query.companyId;
+  const q = `SELECT * FROM inventario WHERE fk_empresa_id = ?`;
 
   pool.getConnection((err, con) => {
     if (err) return next(err);
 
-    con.query(q, (err, data) => {
+    con.query(q, queryParams, (err, data) => {
       if (err) return res.status(500).json(err);
 
       return res.status(200).json(data);
@@ -2641,6 +2642,8 @@ router.put("/inventario/:id_inventario", (req, res) => {
     conclusao_lp,
   } = req.body;
 
+  console.log(req.body)
+
   const q = `
     UPDATE inventario
     SET data_inventario = ?,
@@ -2686,8 +2689,6 @@ router.put("/inventario/:id_inventario", (req, res) => {
   ];
 
   pool.getConnection((err, con) => {
-    con.release();
-
     if (err) return next(err);
 
     con.query(q, values, (err) => {

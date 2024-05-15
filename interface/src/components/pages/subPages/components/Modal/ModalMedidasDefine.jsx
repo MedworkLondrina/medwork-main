@@ -12,11 +12,10 @@ const ModalMedidasDefine = ({ onCancel, isOpen, companyName, globalSprm, medidas
   const [globalData, setGlobalData] = useState('');
 
   useEffect(() => {
-    console.log("globalSprm no useEffect:", globalSprm);
     if (globalSprm) {
       const initialStatus = {};
       globalSprm.forEach(item => {
-        initialStatus[item.id_global_sprm] = item.status || "0";
+        initialStatus[item.fk_medida_id] = item.status || "0"; // Assumindo que status é uma string
       });
       setSelectedStatus(initialStatus);
     }
@@ -34,7 +33,7 @@ const ModalMedidasDefine = ({ onCancel, isOpen, companyName, globalSprm, medidas
     let status = "";
 
     if (plano && selectedApply === "Aplica") {
-      return toast.warn("Medida não pode ser modficada!");
+      return toast.warn("Medida não pode ser modificada!");
     }
 
     if (selectedApply === "Aplica" || selectedApply === "Não Aplica" || selectedApply === "Não Aplicavel") {
@@ -50,7 +49,6 @@ const ModalMedidasDefine = ({ onCancel, isOpen, companyName, globalSprm, medidas
     }
 
     try {
-      // Certifique-se de que a URL da chamada de API está correta e aponta para o endpoint correto
       const response = await fetch(`${connect}/global_sprm/${item.id_global_sprm}`, {
         method: 'PUT',
         headers: {
@@ -67,16 +65,15 @@ const ModalMedidasDefine = ({ onCancel, isOpen, companyName, globalSprm, medidas
 
       const data = await response.json();
       toast.success(`Status atualizado para ${selectedApply} com sucesso`);
+
+      setSelectedStatus(prevState => ({
+        ...prevState,
+        [itemId]: status,
+      }));
     } catch (error) {
       console.error("Erro ao mudar status da medida!", error);
+      toast.error("Erro ao mudar status da medida.");
     }
-
-    // Atualizar o estado selectedStatus usando o itemId como chave
-    setSelectedStatus(prevState => {
-      const newState = { ...prevState, [itemId]: status };
-      console.log("selectedStatus após atualização:", newState);
-      return newState;
-    });
   };
 
   const handleEditEpi = async (idMedida) => {
@@ -86,20 +83,26 @@ const ModalMedidasDefine = ({ onCancel, isOpen, companyName, globalSprm, medidas
     setGlobalId(filter.id_global_sprm);
     setGlobalData(filter);
     openModalEpi();
-  }
+  };
+
+  const findStatus = (itemId) => {
+    const find = globalSprm.find((i) => i.fk_medida_id === itemId);
+    return find ? find.status : 'N/A';
+  };
 
   // Funções do Modal
   const openModalEpi = () => {
     setShowModalEpi(true);
-  }
+  };
+
   const closeModalEpi = () => {
     getGlobalSprm();
     setShowModalEpi(false);
-  }
+  };
 
   if (!isOpen || !globalSprm) {
     return null;
-  }
+  };
 
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50">
@@ -167,7 +170,6 @@ const ModalMedidasDefine = ({ onCancel, isOpen, companyName, globalSprm, medidas
                       <option value="Não Aplica">Não Aplica</option>
                       <option value="Não Aplicavel">Não Aplicavel</option>
                     </select>
-
                   </td>
                   <td className="text-center">
                     {item.grupo_medida === 'MI' ? (

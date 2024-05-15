@@ -18,7 +18,7 @@ function Inventario() {
     getSetoresProcessos,
     getProcessosRiscos,
     getRiscosMedidas,
-    getInventario, inventario,
+    getInventario,
     getGlobalSprm, getGlobalSprmByRiscoId,
     getAparelhos,
     getConclusoes,
@@ -36,6 +36,7 @@ function Inventario() {
   const [riscosMedidas, setRiscosMedidas] = useState([]);
   const [aparelhos, setAparelhos] = useState([]);
   const [globalSprm, setGlobalSprm] = useState([]);
+  const [inventario, setInventario] = useState([]);
 
   const [onEdit, setOnEdit] = useState(null);
 
@@ -104,8 +105,19 @@ function Inventario() {
     setGlobalSprm(response);
   };
 
+  const fetchInventario = async () => {
+    const response = await getInventario();
+    console.log(response);
+    setInventario(response);
+  };
+
   useEffect(() => {
     getUnidades();
+    fetchInventario();
+    getSetores();
+    fetchProcessos();
+    fetchRiscos();
+    fetchAparelhos();
   }, [companyId]);
 
 
@@ -139,7 +151,7 @@ function Inventario() {
         setGlobalSprm={setGlobalSprm}
         globalSprm={globalSprm}
         getGlobalSprmByRiscoId={getGlobalSprmByRiscoId}
-        getInventario={getInventario}
+        getInventario={fetchInventario}
         aparelhos={aparelhos}
         inventario={inventario}
         getConclusoes={getConclusoes}
