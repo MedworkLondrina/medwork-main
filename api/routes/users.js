@@ -1926,6 +1926,36 @@ router.put("/usuarios/:id_usuario", (req, res) => {
     con.release();
   });
 });
+router.put("/usuarios_email/:id_usuario/", (req, res) => {
+  const id_usuario = req.params.id_usuario;
+  const tenant = req.query.tenant_code;
+  const email = req.body.email; 
+
+  const q = `
+    UPDATE usuarios
+    SET email = ?
+    WHERE id_usuario = ?
+  `;
+
+  const values = [email, id_usuario];
+
+  pool.getConnection((err, con) => {
+    if (err) return next(err);
+
+    con.query(q, values, (err) => {
+      if (err) {
+        console.error("Erro ao atualizar email do usuário na tabela", err);
+        return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
+      }
+
+      registrarLog('usuarios', 'put', `Alterou Email do Usuário`, `${id_usuario}`, tenant, new Date(), `Novo email: ${email}`);
+
+      return res.status(200).json("Email do usuário atualizado com sucesso!");
+    });
+
+    con.release();
+  });
+});
 
 
 router.put("/usuarios/activate/:id_usuario", (req, res) => {

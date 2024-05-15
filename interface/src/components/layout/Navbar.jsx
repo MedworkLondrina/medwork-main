@@ -9,6 +9,7 @@ import logo from '../media/logo_menu.png'
 import { IoClose } from "react-icons/io5";
 import { toast } from 'react-toastify';
 import ProfileCompany from '../pages/ProfileCompany'
+import { getAuth, signOut } from 'firebase/auth';
 
 function Navbar() {
 
@@ -38,10 +39,12 @@ function Navbar() {
 
   const empresa = selectedCompany ? selectedCompany.nome_empresa : '';
   const usuario = user ? user.nome_usuario : '';
-
+  const auth = getAuth();
+  const usuarioFirebase = auth.currentUser;
   //Criando as Funções
-  const handleLogoutClick = () => {
+  const handleLogoutClick = async () => {
     try {
+      await signOut(usuarioFirebase)
       clearUser();
       navigate("/login")
       setIsMenuOpen(false)

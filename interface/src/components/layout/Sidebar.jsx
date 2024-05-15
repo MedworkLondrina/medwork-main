@@ -43,6 +43,7 @@ import icon_laudo from '../media/menu/icon_laudo.svg';
 // UserSideBar
 import icon_logout from '../media/menu/icon_logout.svg';
 import icon_change from '../media/menu/icon_change.svg';
+import ProfileProfile from "./SidebarComponents/ProfileProfile";
 
 
 function Sidebar() {
@@ -86,6 +87,8 @@ function Sidebar() {
   const [showProfileCompany, setShowProfileCompany] = useState(false);
   const [showProfileTenant, setShowProfileTenant] = useState(false);
   const [showSearchCompany, setShowSearchCompany] = useState(false);
+  const [columnThreeClicked, setColumnThreeClicked] = useState(false);
+
 
   const getCompany = async () => {
     const selectCompany = await loadSelectedCompanyFromLocalStorage();
@@ -214,6 +217,14 @@ function Sidebar() {
     closeSubMenus();
   };
 
+  const [uniqueKey, setUniqueKey] = useState('');
+
+  useEffect(() => {
+    if (columnThreeClicked) {
+      // Atualizar a chave única para forçar a renderização do ProfileProfile
+      setUniqueKey(Math.random().toString());
+    }
+  }, [columnThreeClicked]);
   const openCorparitveMenu = () => {
     closeSubMenus();
     setShowCorporativoSubMenu(!showCorporativoSubMenu);
@@ -223,7 +234,13 @@ function Sidebar() {
     closeSubMenus();
     setShowRiscosSubMenu(!showRiscosSubMenu);
   };
-
+  const profileOpen = () => {
+    setColumnThreeClicked(true);
+    console.log(contatos)
+  }
+  const closeModal = () => {
+    setColumnThreeClicked(false);
+  };
   const openSystemMenu = () => {
     closeSubMenus();
     setShowSistemaSubMenu(!showSistemaSubMenu);
@@ -233,7 +250,11 @@ function Sidebar() {
     closeSubMenus();
     setShowLaudosSubMenu(!showLaudosSubMenu);
   };
-
+  const handleSomeAction = () => {
+    if (columnThreeClicked) {
+      closeModal();
+    }
+  };
   const logout = () => {
     try {
       clearUser();
@@ -340,19 +361,34 @@ function Sidebar() {
                 </div>
 
                 {/* Column 3 */}
-                <div className="hidden items-center justify-end lg:flex lg:col-span-1">
-                  {/* Usuário */}
-                  {user && (
-                    <div className='space-y-1 cursor-pointer'>
-                      <div className="flex items-center gap-2">
-                        <div className='bg-zinc-50 rounded-md py-2 px-3 hover:bg-zinc-100 truncate max-w-[200px]'>
+                <div className="w-full lg:col-span-1">
 
-                          <p className='text-sky-700 font-bold text-base'>{user ? user.nome_usuario : ''}</p>
+                  <div className="relative w-full">
+                    <div className="items-center justify-end lg:flex">
+
+                      {/* Usuário */}
+                      {user && (
+                        <div className="space-y-1 cursor-pointer">
+                          <div className="flex items-center gap-2">
+                            <div className="bg-zinc-50 rounded-md py-2 px-3 hover:bg-zinc-100 truncate " onClick={profileOpen}>
+                              <p className="text-sky-700 font-bold text-base">{user ? user.nome_usuario : ''}</p>
+                              {columnThreeClicked && (
+                                <ProfileProfile
+                                  user={user}
+                                  tenant={tenant}
+                                  key={uniqueKey}
+                                  contatos={contatos}
+                                />
+                              )}
+                            </div>
+                          </div>
                         </div>
-                      </div>
+                      )}
                     </div>
-                  )}
+                  </div>
                 </div>
+
+
               </div>
             </div>
 
