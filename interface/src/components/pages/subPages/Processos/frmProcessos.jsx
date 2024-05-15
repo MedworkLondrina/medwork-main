@@ -320,7 +320,7 @@ function CadastroProcesso({ onEdit, getProcessos, setOnEdit, setSearchTerm, proc
       <ModalSearchCnae
         isOpen={showModal}
         onCancel={closeModal}
-        processoNome={processo}
+        processo={processo}
         onSelect={onSelectedCnaes}
         selectedCnaes={selectedCnaes}
       />

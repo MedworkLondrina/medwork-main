@@ -83,7 +83,6 @@ function GridInventario({
 
   const convertMedidas = (item) => {
     try {
-      console.log(item)
       const medidasArray = JSON.parse(item);
       return (
         <>
@@ -96,7 +95,7 @@ function GridInventario({
       );
     } catch (error) {
       console.error("Erro ao converter medidas:", error);
-      return 'N/A';
+      return '-';
     }
   };
 

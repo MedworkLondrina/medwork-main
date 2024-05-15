@@ -3,7 +3,7 @@ import SearchInput from '../SearchInput';
 
 import useAuth from '../../../../../hooks/useAuth';
 
-const ModalSearchCnae = ({ onCancel, isOpen, processoNome, onSelect, selectedCnaes }) => {
+const ModalSearchCnae = ({ onCancel, isOpen, processo, onSelect, selectedCnaes }) => {
 
   const { fetchCnae } = useAuth([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -114,12 +114,14 @@ const ModalSearchCnae = ({ onCancel, isOpen, processoNome, onSelect, selectedCna
           </div>
         </div>
         <div className='border-b border-gray-200'></div>
-        <div className='flex justify-center items-center py-2'>
-          <p className='text-sm text-gray-500 text-center'>
-            {/* melhorar o texto */}
-            Escolhe os CNAE's para vincular ao processo.
-          </p>
-        </div>
+        {processo && (
+          <div className='flex justify-center items-center py-2'>
+            <p className='text-sm text-gray-500 text-center'>
+              {/* melhorar o texto */}
+              Escolhe os CNAE's para vincular ao processo.
+            </p>
+          </div>
+        )}
 
         {/* Cnaes Selecionados */}
         {cnaeList.length > 0 ? (
