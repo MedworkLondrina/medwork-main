@@ -6,6 +6,7 @@ import useAuth from '../../hooks/useAuth';
 import ProfileTenant from './SidebarComponents/ProfileTenant';
 import ProfileCompany from "./SidebarComponents/ProfileCompany";
 import GridEmpresas from "./SidebarComponents/GridEmpresas";
+import ModalRelatorioCnae from "../pages/subPages/components/Modal/GerarRelatorioCnae";
 
 // Images
 import logo from '../media/logo_menu.png';
@@ -39,6 +40,7 @@ import icon_plano from '../media/menu/icon_plano.svg';
 // Laudos
 import icon_laudos from '../media/menu/icon_laudos.svg';
 import icon_laudo from '../media/menu/icon_laudo.svg';
+import icon_relatorio_cnae from '../media/menu/icon_relatorio_cnae.svg';
 
 // UserSideBar
 import icon_logout from '../media/menu/icon_logout.svg';
@@ -68,6 +70,7 @@ function Sidebar() {
   const [tenantName, setTenantName] = useState('');
   const [empresas, setEmpresas] = useState([]);
   const [contatos, setContatos] = useState([]);
+  const [showModalRelatorioCnae, setShowModalRelatorioCnae] = useState(false);
 
   // Search
   const [searchTerm, setSearchTerm] = useState('');
@@ -243,6 +246,9 @@ function Sidebar() {
       console.log("Erro ao deslogar!", error)
     }
   };
+
+  const openModalRelatorioCnae = () => setShowModalRelatorioCnae(true);
+  const closeModalRelatorioCnae = () => setShowModalRelatorioCnae(false);
 
   const location = useLocation();
 
@@ -596,7 +602,7 @@ function Sidebar() {
                         <li className={`${showLaudosSubMenu ? 'bg-gray-100 rounded-md' : ''}`} onClick={openLaudosMenu}>
                           <div className={`flex items-center hover:bg-gray-100 p-2 ${showLaudosSubMenu ? 'hover:bg-sky-100 bg-sky-200 rounded-t-md' : 'rounded-md'}`}>
                             <img src={icon_laudos} alt="icon_laudos" />
-                            <span className="ms-3">Laudos</span>
+                            <span className="ms-3">Relatórios</span>
                             <div className="absolute right-3 flex items-center justify-center pr-2">
                               {showLaudosSubMenu ? (
                                 <>
@@ -649,6 +655,14 @@ function Sidebar() {
                                   <div className={`flex items-center py-2 px-6`}>
                                     <img src={icon_laudo} alt="icon_pcmso" />
                                     <span className="ms-3 font-normal">PCMSO</span>
+                                  </div>
+                                </li>
+
+                                {/* Relatório por CNAE */}
+                                <li className="hover:bg-sky-100" onClick={() => setShowMenu(!showMenu)}>
+                                  <div className={`flex items-center py-2 px-6`} onClick={openModalRelatorioCnae}>
+                                    <img src={icon_relatorio_cnae} alt="icon_relatorio_cnae" />
+                                    <span className="ms-3 font-normal">Relatório por CNAE</span>
                                   </div>
                                 </li>
                               </ul>
@@ -719,6 +733,14 @@ function Sidebar() {
         null
       )
       }
+
+      <ModalRelatorioCnae
+        isOpen={showModalRelatorioCnae}
+        onCancel={closeModalRelatorioCnae}
+        companyId={companyId}
+        empresas={empresas}
+      />
+
     </>
   );
 }
