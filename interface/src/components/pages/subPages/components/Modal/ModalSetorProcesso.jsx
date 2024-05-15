@@ -18,7 +18,6 @@ const ModalProcesso = ({ onCancel, isOpen, setorName, setorId }) => {
     try {
       const res = await getSetoresProcessos();
       const filterBySector = res.filter((c) => c.fk_setor_id === setorId)
-      console.log(res)
       setSetorProcessos(filterBySector);
     } catch (error) {
       console.log("Erro ao buscar setores e processos!", error)

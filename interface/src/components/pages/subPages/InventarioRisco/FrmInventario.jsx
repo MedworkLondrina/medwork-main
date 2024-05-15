@@ -23,14 +23,13 @@ function FrmInventario({
   getSetores, setores,
   getSetoresProcessos, setoresProcessos,
   getProcessos, processos,
-  getProcessosRiscos,processosRiscos,
+  getProcessosRiscos, processosRiscos,
   getRiscos, riscos,
   onEdit,
   companyId,
   setOnEdit,
-  riscosMedidas,
-  medidas,
-  getMedidas,
+  getRiscosMedidas, riscosMedidas,
+  getMedidas, medidas,
   medidasAdm, medidasEpi, medidasEpc,
   getGlobalSprm, setGlobalSprm, globalSprm,
   companyName,
@@ -48,6 +47,9 @@ function FrmInventario({
   const [filteredProcessos, setFilteredProcessos] = useState([]);
   const [filteredRiscos, setFilteredRiscos] = useState([]);
   const [filteredInventarioRisco, setFiltereinventarioRisco] = useState([]);
+  const [filteredGlobalSprm, setFilteredGlobalSprm] = useState([]);
+  const [filteredMedidas, setFilteredMedidas] = useState([]);
+  const [mapRiscosMedidas, setMapRiscosMedidas] = useState([]);
 
   const [showModalUnidade, setShowModalUnidade] = useState(false);
   const [showModalSetor, setShowModalSetor] = useState(false);
@@ -155,13 +157,14 @@ function FrmInventario({
       return `${ano}-${mes}-${dia}`;
     }
   };
+
   useEffect(() => {
-    if (setores.length > 0) { 
-        const filtered = setores.filter((i) => i.fk_unidade_id === unidadeId);
-        setFilteredSetores(filtered);
-        console.log(filtered); 
+    if (setores.length > 0) {
+      const filtered = setores.filter((i) => i.fk_unidade_id === unidadeId);
+      setFilteredSetores(filtered);
     }
-}, [setores, unidadeId]);
+  }, [setores, unidadeId]);
+
   const handleUnidadeSelect = async (unidadeId, nomeUnidade) => {
     closeModalUnidade();
     setUnidadeId(unidadeId)
@@ -170,18 +173,17 @@ function FrmInventario({
     await getSetores();
 
     if (setores) {
-        try {
-            const filtered = setores.filter((i) => i.fk_unidade_id === unidadeId);
-            setFilteredSetores(filtered);
-            console.log(setores)
-        } catch (error) {
-            console.error("Erro ao buscar setores da unidade: ", nomeUnidade, " Status: ", error)
-        }
+      try {
+        const filtered = setores.filter((i) => i.fk_unidade_id === unidadeId);
+        setFilteredSetores(filtered);
+      } catch (error) {
+        console.error("Erro ao buscar setores da unidade: ", nomeUnidade, " Status: ", error)
+      }
     }
-};
+  };
 
 
-const handleClearUnidade = () => {
+  const handleClearUnidade = () => {
     // Limpa as variáveis de estado relacionadas à unidade selecionada
     setUnidadeId(null);
     setNomeUnidade(null);
@@ -190,26 +192,24 @@ const handleClearUnidade = () => {
     handleClearSetor();
     setFilteredSetores([]); // Limpa os setores filtrados
     setData('');
-};
+  };
 
-// Função para lidar com a seleção de um setor
-const handleSetorSelect = async (setorId, setorNome) => {
+  // Função para lidar com a seleção de um setor
+  const handleSetorSelect = async (setorId, setorNome) => {
     closeModalSetor();
     setSetorId(setorId);
     setSetorNome(setorNome);
-    handleClearProcesso(); // Limpa o processo selecionado ao mudar de setor
+    handleClearProcesso();
     setPessoasExpostas('');
 
-    await getProcessos(); // Obtém os processos associados ao setor selecionado de forma assíncrona
+    await getProcessos();
     await getSetoresProcessos();
 
-    // Filtra os processos associados ao setor selecionado
     const filteredProcessosSetores = setoresProcessos.filter((i) => i.fk_setor_id === setorId);
     const IdsProcesso = filteredProcessosSetores.map((item) => item.fk_processo_id);
-    console.log(processos)
     const filteredProcessos = processos.filter((i) => IdsProcesso.includes(i.id_processo));
 
-    setFilteredProcessos(filteredProcessos); // Atualiza os processos filtrados
+    setFilteredProcessos(filteredProcessos);
 
     getCargos();
     const findCargo = cargos.find((i) => i.fk_setor_id === setorId);
@@ -218,14 +218,14 @@ const handleSetorSelect = async (setorId, setorNome) => {
     const selectFuncMenor = findCargo ? findCargo.func_menor : 0
 
     if (selectFuncFem != undefined || selectFuncMasc != undefined || selectFuncMenor != undefined) {
-        const sum = selectFuncFem + selectFuncMasc + selectFuncMenor;
-        if (sum === 0) {
-            setPessoasExpostas('0')
-        } else {
-            setPessoasExpostas(sum);
-        }
+      const sum = selectFuncFem + selectFuncMasc + selectFuncMenor;
+      if (sum === 0) {
+        setPessoasExpostas('0')
+      } else {
+        setPessoasExpostas(sum);
+      }
     }
-};
+  };
 
   useEffect(() => {
     if (setorId) {
@@ -239,9 +239,6 @@ const handleSetorSelect = async (setorId, setorNome) => {
       setPessoasExpostas(sum === 0 ? '0' : sum.toString());
     }
   }, [setorId, setoresProcessos, processos, cargos]);
-
-
-
 
   const handleClearSetor = () => {
     setSetorId(null);
@@ -267,15 +264,16 @@ const handleSetorSelect = async (setorId, setorNome) => {
     setFilteredRiscos(filteredRiscos);
   };
 
- useEffect(() => {
-        if (processoId && processosRiscos.length > 0 && riscos.length > 0) {
-            // Filtra os riscos associados ao processo selecionado
-            const filteredProcessosRiscos = processosRiscos.filter((i) => i.fk_processo_id === processoId);
-            const idsRiscos = filteredProcessosRiscos.map((item) => item.fk_risco_id);
-            const filtered = riscos.filter((i) => idsRiscos.includes(i.id_risco));
-            setFilteredRiscos(filtered); // Atualiza os riscos filtrados
-        }
-    }, [processoId, processosRiscos, riscos]);
+  useEffect(() => {
+    if (processoId && processosRiscos.length > 0 && riscos.length > 0) {
+      // Filtra os riscos associados ao processo selecionado
+      const filteredProcessosRiscos = processosRiscos.filter((i) => i.fk_processo_id === processoId);
+      const idsRiscos = filteredProcessosRiscos.map((item) => item.fk_risco_id);
+      const filtered = riscos.filter((i) => idsRiscos.includes(i.id_risco));
+      setFilteredRiscos(filtered); // Atualiza os riscos filtrados
+    }
+  }, [processoId, processosRiscos, riscos]);
+
   const handleClearProcesso = () => {
     setProcessoId(null);
     setProcessoNome(null);
@@ -315,14 +313,22 @@ const handleSetorSelect = async (setorId, setorNome) => {
     }
   };
 
+  useEffect(() => {
+    if (riscoId && riscosMedidas.length > 0) {
+      const filteresRiscosMedidas = riscosMedidas.filter((i) => i.fk_risco_id === riscoId);
+      const mapFilter = filteresRiscosMedidas.map((i) => i.fk_medida_id);
+      setMapRiscosMedidas(mapFilter);
+    }
+  }, [riscoId, riscosMedidas]);
+
   // Função para atualizar o Risco
   const handleRiscoSelect = async (RiscoId, RiscoNome) => {
     closeModalRisco();
     setRiscoId(RiscoId);
     setRiscoNome(RiscoNome);
     setData(obterDataFormatada(onEdit ? onEdit.data_inventario : null));
-    console.log(medidas)
-    const filteresRiscosMedidas = riscosMedidas.filter((i) => i.fk_risco_id === RiscoId);
+    getRiscosMedidas();
+
     const riscoSelecionado = riscos.find((i) => i.id_risco === RiscoId);
 
     if (riscoSelecionado) {
@@ -349,70 +355,68 @@ const handleSetorSelect = async (setorId, setorNome) => {
       setFilterConclusaoLp(filterLp);
     }
 
-    // Criar um array para armazenar as medidas e tipos
-    // const medidasTipos = filteresRiscosMedidas.map((filteredRiscosMedidas) => ({
-    //   medidaId: filteredRiscosMedidas.fk_medida_id,
-    //   medidaTipo: filteredRiscosMedidas.tipo,
-    // }));
-    await handleRiscoEscolhido(RiscoId, medidas);
+    getMedidas();
+
+    await handleRiscoEscolhido(RiscoId);
     await verify(RiscoId);
   };
 
-  const handleRiscoEscolhido = async (RiscoId, medidas) => {
+  const handleRiscoEscolhido = async (RiscoId) => {
     try {
       if (!setorId) {
         return;
       }
-  
-      const verificarResponse = await fetch(
-        `${connect}/verificar_sprm?fk_setor_id=${setorId}&fk_processo_id=${processoId}&fk_risco_id=${RiscoId}&fk_medida_id=${medidas.id_medida}`,
-        {
-          method: 'GET',
+
+      for (const medidaId of mapRiscosMedidas) {
+        // Verifica se a medida existe na tabela global_sprm
+        const verificarResponse = await fetch(
+          `${connect}/verificar_sprm?fk_setor_id=${setorId}&fk_processo_id=${processoId}&fk_risco_id=${RiscoId}&fk_medida_id=${medidaId}`,
+          {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          }
+        );
+
+        if (!verificarResponse.ok) {
+          throw new Error(`Erro ao verificar a existência. Status: ${verificarResponse.status}`);
+        }
+
+        const verificarData = await verificarResponse.json();
+
+        if (verificarData.existeCombinação) {
+          continue;
+        }
+
+        // Caso contrário, adicione a nova medida
+        const adicionarResponse = await fetch(`${connect}/global_sprm`, {
+          method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
+          body: JSON.stringify({
+            fk_setor_id: setorId,
+            fk_processo_id: processoId,
+            fk_risco_id: RiscoId,
+            fk_medida_id: medidaId,
+            status: 'Não Aplicavel',
+          }),
+        });
+
+        if (!adicionarResponse.ok) {
+          throw new Error(`Erro ao adicionar medida. Status: ${adicionarResponse.status}`);
         }
-      );
-      console.log(medidas)
-      if (!verificarResponse.ok) {
-        throw new Error(`Erro ao verificar a existência. Status: ${verificarResponse.status}`);
+
+        const adicionarData = await adicionarResponse.json();
+        toast.success("Medidas Adicionadas com sucesso!");
       }
-  
-      const verificarData = await verificarResponse.json();
-  
-      if (verificarData.existeCombinação) {
-        return; // Aqui você pode decidir o que fazer caso a combinação exista
-      }
-  
-      // Caso contrário, adicione a nova medida
-      const adicionarResponse = await fetch(`${connect}/global_sprm`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          fk_setor_id: setorId,
-          fk_processo_id: processoId,
-          fk_risco_id: RiscoId,
-          fk_medida_id: medidas.id_medida,
-          tipo_medida: medidas.grupo_medida, // Alterei de 'medidaTipo' para 'medidasTipo'
-          status: 'Não Aplicavel',
-        }),
-      });
-  
-      if (!adicionarResponse.ok) {
-        throw new Error(`Erro ao adicionar medida. Status: ${adicionarResponse.status}`);
-      }
-  
-      const adicionarData = await adicionarResponse.json();
-      toast.success("Medidas Adicionadas com sucesso!");
-    
+
       getGlobalSprm();
     } catch (error) {
       console.error("Erro ao adicionar medidas", error);
     }
   };
-  
 
   const handleClearRisco = () => {
     setLoading(true);
@@ -556,6 +560,11 @@ const handleSetorSelect = async (setorId, setorNome) => {
           setConclusaoLtcat(onEdit.conclusao_lp);
         }
 
+        if (onEdit && onEdit.medidas) {
+          const med = JSON.parse(onEdit.medidas);
+          setFilteredMedidas(med);
+        }
+
         setIsVerify(false);
         setIsMedidasSet(true);
       } catch (error) {
@@ -569,17 +578,11 @@ const handleSetorSelect = async (setorId, setorNome) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const medidasAplicadas = medidas
-      .map((item) => ({
-        nome: item.descricao_medida,
-        tipo: item.grupo_medida,
-      }));
-
     if (!nomeUnidade || !setorNome || !processoNome || !riscoNome || !medicao || !data) {
       toast.warn("Preencha todos os campos!");
       return
     }
-    console.log(data)
+
     try {
       const inventarioData = {
         data_inventario: data || '',
@@ -591,7 +594,7 @@ const handleSetorSelect = async (setorId, setorNome) => {
         fk_risco_id: riscoId || '',
         fontes: descricao || '',
         medicao: medicao || '0',
-        medidas: JSON.stringify(medidasAplicadas) || '',
+        medidas: JSON.stringify(filteredMedidas) || '',
         probabilidade: probabilidade || '',
         nivel: probabilidade * severidade || '',
         frequencia: frequencia || '',
@@ -673,46 +676,6 @@ const handleSetorSelect = async (setorId, setorNome) => {
     setIsMedidasSet(true);
   };
 
-  // const find = (item, tipo) => {
-  //   try {
-  //     if (!item) {
-  //       return 'N/A';
-  //     }
-
-  //     switch (tipo) {
-  //       case 1:
-  //         const admMedidas = medidasAdm.find((i) => i.id_medida_adm === item);
-  //         return admMedidas ? admMedidas.descricao_medida_adm : 'N/A';
-  //       case 2:
-  //         const epiMedidas = medidasEpi.find((i) => i.id_medida === item);
-  //         return epiMedidas ? epiMedidas.nome_medida : 'N/A';
-  //       case 3:
-  //         const epcMedidas = medidasEpc.find((i) => i.id_medida === item);
-  //         return epcMedidas ? epcMedidas.descricao_medida : 'N/A';
-
-  //       default:
-  //         return 'N/A';
-  //     }
-  //   } catch (error) {
-  //     console.log("Erro ao buscar Dados!", error);
-  //     return 'N/A';
-  //   }
-  // };
-
-  // const tipoDefine = (item) => {
-  //   switch (item) {
-  //     case 1:
-  //       return 'Adm'
-  //     case 2:
-  //       return 'EPI'
-  //     case 3:
-  //       return 'EPC'
-
-  //     default:
-  //       return 'N/A'
-  //   }
-  // };
-
   const handleChangeData = (event) => {
     setData(event.target.value);
   };
@@ -772,7 +735,6 @@ const handleSetorSelect = async (setorId, setorNome) => {
 
   const handleClearConclusaoLtcat = () => {
     setConclusaoLtcat('');
-
   };
 
   const handleClearConclusaoLi = () => {
@@ -785,7 +747,17 @@ const handleSetorSelect = async (setorId, setorNome) => {
 
   };
 
-  const filteredGlobalSprm = globalSprm.filter((i) => i.fk_setor_id === setorId && i.fk_risco_id === riscoId)
+  useEffect(() => {
+    if (globalSprm) {
+      const filter = globalSprm.filter((i) => i.fk_setor_id === setorId && i.fk_risco_id === riscoId);
+      const filterApply = filter.filter((i) => i.status === 'Aplica');
+      const mapSprm = filterApply.map((i) => i.fk_medida_id);
+      const filterMedidas = medidas.filter((i) => mapSprm.includes(i.id_medida));
+      setFilteredMedidas(filterMedidas);
+      setFilteredGlobalSprm(filter);
+    }
+  }, [globalSprm, setorId, riscoId]);
+
 
   return (
     <>
@@ -1485,24 +1457,13 @@ const handleSetorSelect = async (setorId, setorNome) => {
                     Defina as Medidas
                   </button>
                 </div>
-                <ModalMedidasDefine
-                  isOpen={showModalMedidas}
-                  onCancel={closeModalMedidas}
-                  companyName={companyName}
-                  globalSprm={filteredGlobalSprm}
-                  medidasAdm={medidasAdm}
-                  medidasEpi={medidasEpi}
-                  medidasEpc={medidasEpc}
-                  medidasDefine={handleMedidaChange}
-                  plano={plano}
-                />
               </div>
               {/* Medidas de Controle Aplicadas*/}
               <div className="w-full md:w-1/3 px-3">
                 <label className="tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="grid-raza_social">
                   Medidas Aplicadas:
                 </label>
-                {filteredGlobalSprm.filter((c) => c.status && c.status === 'Aplica')
+                {filteredMedidas
                   .map((item, i) => (
                     <ul key={i}>
                       <li className="pb-3 sm:pb-4">
@@ -1567,6 +1528,16 @@ const handleSetorSelect = async (setorId, setorNome) => {
         children={filteredRiscos}
         setorName={riscoNome}
         onSelect={handleRiscoSelect}
+      />
+      <ModalMedidasDefine
+        isOpen={showModalMedidas}
+        onCancel={closeModalMedidas}
+        companyName={companyName}
+        globalSprm={filteredGlobalSprm}
+        medidas={medidas}
+        medidasDefine={handleMedidaChange}
+        plano={plano}
+        getGlobalSprm={getGlobalSprm}
       />
     </>
   );

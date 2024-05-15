@@ -551,15 +551,17 @@ export const AuthProvider = ({ children }) => {
 
   const getInventario = async () => {
     try {
-      const response = await fetch(`${connect}/inventario`);
+      const idCompany = await checkCompanyId();
+      const queryParams = new URLSearchParams({ companyId: idCompany }).toString();
+      const response = await fetch(`${connect}/inventario?${queryParams}`);
 
       if (!response.ok) {
         throw new Error(`Erro ao buscar Inventário. Status: ${response.status}`)
       }
 
       const data = await response.json();
-      // data.sort((a, b) => parseInt(b.nivel) - parseInt(a.nivel));
       setInventario(data)
+      return data;
     } catch (error) {
       toast.warn("Erro ao buscar Inventário");
       console.log(`Erro ao buscar Inventário. ${error}`)
@@ -576,6 +578,7 @@ export const AuthProvider = ({ children }) => {
 
       const data = await response.json();
       setGlobalSprm(data);
+      return data;
     } catch (error) {
       toast.warn("Erro ao buscar medidas do setor");
       console.log(`Erro ao buscar medidas do setor. ${error}`)

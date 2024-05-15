@@ -18,8 +18,8 @@ function Inventario() {
     getSetoresProcessos,
     getProcessosRiscos,
     getRiscosMedidas,
-    getInventario, inventario,
-    getGlobalSprm, setGlobalSprm, globalSprm, getGlobalSprmByRiscoId,
+    getInventario,
+    getGlobalSprm, getGlobalSprmByRiscoId,
     getAparelhos,
     getConclusoes,
   } = useAuth(null);
@@ -35,6 +35,8 @@ function Inventario() {
   const [processosRiscos, setProcessosRiscos] = useState([]);
   const [riscosMedidas, setRiscosMedidas] = useState([]);
   const [aparelhos, setAparelhos] = useState([]);
+  const [globalSprm, setGlobalSprm] = useState([]);
+  const [inventario, setInventario] = useState([]);
 
   const [onEdit, setOnEdit] = useState(null);
 
@@ -45,6 +47,7 @@ function Inventario() {
 
   useEffect(() => {
     getCompany();
+    getUnidades();
   }, []);
 
   const getUnidades = async () => {
@@ -97,8 +100,24 @@ function Inventario() {
     setAparelhos(response);
   };
 
+  const fetchGlobalSprm = async () => {
+    const response = await getGlobalSprm();
+    setGlobalSprm(response);
+  };
+
+  const fetchInventario = async () => {
+    const response = await getInventario();
+    console.log(response);
+    setInventario(response);
+  };
+
   useEffect(() => {
     getUnidades();
+    fetchInventario();
+    getSetores();
+    fetchProcessos();
+    fetchRiscos();
+    fetchAparelhos();
   }, [companyId]);
 
 
@@ -113,7 +132,8 @@ function Inventario() {
         processos={processos}
         getProcessos={fetchProcessos}
         getRiscos={fetchRiscos}
-        getMedidas = {getMedidas}
+        getMedidas={getMedidas}
+        medidas={medidas}
         riscos={riscos}
         setoresProcessos={setoresProcessos}
         getSetoresProcessos={fetchSetoresProcessos}
@@ -123,14 +143,15 @@ function Inventario() {
         companyId={companyId}
         setOnEdit={setOnEdit}
         riscosMedidas={riscosMedidas}
+        getRiscosMedidas={fetchRiscosMedidas}
         medidasAdm={medidasAdm}
         medidasEpi={medidasEpi}
         medidasEpc={medidasEpc}
-        getGlobalSprm={getGlobalSprm}
+        getGlobalSprm={fetchGlobalSprm}
         setGlobalSprm={setGlobalSprm}
         globalSprm={globalSprm}
         getGlobalSprmByRiscoId={getGlobalSprmByRiscoId}
-        getInventario={getInventario}
+        getInventario={fetchInventario}
         aparelhos={aparelhos}
         inventario={inventario}
         getConclusoes={getConclusoes}

@@ -22,19 +22,19 @@ function GridInventario({
       switch (tipo) {
         case 'nome_unidade':
           const unidadeEncontrada = unidade.find((c) => c.id_unidade === item);
-          return unidadeEncontrada ? unidadeEncontrada.nome_unidade : 'N/A';
+          return unidadeEncontrada ? unidadeEncontrada.nome_unidade : '-';
 
         case 'nome_setor':
           const setorEncontrado = setor.find((c) => c.id_setor === item);
-          return setorEncontrado ? setorEncontrado.nome_setor : 'N/A';
+          return setorEncontrado ? setorEncontrado.nome_setor : '-';
 
         case 'nome_processo':
           const processoEncontrado = processo.find((c) => c.id_processo === item);
-          return processoEncontrado ? processoEncontrado.nome_processo : 'N/A';
+          return processoEncontrado ? processoEncontrado.nome_processo : '-';
 
         case 'aparelho':
           const aparelhoEncontrado = aparelhos.find((c) => c.id_aparelho === item);
-          return aparelhoEncontrado ? aparelhoEncontrado.nome_aparelho : 'N/A';
+          return aparelhoEncontrado ? aparelhoEncontrado.nome_aparelho : '-';
 
         case 'nome_risco':
         case 'grupo_risco':
@@ -65,14 +65,14 @@ function GridInventario({
                 return riscoEncontrado.unidade_medida_risco;
             }
           } else {
-            return 'N/A';
+            return '-';
           }
         default:
-          return 'N/A';
+          return '-';
       }
     } catch (error) {
       console.log("Erro ao buscar Dados!", error);
-      return 'N/A';
+      return '-';
     }
   };
 
@@ -83,13 +83,13 @@ function GridInventario({
 
   const convertMedidas = (item) => {
     try {
+      console.log(item)
       const medidasArray = JSON.parse(item);
       return (
         <>
-          {/* <p>Index - Tipo: Medida</p> */}
           <ul>
-            {medidasArray.map(({ nome, tipo }, index) => (
-              <li key={index}><span className="font-semibold">{index}</span><span className="font-semibold">{`- ${tipo}: `} </span>{`${nome}.`}</li>
+            {medidasArray.map(({ descricao_medida, grupo_medida }, id_medida) => (
+              <li key={id_medida}><span className="font-semibold">{id_medida}</span><span className="font-semibold">{`- ${grupo_medida}: `} </span>{`${descricao_medida}.`}</li>
             ))}
           </ul>
         </>

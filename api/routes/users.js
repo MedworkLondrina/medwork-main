@@ -2609,12 +2609,13 @@ router.put("/plano/:id_plano", (req, res) => {
 //Inventário de Riscos
 //Get Table
 router.get("/inventario", (req, res) => {
-  const q = `SELECT * FROM inventario`;
+  const queryParams = req.query.companyId;
+  const q = `SELECT * FROM inventario WHERE fk_empresa_id = ?`;
 
   pool.getConnection((err, con) => {
     if (err) return next(err);
 
-    con.query(q, (err, data) => {
+    con.query(q, queryParams, (err, data) => {
       if (err) return res.status(500).json(err);
 
       return res.status(200).json(data);
@@ -2671,6 +2672,8 @@ router.put("/inventario/:id_inventario", (req, res) => {
     conclusao_lp,
   } = req.body;
 
+  console.log(req.body)
+
   const q = `
     UPDATE inventario
     SET data_inventario = ?,
@@ -2716,8 +2719,6 @@ router.put("/inventario/:id_inventario", (req, res) => {
   ];
 
   pool.getConnection((err, con) => {
-    con.release();
-
     if (err) return next(err);
 
     con.query(q, values, (err) => {
@@ -2758,19 +2759,19 @@ router.get("/global_sprm", (req, res) => {
 // Verifica se a combinação existe na tabela global_sprm
 router.get("/verificar_sprm", async (req, res) => {
   try {
-    const { fk_setor_id, fk_processo_id, fk_risco_id, fk_medida_id, tipo_medida } = req.query;
+    const { fk_setor_id, fk_processo_id, fk_risco_id, fk_medida_id } = req.query;
 
-    if (!fk_setor_id || !fk_processo_id || !fk_risco_id || !fk_medida_id || !tipo_medida) {
+    if (!fk_setor_id || !fk_processo_id || !fk_risco_id || !fk_medida_id) {
       return res.status(400).json({ error: 'Parâmetros insuficientes' });
     }
 
     // Execute uma consulta SQL para verificar a existência
     const q = `
       SELECT * FROM global_sprm
-      WHERE fk_setor_id = ? AND fk_processo_id = ? AND fk_risco_id = ? AND fk_medida_id = ? AND tipo_medida = ?
+      WHERE fk_setor_id = ? AND fk_processo_id = ? AND fk_risco_id = ? AND fk_medida_id = ?
     `;
 
-    pool.query(q, [fk_setor_id, fk_processo_id, fk_risco_id, fk_medida_id, tipo_medida], (err, data) => {
+    pool.query(q, [fk_setor_id, fk_processo_id, fk_risco_id, fk_medida_id], (err, data) => {
       if (err) {
         return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
       }
@@ -2832,6 +2833,31 @@ router.put("/global_sprm/:id_global_sprm", (req, res) => {
     });
   })
 });
+
+// Update EPI
+router.put("/update_epi_sprm/:id_global_sprm", (req, res) => {
+  const id_global_sprm = req.params.id_global_sprm;
+  const { certificado_epi, vencimento_certificado_epi, fator_reducao_epi, fabricante_epi } = req.body;
+
+  const q = `UPDATE global_sprm SET certificado_epi = ?, vencimento_certificado_epi = ?, fator_reducao_epi = ?, fabricante_epi = ? WHERE id_global_sprm = ?`;
+
+  const values = [certificado_epi, vencimento_certificado_epi, fator_reducao_epi, fabricante_epi, id_global_sprm];
+
+  pool.getConnection((err, con) => {
+    if (err) return next(err);
+
+    con.query(q, values, (err) => {
+      if (err) {
+        console.error("Erro ao atualizar medida no setor", err);
+        return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
+      }
+      return res.status(200).json("Medida atualizada com sucesso!");
+    });
+  })
+});
+
+
+
 
 router.post("/elaboradores", (req, res) => {
   const data = req.body;

@@ -20,7 +20,8 @@ const ModalSearchRisco = ({ onCancel, isOpen, children, onSelect }) => {
   const handleSearch = (term) => {
     setSearchTerm(term);
   }
-console.log(children)
+
+  
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50">
       <div className="modal-overlay absolute inset-0 backdrop-blur-[1px] bg-black bg-opacity-10" onClick={onCancel}></div>
