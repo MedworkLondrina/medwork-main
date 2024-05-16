@@ -429,6 +429,8 @@ function FrmInventario({
   };
 
   const setRiscosInput = (risco) => {
+    var ltrisco = document.getElementById('risco-lt');
+
     if (!risco) {
       setAvaliacao('');
       setLimiteTolerancia('');
@@ -439,7 +441,9 @@ function FrmInventario({
       setLtcat('');
     } else {
       setAvaliacao(risco.classificacao_risco);
-      setLimiteTolerancia(risco.limite_tolerancia_risco || '0');
+    }
+    {handleCalor?setLimiteTolerancia(ltrisco.value) :setLimiteTolerancia(risco.limite_tolerancia_risco || '0');
+
       setConsequencia(risco.danos_saude_risco);
       setMetodologia(risco.metodologia_risco);
       setSeveridade(risco.severidade_risco);
@@ -470,13 +474,29 @@ function FrmInventario({
   };
 
   const handleProbabilidadeChange = (event) => {
+    const nivelValue = document.getElementById('nivel').value;
     const selectedProbabilidade = parseInt(event.target.value, 10);
     const severidadeValue = parseInt(severidade, 10);
-
-    if (!isNaN(selectedProbabilidade) && !isNaN(severidadeValue)) {
+  
+    if (handleCalor) {
+      // Se handleCalor for verdadeiro, definimos o valor de nivelValue como o valor atual do elemento com ID 'nivel'
+      setProbabilidade(nivelValue); // Acho que você quis definir setProbabilidade aqui, mas confirmarei abaixo
+  
+      if (nivelValue >= 1 && nivelValue <= 6) {
+        setNivel("Baixo");
+      } else if (nivelValue >= 7 && nivelValue <= 12) {
+        setNivel("Moderado");
+      } else if (nivelValue >= 13 && nivelValue <= 16) {
+        setNivel("Alto");
+      } else if (nivelValue >= 20 && nivelValue <= 25) {
+        setNivel("Crítico");
+      } else {
+        setNivel(null);
+      }
+    } else if (!isNaN(selectedProbabilidade) && !isNaN(severidadeValue)) {
       const nivelValue = selectedProbabilidade * severidadeValue;
       setProbabilidade(selectedProbabilidade);
-
+  
       if (nivelValue >= 1 && nivelValue <= 6) {
         setNivel("Baixo");
       } else if (nivelValue >= 7 && nivelValue <= 12) {
@@ -490,7 +510,7 @@ function FrmInventario({
       }
     }
   };
-
+  
   const handleMedicaoCheck = () => {
     setCheckMedicao(!checkMedicao);
     if (medicao === '0') {
@@ -746,6 +766,9 @@ function FrmInventario({
     setConclusaoLp('');
 
   };
+
+  const handleCalor = riscoNome === "Calor" ? true : false;
+
 
   useEffect(() => {
     if (globalSprm) {
@@ -1054,12 +1077,12 @@ function FrmInventario({
                   LT:
                 </label>
                 <input
-                  className={`${limiteTolerancia ? 'bg-gray-50 opacity-50 text-gray-600 cursor-not-allowed' : ''} appearence-none block w-full bg-gray-100 rounded py-3 px-4 mb-3 mt-1 leading-tight focus:outline-gray-100 focus:bg-white`}
+                  className={`${handleCalor? '':limiteTolerancia ? 'bg-gray-50 opacity-50 text-gray-600 cursor-not-allowed' : ''} appearence-none block w-full bg-gray-100 rounded py-3 px-4 mb-3 mt-1 leading-tight focus:outline-gray-100 focus:bg-white`}
                   type="text"
                   name="limite_tolerancia"
                   placeholder="LT"
-                  value={limiteTolerancia}
-                  disabled
+                  disabled = {!handleCalor}
+                  id="risco-lt"
                   step="any"
                 />
               </div>
@@ -1081,9 +1104,10 @@ function FrmInventario({
                 <label className="tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="grid-raza_social">
                   Medição:
                 </label>
+              
                 <input
                   className={`appearence-none block w-full bg-gray-100 rounded py-3 px-4 mt-1 leading-tight focus:outline-gray-100 focus:bg-white ${medicao === 'N/A' || medicao === "0" ? 'bg-gray-50 opacity-50 text-gray-600 cursor-not-allowed' : ''} ${checkMedicao ? 'bg-gray-50 opacity-50 text-gray-600 cursor-not-allowed' : ''}`}
-                  type="number"
+                  type={handleCalor? "text" : "number"}
                   name="medicao_risco"
                   placeholder="Medição"
                   value={medicao}
@@ -1228,8 +1252,8 @@ function FrmInventario({
                   type="text"
                   name="nivel_risco"
                   placeholder="Nível"
-                  disabled
-                  value={nivel || ""}
+                  disabled = {!handleCalor}
+                  id="nivel"
                 />
               </div>
             </div>

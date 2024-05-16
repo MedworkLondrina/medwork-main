@@ -45,6 +45,7 @@ import icon_relatorio_cnae from '../media/menu/icon_relatorio_cnae.svg';
 // UserSideBar
 import icon_logout from '../media/menu/icon_logout.svg';
 import icon_change from '../media/menu/icon_change.svg';
+import ProfileProfile from "./SidebarComponents/ProfileProfile";
 
 
 function Sidebar() {
@@ -89,6 +90,9 @@ function Sidebar() {
   const [showProfileCompany, setShowProfileCompany] = useState(false);
   const [showProfileTenant, setShowProfileTenant] = useState(false);
   const [showSearchCompany, setShowSearchCompany] = useState(false);
+  const [showUserProfile, setShowUserProfile] = useState(false);
+  const [columnThreeClicked, setColumnThreeClicked] = useState(false);
+
 
   const getCompany = async () => {
     const selectCompany = await loadSelectedCompanyFromLocalStorage();
@@ -217,6 +221,15 @@ function Sidebar() {
     closeSubMenus();
   };
 
+  const [uniqueKey, setUniqueKey] = useState('');
+
+  useEffect(() => {
+    if (columnThreeClicked) {
+      // Atualizar a chave única para forçar a renderização do ProfileProfile
+      setUniqueKey(Math.random().toString());
+    }
+  }, [columnThreeClicked]);
+
   const openCorparitveMenu = () => {
     closeSubMenus();
     setShowCorporativoSubMenu(!showCorporativoSubMenu);
@@ -227,6 +240,14 @@ function Sidebar() {
     setShowRiscosSubMenu(!showRiscosSubMenu);
   };
 
+  const userProfileOpen = () => {
+    setShowUserProfile(!showUserProfile);
+  }
+
+  const closeModal = () => {
+    setColumnThreeClicked(false);
+  };
+
   const openSystemMenu = () => {
     closeSubMenus();
     setShowSistemaSubMenu(!showSistemaSubMenu);
@@ -235,6 +256,12 @@ function Sidebar() {
   const openLaudosMenu = () => {
     closeSubMenus();
     setShowLaudosSubMenu(!showLaudosSubMenu);
+  };
+
+  const handleSomeAction = () => {
+    if (columnThreeClicked) {
+      closeModal();
+    }
   };
 
   const logout = () => {
@@ -346,19 +373,34 @@ function Sidebar() {
                 </div>
 
                 {/* Column 3 */}
-                <div className="hidden items-center justify-end lg:flex lg:col-span-1">
-                  {/* Usuário */}
-                  {user && (
-                    <div className='space-y-1 cursor-pointer'>
-                      <div className="flex items-center gap-2">
-                        <div className='bg-zinc-50 rounded-md py-2 px-3 hover:bg-zinc-100 truncate max-w-[200px]'>
+                <div className="w-full lg:col-span-1">
 
-                          <p className='text-sky-700 font-bold text-base'>{user ? user.nome_usuario : ''}</p>
+                  <div className="relative w-full">
+                    <div className="items-center justify-end lg:flex">
+
+                      {/* Usuário */}
+                      {user && (
+                        <div className="space-y-1 cursor-pointer">
+                          <div className="flex items-center gap-2">
+                            <div className="bg-zinc-50 rounded-md py-2 px-3 hover:bg-zinc-100 truncate " onClick={userProfileOpen}>
+                              <p className="text-sky-700 font-bold text-base">{user ? user.nome_usuario : ''}</p>
+                              {columnThreeClicked && (
+                                <ProfileProfile
+                                  user={user}
+                                  tenant={tenant}
+                                  key={uniqueKey}
+                                  contatos={contatos}
+                                />
+                              )}
+                            </div>
+                          </div>
                         </div>
-                      </div>
+                      )}
                     </div>
-                  )}
+                  </div>
                 </div>
+
+
               </div>
             </div>
 
@@ -562,7 +604,6 @@ function Sidebar() {
                             </Link>
 
                             {/* Importar Dados */}
-
                             <li className="opacity-25 cursor-not-allowed">
                               <div className={`flex items-center py-2 px-6`}>
                                 <img src={icon_import} alt="icon_import" />
@@ -702,7 +743,7 @@ function Sidebar() {
               </>
             )}
 
-            {/* Profile Company */}
+            {/* Profile Com5-5erpany */}
             {(searchTerm || showProfileCompany) && (
               <>
                 <aside id="companyContainer" className="fixed left-0 right-0 overflow-y-auto max-h-[89vh] mx-auto mt-2 z-40 w-10/12 bg-white rounded-xl scrollbar-thin shadow scrollbar-thumb-sky-700 scrollbar-track-transparent" aria-label="companyContainer">
@@ -723,6 +764,20 @@ function Sidebar() {
                       />
                     </>
                   )}
+                </aside>
+              </>
+            )}
+
+            {/* User Profile */}
+            {showUserProfile && (
+              <>
+                <aside id="userProfile" className="fixed right-2 mt-1 z-40 w-3/12 transition-transform -translate-x-full bg-white shadow-md sm:translate-x-0 rounded-xl" aria-label="userProfile">
+                  <ProfileProfile
+                    user={user}
+                    tenant={tenant}
+                    key={uniqueKey}
+                    contatos={contatos}
+                  />
                 </aside>
               </>
             )}
