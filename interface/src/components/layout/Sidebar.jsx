@@ -90,6 +90,7 @@ function Sidebar() {
   const [showProfileCompany, setShowProfileCompany] = useState(false);
   const [showProfileTenant, setShowProfileTenant] = useState(false);
   const [showSearchCompany, setShowSearchCompany] = useState(false);
+  const [showUserProfile, setShowUserProfile] = useState(false);
   const [columnThreeClicked, setColumnThreeClicked] = useState(false);
 
 
@@ -228,6 +229,7 @@ function Sidebar() {
       setUniqueKey(Math.random().toString());
     }
   }, [columnThreeClicked]);
+
   const openCorparitveMenu = () => {
     closeSubMenus();
     setShowCorporativoSubMenu(!showCorporativoSubMenu);
@@ -237,13 +239,15 @@ function Sidebar() {
     closeSubMenus();
     setShowRiscosSubMenu(!showRiscosSubMenu);
   };
-  const profileOpen = () => {
-    setColumnThreeClicked(true);
-    console.log(contatos)
+
+  const userProfileOpen = () => {
+    setShowUserProfile(!showUserProfile);
   }
+
   const closeModal = () => {
     setColumnThreeClicked(false);
   };
+
   const openSystemMenu = () => {
     closeSubMenus();
     setShowSistemaSubMenu(!showSistemaSubMenu);
@@ -253,11 +257,13 @@ function Sidebar() {
     closeSubMenus();
     setShowLaudosSubMenu(!showLaudosSubMenu);
   };
+
   const handleSomeAction = () => {
     if (columnThreeClicked) {
       closeModal();
     }
   };
+
   const logout = () => {
     try {
       clearUser();
@@ -376,7 +382,7 @@ function Sidebar() {
                       {user && (
                         <div className="space-y-1 cursor-pointer">
                           <div className="flex items-center gap-2">
-                            <div className="bg-zinc-50 rounded-md py-2 px-3 hover:bg-zinc-100 truncate " onClick={profileOpen}>
+                            <div className="bg-zinc-50 rounded-md py-2 px-3 hover:bg-zinc-100 truncate " onClick={userProfileOpen}>
                               <p className="text-sky-700 font-bold text-base">{user ? user.nome_usuario : ''}</p>
                               {columnThreeClicked && (
                                 <ProfileProfile
@@ -598,7 +604,6 @@ function Sidebar() {
                             </Link>
 
                             {/* Importar Dados */}
-
                             <li className="opacity-25 cursor-not-allowed">
                               <div className={`flex items-center py-2 px-6`}>
                                 <img src={icon_import} alt="icon_import" />
@@ -738,7 +743,7 @@ function Sidebar() {
               </>
             )}
 
-            {/* Profile Company */}
+            {/* Profile Com5-5erpany */}
             {(searchTerm || showProfileCompany) && (
               <>
                 <aside id="companyContainer" className="fixed left-0 right-0 overflow-y-auto max-h-[89vh] mx-auto mt-2 z-40 w-10/12 bg-white rounded-xl scrollbar-thin shadow scrollbar-thumb-sky-700 scrollbar-track-transparent" aria-label="companyContainer">
@@ -759,6 +764,20 @@ function Sidebar() {
                       />
                     </>
                   )}
+                </aside>
+              </>
+            )}
+
+            {/* User Profile */}
+            {showUserProfile && (
+              <>
+                <aside id="userProfile" className="fixed right-2 mt-1 z-40 w-3/12 transition-transform -translate-x-full bg-white shadow-md sm:translate-x-0 rounded-xl" aria-label="userProfile">
+                  <ProfileProfile
+                    user={user}
+                    tenant={tenant}
+                    key={uniqueKey}
+                    contatos={contatos}
+                  />
                 </aside>
               </>
             )}
