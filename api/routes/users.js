@@ -1930,14 +1930,15 @@ router.put("/usuarios_email/:id_usuario/", (req, res) => {
   const id_usuario = req.params.id_usuario;
   const tenant = req.query.tenant_code;
   const email = req.body.email; 
+  const nome_usuario = req.body.nome_usuario
 
   const q = `
     UPDATE usuarios
-    SET email = ?
+    SET email = ?, nome_usuario = ?
     WHERE id_usuario = ?
   `;
 
-  const values = [email, id_usuario];
+  const values = [email, nome_usuario,  id_usuario];
 
   pool.getConnection((err, con) => {
     if (err) return next(err);

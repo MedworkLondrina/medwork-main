@@ -42,6 +42,11 @@ function Navbar() {
   const auth = getAuth();
   const usuarioFirebase = auth.currentUser;
   //Criando as Funções
+
+  useEffect(() => {
+    const usuario = user ? user.nome_usuario : '';
+
+  },[user])
   const handleLogoutClick = async () => {
     try {
       await signOut(usuarioFirebase)
