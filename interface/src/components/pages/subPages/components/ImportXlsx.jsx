@@ -1,10 +1,12 @@
 import React, { useState } from "react";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
+import {connect} from "../../../../services/api";
 
 const ImportXlsx = () => {
   const [file, setFile] = useState(null);
   const [allDataArray, setAllDataArray] = useState([]);
+  const [groupedData, setGroupedData] = useState({});
   const [importSuccess, setImportSuccess] = useState(false);
 
   const handleOnChange = (e) => {
@@ -36,6 +38,15 @@ const ImportXlsx = () => {
 
   const xlsxFileToArray = async (file) => {
     try {
+      const empresa = localStorage.getItem('selectedCompanyData');
+     
+      const empresaObj = JSON.parse(empresa);
+
+
+      // Acessando a propriedade id_empresa
+      const empresa_id = empresaObj.id_empresa;
+      
+      
       const data = await readFileAsync(file);
       const workbook = XLSX.read(data, { type: "binary" });
       const sheetName = workbook.SheetNames[0];
@@ -45,63 +56,64 @@ const ImportXlsx = () => {
       const groupedData = {};
 
       jsonData.forEach((item) => {
-        const unidade = item['Nome Unidade'];
-        const cnpj = item['CNPJ Unidade'];
-        const cep = item['Cep Unidade'];
-        const numero = item['Nº endereço Unidade']
-        const setor = item['Nome Setor'];
-        const cargo = item['Nome Cargo'];
-        const descricao = item['Descrição Detalhada do Cargo'];
-        const sexo = item['Sexo'];
+        const nomeContato = item['nome_contato'];
+        const telefoneContato = item['telefone_contato'];
+        const emailContato = item['email_contato'];
+        const emailSecundarioContato = item['email_secundario_contato'];
 
-        if (!groupedData[unidade]) {
-          groupedData[unidade] = {
-            CNPJ: cnpj,
-            CEP: cep,
-            Numero: numero,
-            Setores: {}
+        if (!groupedData[nomeContato]) {
+          groupedData[nomeContato] = {
+            nome_contato: nomeContato,
+            telefone_contato: telefoneContato,
+            email_contato: emailContato,
+            email_secundario_contato: emailSecundarioContato,
+            ativo:1,
+            fk_empresa_id: empresa_id
           };
-        }
-
-        if (!groupedData[unidade].Setores[setor]) {
-          groupedData[unidade].Setores[setor] = {};
-        }
-
-        if (!groupedData[unidade].Setores[setor][cargo]) {
-          groupedData[unidade].Setores[setor][cargo] = {
-            Descricao: descricao,
-            Sexos: { M: 0, F: 0 }
-          };
-        }
-
-        // Atualiza a descrição se houver outra linha com o mesmo cargo
-        if (groupedData[unidade].Setores[setor][cargo].Descricao !== descricao) {
-          groupedData[unidade].Setores[setor][cargo].Descricao += `\n${descricao}`;
-        }
-
-        // Conta os sexos
-        if (sexo === 'M') {
-          groupedData[unidade].Setores[setor][cargo].Sexos.M += 1;
-        } else if (sexo === 'F') {
-          groupedData[unidade].Setores[setor][cargo].Sexos.F += 1;
         }
       });
 
       setAllDataArray(jsonData);
+      setGroupedData(groupedData);
       setImportSuccess(true);
 
-      // Log no console dos dados agrupados por unidade e setor
-      console.log("Dados Agrupados por Unidade e Setor:");
+      console.log("Dados Agrupados por Contato:");
       console.log(groupedData);
 
-      // Cria um Blob com os dados JSON
       const jsonString = JSON.stringify(groupedData, null, 2);
       const blob = new Blob([jsonString], { type: "application/json" });
 
-      // Salva o Blob como um arquivo
       saveAs(blob, "dados.json");
     } catch (error) {
       console.error("Erro ao processar o arquivo:", error);
+    }
+  };
+
+  const handleSendData = async () => {
+    try {
+      const user = localStorage.getItem('user');
+      const userObj = JSON.parse(user);
+      const tenant = userObj.tenant_code;
+      const nome = userObj.nome_usuario;
+
+      const queryParams = new URLSearchParams({ tenant_code: tenant, nome_usuario: nome }).toString();
+
+
+      const response = await fetch(`${connect}/contatos?${queryParams}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(Object.values(groupedData)),
+      });
+
+      if (response.ok) {
+        console.log("Dados enviados com sucesso!");
+      } else {
+        console.error("Erro ao enviar os dados:", response.statusText);
+      }
+    } catch (error) {
+      console.error("Erro ao enviar os dados:", error);
     }
   };
 
@@ -114,7 +126,7 @@ const ImportXlsx = () => {
         <label htmlFor="dropzone-file" className="flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-100 hover:bg-gray-200">
           <div className="flex flex-col items-center justify-center pt-5 pb-6">
             <svg className="w-8 h-8 mb-4 text-gray-500 dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16">
-              <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2" />
+              <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2" />
             </svg>
             <p className="mb-2 text-sm text-gray-500 dark:text-gray-400"><span className="font-semibold">Selecione um arquivo</span> ou arraste e solte</p>
             <p className="text-xs text-gray-500 dark:text-gray-400">Apenas XLSX</p>
@@ -156,6 +168,11 @@ const ImportXlsx = () => {
             </tbody>
           </table>
         )}
+      </div>
+      <div style={{alignItems: 'center', justifyContent: 'end', display: 'flex', marginRight: '30px'}}>
+        <button className="bg-sky-700 hover:bg-sky-800 text-white font-bold py-2 px-4 rounded mt-4" onClick={handleSendData}>
+          Enviar
+        </button>
       </div>
     </>
   );

@@ -932,7 +932,7 @@ router.post("/contatos", (req, res) => {
         console.error("Erro ao inserir contato na tabela", err);
         return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
       }
-      registrarLog('contatos', 'create', `Cadastrou Cargo`, `${nome}`, tenant, new Date());
+      registrarLog('contatos', 'create', `Cadastrou Cargo`, `${nome}`, tenant, new Date(), data);
 
       return res.status(200).json(`Contato cadastrado com sucesso!`);
 
