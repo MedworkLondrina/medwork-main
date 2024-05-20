@@ -5,6 +5,7 @@ import useAuth from '../../hooks/useAuth';
 // Components
 import ProfileTenant from './SidebarComponents/ProfileTenant';
 import ProfileCompany from "./SidebarComponents/ProfileCompany";
+import ProfileUser from "./SidebarComponents/ProfileUser";
 import GridEmpresas from "./SidebarComponents/GridEmpresas";
 import ModalRelatorioCnae from "../pages/subPages/components/Modal/GerarRelatorioCnae";
 
@@ -45,7 +46,6 @@ import icon_relatorio_cnae from '../media/menu/icon_relatorio_cnae.svg';
 // UserSideBar
 import icon_logout from '../media/menu/icon_logout.svg';
 import icon_change from '../media/menu/icon_change.svg';
-import ProfileProfile from "./SidebarComponents/ProfileProfile";
 
 
 function Sidebar() {
@@ -114,6 +114,7 @@ function Sidebar() {
 
   // Second
   useEffect(() => {
+    closeMenu();
     get();
   }, [loginUser]);
 
@@ -147,6 +148,7 @@ function Sidebar() {
   };
 
   const menuOpen = () => {
+    setShowUserProfile(false);
     setShowProfileCompany(false);
     setShowProfileTenant(false);
     setShowSearchCompany(false);
@@ -156,6 +158,7 @@ function Sidebar() {
   const companyOpen = async () => {
     getCompany();
     setShowMenu(false);
+    setShowUserProfile(false);
     setShowProfileTenant(false);
     setShowSearchCompany(false);
     setShowProfileCompany(!showProfileCompany);
@@ -165,6 +168,7 @@ function Sidebar() {
     setShowMenu(false);
     setShowProfileCompany(false);
     setShowSearchCompany(false);
+    setShowUserProfile(false);
     setShowProfileTenant(!showProfileTenant);
   };
 
@@ -172,6 +176,7 @@ function Sidebar() {
     setShowProfileCompany(false);
     setShowProfileTenant(false);
     setShowMenu(false);
+    setShowUserProfile(false);
     setShowSearchCompany(true);
   };
 
@@ -206,6 +211,7 @@ function Sidebar() {
     setShowProfileTenant(false);
     setSearchTerm('');
     setShowSearchCompany(false);
+    setShowUserProfile(false);
     closeSubMenus();
   };
 
@@ -225,7 +231,7 @@ function Sidebar() {
 
   useEffect(() => {
     if (columnThreeClicked) {
-      // Atualizar a chave única para forçar a renderização do ProfileProfile
+      // Atualizar a chave única para forçar a renderização do ProfileUser
       setUniqueKey(Math.random().toString());
     }
   }, [columnThreeClicked]);
@@ -241,6 +247,9 @@ function Sidebar() {
   };
 
   const userProfileOpen = () => {
+    setShowMenu(false);
+    setShowProfileCompany(false);
+    setShowProfileTenant(false);
     setShowUserProfile(!showUserProfile);
   }
 
@@ -288,7 +297,7 @@ function Sidebar() {
       {user ? (
         <div>
           {/* Camada de fundo */}
-          <div className={`modal-overlay fixed inset-0 backdrop-blur-[1px] bg-black bg-opacity-5 z-50 ${showMenu || showProfileCompany || showProfileTenant || showSearchCompany ? 'block' : 'hidden'}`} onClick={closeMenu}></div>
+          <div className={`modal-overlay fixed inset-0 backdrop-blur-[1px] bg-black bg-opacity-5 z-50 ${showMenu || showProfileCompany || showProfileTenant || showSearchCompany || showUserProfile ? 'block' : 'hidden'}`} onClick={closeMenu}></div>
           {/* Barra de navegação */}
           <nav className="fixed top-0 w-full z-50 h-16 bg-white border-b border-gray-200">
             <div className="px-3 py-3 lg:px-5 lg:pl-3 shadow">
@@ -385,7 +394,7 @@ function Sidebar() {
                             <div className="bg-zinc-50 rounded-md py-2 px-3 hover:bg-zinc-100 truncate " onClick={userProfileOpen}>
                               <p className="text-sky-700 font-bold text-base">{user ? user.nome_usuario : ''}</p>
                               {columnThreeClicked && (
-                                <ProfileProfile
+                                <ProfileUser
                                   user={user}
                                   tenant={tenant}
                                   key={uniqueKey}
@@ -772,7 +781,7 @@ function Sidebar() {
             {showUserProfile && (
               <>
                 <aside id="userProfile" className="fixed right-2 mt-1 z-40 w-3/12 transition-transform -translate-x-full bg-white shadow-md sm:translate-x-0 rounded-xl" aria-label="userProfile">
-                  <ProfileProfile
+                  <ProfileUser
                     user={user}
                     tenant={tenant}
                     key={uniqueKey}

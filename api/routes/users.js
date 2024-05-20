@@ -1115,7 +1115,7 @@ router.get("/processo_cnae", (req, res) => {
 
     con.release();
   })
-
+  
 });
 
 //Add rows in table
