@@ -16,6 +16,7 @@ import Back from '../../../layout/Back'
 import icon_sair from '../../../media/icon_sair.svg';
 import icon_lupa from '../../../media/icon_lupa.svg';
 import icon_warn from "../../../media/icon_warn.svg";
+import { BsFillPencilFill } from "react-icons/bs";
 
 function FrmInventario({
   unidades,
@@ -28,6 +29,7 @@ function FrmInventario({
   onEdit,
   companyId,
   setOnEdit,
+  handleEdit,
   getRiscosMedidas, riscosMedidas,
   getMedidas, medidas,
   medidasAdm, medidasEpi, medidasEpc,
@@ -227,6 +229,7 @@ function FrmInventario({
     }
   };
 
+
   useEffect(() => {
     if (setorId) {
       const filteredProcessosSetores = setoresProcessos.filter((i) => i.fk_setor_id === setorId);
@@ -296,6 +299,7 @@ function FrmInventario({
       setFiltereinventarioRisco(filterInventarioRisco)
 
 
+
       if (riscoId) {
         const filterIdUnidade = idsUnidades.includes(unidadeId);
         const filterIdsSetores = idsSetores.includes(setorId);
@@ -361,6 +365,10 @@ function FrmInventario({
     await verify(RiscoId);
   };
 
+
+  useEffect(() => {
+    
+  },[isVerify])
   const handleRiscoEscolhido = async (RiscoId) => {
     try {
       if (!setorId) {
@@ -625,6 +633,7 @@ function FrmInventario({
         conclusao_lp: conclusaoLp || '',
       };
 
+
       const url = onEdit
         ? `${connect}/inventario/${onEdit.id_inventario}`
         : `${connect}/inventario`
@@ -767,7 +776,10 @@ function FrmInventario({
 
   };
 
+
+
   const handleCalor = riscoNome === "Calor" ? true : false;
+  const handleVerificado = isVerify ? true : false;
 
 
   useEffect(() => {
@@ -795,8 +807,11 @@ function FrmInventario({
                 </div>
                 <div>
                   <h2 className="font-medium">Risco já Cadastrado</h2>
-                  <div>
-                    <p className="font-normal text-gray-700">Risco: {riscoNome} - Porcesso: {processoNome} - Setor: {setorNome}- Unidade: {nomeUnidade}.</p>
+                  <div className="flex">
+                    <p className="font-normal text-gray-700">Risco: {riscoNome} - Processo: {processoNome} - Setor: {setorNome}- Unidade: {nomeUnidade}.</p>
+                    <div className="col-span-1 text-sky-500 hover:text-sky-600 m-1 px-2 text-sm cursor-pointer" onClick={() => setOnEdit(filteredInventarioRisco)} >
+                    <BsFillPencilFill />
+                  </div>
                   </div>
                 </div>
               </div>
@@ -1516,7 +1531,7 @@ function FrmInventario({
                 </button>
               </div>
               <div className="px-3 pl-8">
-                <button className={`w-full shadow mt-4 bg-green-600  focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded ${isMedidasSet ? 'hover:bg-green-700' : 'cursor-not-allowed opacity-50'}`} type="submit" disabled={!isMedidasSet}>
+                <button  disabled={isVerify || isMedidasSet} className={`w-full shadow mt-4 bg-green-600  focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded ${!isVerify ? 'hover:bg-green-700' : 'cursor-not-allowed opacity-50'}`} type="submit" >
                   Adicionar
                 </button>
               </div>
