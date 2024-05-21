@@ -7,9 +7,9 @@ import OpenSansSemiBold from '../../../../media/fonts/OpenSans-SemiBold.ttf';
 import OpenSansBold from '../../../../media/fonts/OpenSans-Bold.ttf';
 import OpenSansExtraBold from '../../../../media/fonts/OpenSans-ExtraBold.ttf';
 
-function RelatorioCnae({ company, companyCnae, companyProcess, selectedCnaes, filterProcess }) {
+function RelatorioCnae({ company, companyCnae, companyProcess, selectedCnaes, filterProcess, data }) {
 
-  console.log(companyProcess)
+  console.log(data);
 
   Font.register({ family: 'OpenSansLight', src: OpenSansLight });
   Font.register({ family: 'OpenSansRegular', src: OpenSansRegular });
@@ -455,7 +455,7 @@ function RelatorioCnae({ company, companyCnae, companyProcess, selectedCnaes, fi
               <Text style={TextStyles.listItem}>Cnae: {cnae.subclasse_cnae}</Text>
             </View>
           ))}
-          <Text style={[TextStyles.paragraph, {marginTop: 10}]}>Processos</Text>
+          <Text style={[TextStyles.paragraph, { marginTop: 10 }]}>Processos</Text>
           {filterProcess && filterProcess.map((proc, index) => (
             <View key={index} style={TableStyles.list}>
               <Text style={TextStyles.listItem}>Processo: {proc.nome_processo}</Text>
@@ -469,7 +469,7 @@ function RelatorioCnae({ company, companyCnae, companyProcess, selectedCnaes, fi
   const MyDocument = () => {
     return (
       <Document>
-        <CoverPage />
+        <HeaderPage />
       </Document>
     );
   };

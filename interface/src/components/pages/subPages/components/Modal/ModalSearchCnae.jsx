@@ -3,6 +3,8 @@ import SearchInput from '../SearchInput';
 
 import useAuth from '../../../../../hooks/useAuth';
 
+import { IoIosCloseCircleOutline } from "react-icons/io";
+
 const ModalSearchCnae = ({ onCancel, isOpen, processo, onSelect, selectedCnaes }) => {
 
   const { fetchCnae } = useAuth([]);
@@ -129,11 +131,16 @@ const ModalSearchCnae = ({ onCancel, isOpen, processo, onSelect, selectedCnaes }
             <div className='mb-6'>
               <h1 className='font-medium text-sky-700 mb-2'>Cnae's Selecionados:</h1>
               {/* Cnaes */}
-              <div className='grid grid-cols-5 mb-4'>
+              <div className='grid grid-cols-5 mb-4 items-center'>
                 {cnaeList.map((item, i) => (
-                  <div key={i} className="col-span-1 bg-gray-100 rounded px-2 py-2 m-1" onClick={removeCnaeList.bind(this, item)}>
-                    <p className='text-xs font-medium text-gray-700 text-center cursor-pointer'>{item.subclasse_cnae}</p>
-                  </div>
+                  <>
+                    <div key={i} className="col-span-1 bg-gray-100 rounded px-2 py-2 m-1" onClick={removeCnaeList.bind(this, item)}>
+                      <p className='text-xs font-medium text-gray-700 text-center cursor-pointer'>{item.subclasse_cnae}</p>
+                    </div>
+                    <p className='text-gray-600 hover:text-gray-900 cursor-pointer'>
+                      <IoIosCloseCircleOutline onClick={removeCnaeList.bind(this, item)} />
+                    </p>
+                  </>
                 ))}
               </div>
 

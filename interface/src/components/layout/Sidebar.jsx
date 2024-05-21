@@ -607,12 +607,12 @@ function Sidebar() {
                             {/* Importar Dados */}
 
                             <Link to="/importar_dados" onClick={() => setShowMenu(!showMenu)}>
-                            <li className="opacity-25">
-                              <div className={`flex items-center py-2 px-6`}> 
-                                <img src={icon_import} alt="icon_import" /> 
-                                <span className="ms-3 font-normal">Importar Dados</span>
-                              </div>
-                            </li>
+                              <li className="opacity-25">
+                                <div className={`flex items-center py-2 px-6`}>
+                                  <img src={icon_import} alt="icon_import" />
+                                  <span className="ms-3 font-normal">Importar Dados</span>
+                                </div>
+                              </li>
                             </Link>
                           </ul>
                         </>
@@ -704,12 +704,14 @@ function Sidebar() {
                                 </li>
 
                                 {/* Relatório por CNAE */}
-                                <li className="hover:bg-sky-100" onClick={() => setShowMenu(!showMenu)}>
-                                  <div className={`flex items-center py-2 px-6`} onClick={openModalRelatorioCnae}>
-                                    <img src={icon_relatorio_cnae} alt="icon_relatorio_cnae" />
-                                    <span className="ms-3 font-normal">Relatório por CNAE</span>
-                                  </div>
-                                </li>
+                                <Link to="/relatorio_cnae" onClick={() => setShowMenu(!showMenu)}>
+                                  <li className="hover:bg-sky-100" onClick={() => setShowMenu(!showMenu)}>
+                                    <div className={`flex items-center py-2 px-6`} onClick={openModalRelatorioCnae}>
+                                      <img src={icon_relatorio_cnae} alt="icon_relatorio_cnae" />
+                                      <span className="ms-3 font-normal">Relatório por CNAE</span>
+                                    </div>
+                                  </li>
+                                </Link>
                               </ul>
                             </>
                           )}
