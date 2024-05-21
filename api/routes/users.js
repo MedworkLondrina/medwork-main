@@ -932,7 +932,7 @@ router.post("/contatos", (req, res) => {
         console.error("Erro ao inserir contato na tabela", err);
         return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
       }
-      registrarLog('contatos', 'create', `Cadastrou Cargo`, `${nome}`, tenant, new Date());
+      registrarLog('contatos', 'create', `Cadastrou Cargo`, `${nome}`, tenant, new Date(), data);
 
       return res.status(200).json(`Contato cadastrado com sucesso!`);
 
@@ -1930,14 +1930,15 @@ router.put("/usuarios_email/:id_usuario/", (req, res) => {
   const id_usuario = req.params.id_usuario;
   const tenant = req.query.tenant_code;
   const email = req.body.email; 
+  const nome_usuario = req.body.nome_usuario
 
   const q = `
     UPDATE usuarios
-    SET email = ?
+    SET email = ?, nome_usuario = ?
     WHERE id_usuario = ?
   `;
 
-  const values = [email, id_usuario];
+  const values = [email, nome_usuario,  id_usuario];
 
   pool.getConnection((err, con) => {
     if (err) return next(err);
