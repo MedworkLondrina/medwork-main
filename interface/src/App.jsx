@@ -26,6 +26,7 @@ import Elaboradores from './components/pages/subPages/Elaborador/CadastroElabora
 import LaudoPgr from './components/pages/subPages/Laudos/LaudoPgr';
 import LaudoLtcat from './components/pages/subPages/Laudos/LaudoLtcat';
 import LaudoLip from './components/pages/subPages/Laudos/LaudoLip';
+import RelatorioCnae from './components/pages/subPages/RelatorioCnae/RelatorioPorCnae';
 
 // Importando os Componentes
 import Navbar from './components/layout/Navbar';
@@ -69,6 +70,7 @@ function App() {
           <Route path='/gerar_pgr' element={<PrivateRoute requiredPermission={2}><LaudoPgr /></PrivateRoute>} />
           <Route path='/gerar_ltcat' element={<PrivateRoute requiredPermission={2}><LaudoLtcat /></PrivateRoute>} />
           <Route path='/gerar_lip' element={<PrivateRoute requiredPermission={2}><LaudoLip /></PrivateRoute>} />
+          <Route path='/relatorio_cnae' element={<PrivateRoute requiredPermission={2}><RelatorioCnae /></PrivateRoute>} />
           <Route path='/navbar' element={<Navbar />} />
           <Route path='/*' element={<Navigate to='/' />} />
         </Routes>
