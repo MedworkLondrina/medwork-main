@@ -107,9 +107,13 @@ function Inventario() {
 
   const fetchInventario = async () => {
     const response = await getInventario();
-    console.log(response);
     setInventario(response);
   };
+
+  const handleEdit = (item) => {
+    setOnEdit(item);
+  }
+
 
   useEffect(() => {
     getUnidades();
@@ -141,6 +145,7 @@ function Inventario() {
         processosRiscos={processosRiscos}
         onEdit={onEdit}
         companyId={companyId}
+        handleEdit = {handleEdit}
         setOnEdit={setOnEdit}
         riscosMedidas={riscosMedidas}
         getRiscosMedidas={fetchRiscosMedidas}
