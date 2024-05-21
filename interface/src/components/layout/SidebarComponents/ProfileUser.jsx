@@ -2,10 +2,11 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getAuth, sendPasswordResetEmail, verifyBeforeUpdateEmail } from "firebase/auth";
 import { toast } from "react-toastify";
-import { IoLogOut } from "react-icons/io5";
 import { connect } from "../../../services/api";
 import useAuth from "../../../hooks/useAuth";
-import { FaUserEdit } from "react-icons/fa";
+import { IoClose, IoLogOut } from "react-icons/io5";
+import { FaUserEdit, FaUserTimes } from "react-icons/fa";
+
 
 function ProfileUser({ user }) {
   const navigate = useNavigate();
@@ -116,7 +117,15 @@ function ProfileUser({ user }) {
         <h2 className="text-white font-bold text-lg">Informações do Usuário</h2>
         <div className="flex">
           <div className="text-white px-1 py-1 rounded hover:bg-sky-700 cursor-pointer" onClick={handleEditUser}>
-            <FaUserEdit />
+            {edit ? (
+              <>
+                <FaUserTimes />
+              </>
+            ) : (
+              <>
+                <FaUserEdit />
+              </>
+            )}
           </div>
           <div className="text-white px-1 py-1 rounded hover:bg-sky-700 cursor-pointer" onClick={logout}>
             <IoLogOut />
