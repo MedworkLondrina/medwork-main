@@ -393,14 +393,6 @@ function Sidebar() {
                           <div className="flex items-center gap-2">
                             <div className="bg-zinc-50 rounded-md py-2 px-3 hover:bg-zinc-100 truncate " onClick={userProfileOpen}>
                               <p className="text-sky-700 font-bold text-base">{user ? user.nome_usuario : ''}</p>
-                              {columnThreeClicked && (
-                                <ProfileUser
-                                  user={user}
-                                  tenant={tenant}
-                                  key={uniqueKey}
-                                  contatos={contatos}
-                                />
-                              )}
                             </div>
                           </div>
                         </div>
@@ -615,12 +607,12 @@ function Sidebar() {
                             {/* Importar Dados */}
 
                             <Link to="/importar_dados" onClick={() => setShowMenu(!showMenu)}>
-                            <li className="opacity-25">
-                              <div className={`flex items-center py-2 px-6`}> 
-                                <img src={icon_import} alt="icon_import" /> 
-                                <span className="ms-3 font-normal">Importar Dados</span>
-                              </div>
-                            </li>
+                              <li className="opacity-25">
+                                <div className={`flex items-center py-2 px-6`}>
+                                  <img src={icon_import} alt="icon_import" />
+                                  <span className="ms-3 font-normal">Importar Dados</span>
+                                </div>
+                              </li>
                             </Link>
                           </ul>
                         </>
@@ -712,32 +704,20 @@ function Sidebar() {
                                 </li>
 
                                 {/* Relatório por CNAE */}
-                                <li className="hover:bg-sky-100" onClick={() => setShowMenu(!showMenu)}>
-                                  <div className={`flex items-center py-2 px-6`} onClick={openModalRelatorioCnae}>
-                                    <img src={icon_relatorio_cnae} alt="icon_relatorio_cnae" />
-                                    <span className="ms-3 font-normal">Relatório por CNAE</span>
-                                  </div>
-                                </li>
+                                <Link to="/relatorio_cnae" onClick={() => setShowMenu(!showMenu)}>
+                                  <li className="hover:bg-sky-100" onClick={() => setShowMenu(!showMenu)}>
+                                    <div className={`flex items-center py-2 px-6`} onClick={openModalRelatorioCnae}>
+                                      <img src={icon_relatorio_cnae} alt="icon_relatorio_cnae" />
+                                      <span className="ms-3 font-normal">Relatório por CNAE</span>
+                                    </div>
+                                  </li>
+                                </Link>
                               </ul>
                             </>
                           )}
                         </li>
                       </>
                     )}
-
-                    {/* Usuário */}
-                    {user && (
-                      <li className="p-2 bg-gray-50 shadow-sm rounded-md cursor-auto truncate">
-                        <div className="flex justify-between items-center">
-                          <span className="text-sky-700 font-bold">{user.nome_usuario}</span>
-                          <div className="cursor-pointer" onClick={logout}>
-                            <img className="" src={icon_logout} alt="icon_logout" />
-                          </div>
-                        </div>
-                        <span className="text-xs font-thin">{tenantName}</span>
-                      </li>
-                    )}
-
 
                   </ul>
                 </div>

@@ -20,6 +20,7 @@ export const supabase = createClient(
 
 
 
+
 //FireBase Authentication
 const firebaseConfig = {
   apiKey: "AIzaSyB27iQVJ8BfNZUYDpNUzHOemCqlk8uuzo8",

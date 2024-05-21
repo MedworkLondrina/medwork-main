@@ -1115,7 +1115,7 @@ router.get("/processo_cnae", (req, res) => {
 
     con.release();
   })
-  
+
 });
 
 //Add rows in table
@@ -1929,7 +1929,7 @@ router.put("/usuarios/:id_usuario", (req, res) => {
 router.put("/usuarios_email/:id_usuario/", (req, res) => {
   const id_usuario = req.params.id_usuario;
   const tenant = req.query.tenant_code;
-  const email = req.body.email; 
+  const email = req.body.email;
   const nome_usuario = req.body.nome_usuario
 
   const q = `
@@ -1938,7 +1938,7 @@ router.put("/usuarios_email/:id_usuario/", (req, res) => {
     WHERE id_usuario = ?
   `;
 
-  const values = [email, nome_usuario,  id_usuario];
+  const values = [email, nome_usuario, id_usuario];
 
   pool.getConnection((err, con) => {
     if (err) return next(err);
@@ -2974,6 +2974,119 @@ router.put("/elaboradores/activate/:id_elaborador", (req, res) => {
     });
   });
 });
+
+
+router.get("/processos_por_cnae", async (req, res) => {
+  try {
+    // Obter o ID do CNAE do query string
+    const { id_cnae } = req.query;
+
+    // Verificar se o ID do CNAE foi fornecido
+    if (!id_cnae) {
+      return res.status(400).json({ error: 'ID do CNAE não fornecido.' });
+    }
+
+    // Construir a consulta SQL para buscar os processos vinculados ao CNAE
+    const query = `
+      SELECT 
+        p.id_processo
+      FROM 
+        processo_cnae pc
+      JOIN 
+        processos p ON pc.fk_processo_id = p.id_processo
+      WHERE 
+        pc.fk_cnae_id = ?
+      ORDER BY 
+        p.id_processo;
+    `;
+
+    // Executar a consulta SQL com o ID do CNAE
+    pool.query(query, [id_cnae], (err, rows) => {
+      if (err) {
+        return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
+      }
+
+      // Verificar se algum processo foi encontrado
+      if (rows.length === 0) {
+        return res.status(404).json({ message: 'Nenhum processo encontrado para o CNAE fornecido.' });
+      }
+
+      // Enviar os resultados como resposta
+      res.status(200).json(rows);
+    });
+  } catch (error) {
+    return res.status(500).json({ error: 'Erro interno do servidor', details: error.message });
+  }
+});
+
+// Rota para obter os riscos associados a um processo
+router.get("/riscos_por_processo", async (req, res) => {
+  try {
+    const { id_processo } = req.query;
+
+    if (!id_processo) {
+      return res.status(400).json({ error: 'ID do processo não fornecido.' });
+    }
+
+    const query = `
+      SELECT 
+        r.id_risco
+      FROM 
+        processos_riscos pr
+      JOIN 
+        riscos r ON pr.fk_risco_id = r.id_risco
+      WHERE 
+        pr.fk_processo_id = ?
+      ORDER BY 
+        r.id_risco;
+    `;
+
+    pool.query(query, [id_processo], (err, rows) => {
+      if (err) {
+        return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
+      }
+
+      res.status(200).json(rows || []);
+    });
+  } catch (error) {
+    return res.status(500).json({ error: 'Erro interno do servidor', details: error.message });
+  }
+});
+
+// Rota para obter as medidas associadas a um risco
+router.get("/medidas_por_risco", async (req, res) => {
+  try {
+    const { id_risco } = req.query;
+
+    if (!id_risco) {
+      return res.status(400).json({ error: 'ID do risco não fornecido.' });
+    }
+
+    const query = `
+      SELECT 
+        m.id_medida
+      FROM 
+        riscos_medidas rm
+      JOIN 
+        medidas m ON rm.fk_medida_id = m.id_medida
+      WHERE 
+        rm.fk_risco_id = ?
+      ORDER BY 
+        m.id_medida;
+    `;
+
+    pool.query(query, [id_risco], (err, rows) => {
+      if (err) {
+        return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
+      }
+
+      res.status(200).json(rows || []);
+    });
+  } catch (error) {
+    return res.status(500).json({ error: 'Erro interno do servidor', details: error.message });
+  }
+});
+
 
 
 
