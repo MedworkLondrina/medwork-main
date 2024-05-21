@@ -759,12 +759,10 @@ function FrmInventario({
 
   const handleClearConclusaoLi = () => {
     setConclusaoLi('');
-
   };
 
   const handleClearConclusaoLp = () => {
     setConclusaoLp('');
-
   };
 
   const handleCalor = riscoNome === "Calor" ? true : false;
@@ -1243,7 +1241,7 @@ function FrmInventario({
               </div>
               {/* Nível */}
               <div className="w-full md:w-3/12 px-3">
-                <label className="tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="grid-raza_social">
+                <label className="tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="nivel">
                   Nível:
                 </label>
                 <input
@@ -1253,6 +1251,8 @@ function FrmInventario({
                   name="nivel_risco"
                   placeholder="Nível"
                   disabled = {!handleCalor}
+                  value={nivel}
+                  onChange={(e) => setNivel(e.target.value)}
                   id="nivel"
                 />
               </div>
