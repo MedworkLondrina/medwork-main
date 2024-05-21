@@ -482,26 +482,16 @@ function FrmInventario({
   };
 
   const handleProbabilidadeChange = (event) => {
-    const nivelValue = document.getElementById('nivel').value;
     const selectedProbabilidade = parseInt(event.target.value, 10);
     const severidadeValue = parseInt(severidade, 10);
   
     if (handleCalor) {
-      // Se handleCalor for verdadeiro, definimos o valor de nivelValue como o valor atual do elemento com ID 'nivel'
-      setProbabilidade(nivelValue); // Acho que você quis definir setProbabilidade aqui, mas confirmarei abaixo
+      // Se handleCalor for verdadeiro, permitimos que o usuário selecione o nível diretamente
+      setProbabilidade(null); // Limpa o valor de probabilidade
   
-      if (nivelValue >= 1 && nivelValue <= 6) {
-        setNivel("Baixo");
-      } else if (nivelValue >= 7 && nivelValue <= 12) {
-        setNivel("Moderado");
-      } else if (nivelValue >= 13 && nivelValue <= 16) {
-        setNivel("Alto");
-      } else if (nivelValue >= 20 && nivelValue <= 25) {
-        setNivel("Crítico");
-      } else {
-        setNivel(null);
-      }
+
     } else if (!isNaN(selectedProbabilidade) && !isNaN(severidadeValue)) {
+      // Se handleCalor for falso, calculamos o nível com base na probabilidade e severidade
       const nivelValue = selectedProbabilidade * severidadeValue;
       setProbabilidade(selectedProbabilidade);
   
@@ -518,6 +508,7 @@ function FrmInventario({
       }
     }
   };
+  
   
   const handleMedicaoCheck = () => {
     setCheckMedicao(!checkMedicao);
@@ -1256,6 +1247,29 @@ function FrmInventario({
               </div>
               {/* Nível */}
               <div className="w-full md:w-3/12 px-3">
+<<<<<<< HEAD
+  <label className="tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="grid-raza_social">
+    Nível:
+  </label>
+  <input
+    className={`appearance-none block w-full rounded py-3 px-4 mb-3 mt-1 leading-tight focus:outline-gray-100 focus:bg-white ${
+      nivel === "Baixo" ? "bg-green-200" :
+      nivel === "Moderado" ? "bg-yellow-200" :
+      nivel === "Alto" ? "bg-orange-200" :
+      nivel === "Crítico" ? "bg-red-200" :
+      "bg-gray-100"
+    }`}
+    type="text"
+    name="nivel_risco"
+    placeholder="Nível"
+    disabled={!handleCalor}
+    id="nivel"
+    value={nivel}
+    onChange={(e) => handleCalor && setNivel(e.target.value)} // Permite a edição somente quando handleCalor for verdadeiro
+  />
+</div>
+
+=======
                 <label className="tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="nivel">
                   Nível:
                 </label>
@@ -1271,6 +1285,7 @@ function FrmInventario({
                   id="nivel"
                 />
               </div>
+>>>>>>> fab6bf1d8a23e15d6cbd6990253f645f1af59fc9
             </div>
 
             <div className="w-full flex items-center">
