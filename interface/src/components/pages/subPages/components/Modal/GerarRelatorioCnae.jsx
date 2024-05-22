@@ -59,7 +59,8 @@ const ModalRelatorioCnae = ({ onCancel, isOpen, companyId, empresas }) => {
 
   const handleGenerate = async () => {
     try {
-      const selectedCnaesMap = selectedCnaes.map(cnae => cnae.id_cnae);
+      const selectedCnaesMap = [...selectedCnaes, companyCnae].map(cnae => cnae.id_cnae);
+      console.log(selectedCnaesMap)
 
       const response = await fetch(`${connect}/relatorio`, {
         method: 'POST',
@@ -77,25 +78,7 @@ const ModalRelatorioCnae = ({ onCancel, isOpen, companyId, empresas }) => {
 
       console.log("Relatório Gerado:", data);
 
-      // Buscar os processos dos cnaes selecionados
-      const filterCompanyProc = processoCnae.filter((i) => i.fk_cnae_id === companyCnae.id_cnae);
-      const findCompanyProc = processos.find((i) => i.id_processo === filterCompanyProc[0].fk_processo_id);
-      const filterProcCnae = processoCnae.filter((i) => selectedCnaesMap.includes(i.fk_cnae_id));
-      const filterProcCnaeMap = filterProcCnae.map((i) => i.fk_processo_id);
-      const filterProcess = processos.filter((i) => filterProcCnaeMap.includes(i.id_processo));
-
-      // console.log("Empresa: ", company);
-      // console.log("Cnae Empresa: ", companyCnae);
-      // console.log("Processos Empresa: ", findCompanyProc);
-      // console.log("Cnaes Selecionados: ", selectedCnaes);
-      // console.log("Processos Filtrados: ", filterProcess);
-
       const doc = <RelatorioCnae
-        company={company}
-        companyCnae={companyCnae}
-        companyProcess={findCompanyProc}
-        selectedCnaes={selectedCnaes}
-        filterProcess={filterProcess}
         data={data}
       />;
       setGeneratedPdf(doc);

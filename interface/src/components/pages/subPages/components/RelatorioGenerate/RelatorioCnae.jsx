@@ -9,8 +9,6 @@ import OpenSansExtraBold from '../../../../media/fonts/OpenSans-ExtraBold.ttf';
 
 function RelatorioCnae({ company, companyCnae, companyProcess, selectedCnaes, filterProcess, data }) {
 
-  console.log(data)
-
   Font.register({ family: 'OpenSansLight', src: OpenSansLight });
   Font.register({ family: 'OpenSansRegular', src: OpenSansRegular });
   Font.register({ family: 'OpenSansMedium', src: OpenSansMedium });

@@ -131,15 +131,17 @@ const ModalSearchCnae = ({ onCancel, isOpen, processo, onSelect, selectedCnaes }
             <div className='mb-6'>
               <h1 className='font-medium text-sky-700 mb-2'>Cnae's Selecionados:</h1>
               {/* Cnaes */}
-              <div className='grid grid-cols-5 mb-4 items-center'>
+              <div className='grid grid-cols-4 mb-4 items-center'>
                 {cnaeList.map((item, i) => (
                   <>
-                    <div key={i} className="col-span-1 bg-gray-100 rounded px-2 py-2 m-1" onClick={removeCnaeList.bind(this, item)}>
-                      <p className='text-xs font-medium text-gray-700 text-center cursor-pointer'>{item.subclasse_cnae}</p>
+                    <div key={i} className='flex items-center justify-center col-span-1'>
+                      <div className="w-full bg-gray-100 rounded px-2 py-2 m-1" onClick={removeCnaeList.bind(this, item)}>
+                        <p className='text-xs font-medium text-gray-700 text-center cursor-pointer'>{item.subclasse_cnae}</p>
+                      </div>
+                      <p className='text-gray-600 hover:text-gray-900 cursor-pointer'>
+                        <IoIosCloseCircleOutline onClick={removeCnaeList.bind(this, item)} />
+                      </p>
                     </div>
-                    <p className='text-gray-600 hover:text-gray-900 cursor-pointer'>
-                      <IoIosCloseCircleOutline onClick={removeCnaeList.bind(this, item)} />
-                    </p>
                   </>
                 ))}
               </div>
