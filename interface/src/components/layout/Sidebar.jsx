@@ -704,14 +704,12 @@ function Sidebar() {
                                 </li>
 
                                 {/* Relatório por CNAE */}
-                                <Link to="/relatorio_cnae" onClick={() => setShowMenu(!showMenu)}>
-                                  <li className="hover:bg-sky-100" onClick={() => setShowMenu(!showMenu)}>
-                                    <div className={`flex items-center py-2 px-6`} onClick={openModalRelatorioCnae}>
-                                      <img src={icon_relatorio_cnae} alt="icon_relatorio_cnae" />
-                                      <span className="ms-3 font-normal">Relatório por CNAE</span>
-                                    </div>
-                                  </li>
-                                </Link>
+                                <li className="hover:bg-sky-100" onClick={() => setShowMenu(!showMenu)}>
+                                  <div className={`flex items-center py-2 px-6`} onClick={openModalRelatorioCnae}>
+                                    <img src={icon_relatorio_cnae} alt="icon_relatorio_cnae" />
+                                    <span className="ms-3 font-normal">Relatório por CNAE</span>
+                                  </div>
+                                </li>
                               </ul>
                             </>
                           )}

@@ -9,7 +9,7 @@ import OpenSansExtraBold from '../../../../media/fonts/OpenSans-ExtraBold.ttf';
 
 function RelatorioCnae({ company, companyCnae, companyProcess, selectedCnaes, filterProcess, data }) {
 
-  console.log(data);
+  console.log(data)
 
   Font.register({ family: 'OpenSansLight', src: OpenSansLight });
   Font.register({ family: 'OpenSansRegular', src: OpenSansRegular });
@@ -55,10 +55,9 @@ function RelatorioCnae({ company, companyCnae, companyProcess, selectedCnaes, fi
 
   const TextStyles = StyleSheet.create({
     headerText: {
-      fontSize: 14,
+      fontSize: 16,
       textAlign: 'center',
-      marginBottom: 5,
-      paddingTop: 10,
+      marginBottom: 10,
       fontFamily: 'OpenSansBold',
     },
 
@@ -174,10 +173,14 @@ function RelatorioCnae({ company, companyCnae, companyProcess, selectedCnaes, fi
     },
 
     paragraph: {
+      fontSize: 12,
+      textAlign: 'justify',
+      fontFamily: 'OpenSansBold',
+    },
+
+    simpleText: {
       fontSize: 10,
       textAlign: 'justify',
-      textTransform: 'none',
-      marginBottom: 10,
       fontFamily: 'OpenSansRegular',
     },
 
@@ -201,9 +204,8 @@ function RelatorioCnae({ company, companyCnae, companyProcess, selectedCnaes, fi
     },
 
     listItem: {
-      marginBottom: 5,
-      fontSize: 10,
-      fontFamily: 'OpenSansLight',
+      fontSize: 12,
+      fontFamily: 'OpenSansRegular',
     },
 
     listItemRoman: {
@@ -420,8 +422,26 @@ function RelatorioCnae({ company, companyCnae, companyProcess, selectedCnaes, fi
       fontFamily: 'OpenSansRegular',
     },
 
-    list: {
-      borderBottom: '1 solid #343a40',
+    cell: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      padding: 5,
+      borderWidth: 1,
+      borderColor: '#ccc',
+      borderRadius: 3,
+    },
+
+    cellTitle: {
+      borderBottom: '1 solid #ccc',
+      marginBottom: 5,
+    },
+
+    checkbox: {
+      width: 10,
+      height: 10,
+      borderWidth: 1,
+      borderColor: '#000',
+      marginRight: 5,
     },
 
   });
@@ -446,30 +466,63 @@ function RelatorioCnae({ company, companyCnae, companyProcess, selectedCnaes, fi
 
   const CoverPage = () => {
     return (
-      <Page size="A4" orientation='landscape' style={PageStyles.Page}>
-        <Text style={TextStyles.headerText}>Relatório por CNAE</Text>
-        <Text style={TextStyles.subTitleSumary}>Cnaes Selecionados</Text>
-        <View style={ContainerStyles.textContainer}>
-          {selectedCnaes && selectedCnaes.map((cnae, index) => (
-            <View key={index} style={TableStyles.list}>
-              <Text style={TextStyles.listItem}>Cnae: {cnae.subclasse_cnae}</Text>
+      <>
+        {data && data.map((item, index) => (
+          <Page key={index} size="A4" style={PageStyles.Page} wrap={true}>
+            <Text style={TextStyles.headerText}>Relatório de Visita Técnica</Text>
+            <View>
+              {/* CNAE */}
+              <View style={[TableStyles.cellTitle, { marginBottom: 5 }]}>
+                <Text style={TextStyles.simpleText}>CNAE: <Text style={TextStyles.paragraph}>{item.subclasse_cnae}</Text></Text>
+              </View>
+              {/* Processos */}
+              <View style={{ marginLeft: 10 }}>
+                {item.processos && item.processos.map((processo, idx) => (
+                  <View key={idx} style={{ marginLeft: 10 }}>
+                    <Text style={TextStyles.simpleText}>Processo:</Text>
+                    <View style={[TableStyles.cell, { marginBottom: 5 }]}>
+                      <View style={TableStyles.checkbox}></View>
+                      <Text style={TextStyles.listItem}> {processo.nome}</Text>
+                    </View>
+                    {/* Riscos */}
+                    <View style={{ marginLeft: 10 }}>
+                      {processo.riscos && processo.riscos.map((risco, i) => (
+                        <View key={i} style={{ marginLeft: 10 }}>
+                          <Text style={TextStyles.simpleText}>Risco:</Text>
+                          <View style={[TableStyles.cell, { marginBottom: 5 }]}>
+                            <View style={TableStyles.checkbox}></View>
+                            <Text style={TextStyles.listItem}> {risco.nome}</Text>
+                          </View>
+                          {/* Medidas */}
+                          <View style={{ marginLeft: 10 }}>
+                            <Text style={[TextStyles.simpleText, { marginLeft: 10 }]}>Medidas:</Text>
+                            {risco.medidas && risco.medidas.map((medida, ind) => (
+                              <View key={ind} style={{ marginLeft: 10 }}>
+                                <View style={[TableStyles.cell, { marginBottom: 2 }]}>
+                                  <View style={TableStyles.checkbox}></View>
+                                  <Text style={TextStyles.listItem}> {medida.descricao}</Text>
+                                </View>
+                              </View>
+                            ))}
+                          </View>
+                        </View>
+                      ))}
+                    </View>
+                  </View>
+                ))}
+              </View>
             </View>
-          ))}
-          <Text style={[TextStyles.paragraph, { marginTop: 10 }]}>Processos</Text>
-          {filterProcess && filterProcess.map((proc, index) => (
-            <View key={index} style={TableStyles.list}>
-              <Text style={TextStyles.listItem}>Processo: {proc.nome_processo}</Text>
-            </View>
-          ))}
-        </View>
-      </Page>
-    )
+          </Page>
+        ))}
+      </>
+    );
   };
+
 
   const MyDocument = () => {
     return (
       <Document>
-        <HeaderPage />
+        <CoverPage />
       </Document>
     );
   };

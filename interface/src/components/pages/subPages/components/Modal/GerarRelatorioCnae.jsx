@@ -5,6 +5,7 @@ import useAuth from '../../../../../hooks/useAuth';
 import ReactDOM from 'react-dom';
 import { PDFViewer, pdf } from "@react-pdf/renderer";
 import RelatorioCnae from '../RelatorioGenerate/RelatorioCnae';
+import { connect } from '../../../../../services/api';
 
 const ModalRelatorioCnae = ({ onCancel, isOpen, companyId, empresas }) => {
 
@@ -58,19 +59,36 @@ const ModalRelatorioCnae = ({ onCancel, isOpen, companyId, empresas }) => {
 
   const handleGenerate = async () => {
     try {
+      const selectedCnaesMap = selectedCnaes.map(cnae => cnae.id_cnae);
+
+      const response = await fetch(`${connect}/relatorio`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ cnaes: selectedCnaesMap }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Erro ao gerar relatório');
+      }
+
+      const data = await response.json();
+
+      console.log("Relatório Gerado:", data);
+
       // Buscar os processos dos cnaes selecionados
       const filterCompanyProc = processoCnae.filter((i) => i.fk_cnae_id === companyCnae.id_cnae);
       const findCompanyProc = processos.find((i) => i.id_processo === filterCompanyProc[0].fk_processo_id);
-      const selectedCnaesMap = selectedCnaes.map((i) => i.id_cnae);
       const filterProcCnae = processoCnae.filter((i) => selectedCnaesMap.includes(i.fk_cnae_id));
       const filterProcCnaeMap = filterProcCnae.map((i) => i.fk_processo_id);
       const filterProcess = processos.filter((i) => filterProcCnaeMap.includes(i.id_processo));
 
-      console.log("Empresa: ", company);
-      console.log("Cnae Empresa: ", companyCnae);
-      console.log("Processos Empresa: ", findCompanyProc);
-      console.log("Cnaes Selecionados: ", selectedCnaes);
-      console.log("Processos Filtrados: ", filterProcess);
+      // console.log("Empresa: ", company);
+      // console.log("Cnae Empresa: ", companyCnae);
+      // console.log("Processos Empresa: ", findCompanyProc);
+      // console.log("Cnaes Selecionados: ", selectedCnaes);
+      // console.log("Processos Filtrados: ", filterProcess);
 
       const doc = <RelatorioCnae
         company={company}
@@ -78,6 +96,7 @@ const ModalRelatorioCnae = ({ onCancel, isOpen, companyId, empresas }) => {
         companyProcess={findCompanyProc}
         selectedCnaes={selectedCnaes}
         filterProcess={filterProcess}
+        data={data}
       />;
       setGeneratedPdf(doc);
     } catch (error) {
@@ -94,7 +113,6 @@ const ModalRelatorioCnae = ({ onCancel, isOpen, companyId, empresas }) => {
     iframe.contentWindow.print();
     document.body.removeChild(iframe);
   };
-
 
   const openPdfInNewTab = (doc) => {
     const newWindow = window.open();
