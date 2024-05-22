@@ -2976,6 +2976,109 @@ router.put("/elaboradores/activate/:id_elaborador", (req, res) => {
 });
 
 
+
+router.post("/relatorio", (req, res, next) => {
+  const cnaeIds = req.body.cnaes;
+
+  if (!Array.isArray(cnaeIds) || cnaeIds.length === 0) {
+    return res.status(400).json({ error: 'A lista de CNAEs é obrigatória e deve conter pelo menos um CNAE.' });
+  }
+
+  pool.getConnection((err, connection) => {
+    if (err) {
+      console.error('Erro ao obter conexão do pool:', err);
+      return next(err);
+    }
+
+    const placeholders = cnaeIds.map(() => '?').join(',');
+
+    const query = `
+      SELECT
+        c.*,
+        p.*,
+        r.*,
+        m.* 
+      FROM cnae c
+      JOIN processo_cnae pc ON c.id_cnae = pc.fk_cnae_id
+      JOIN processos p ON pc.fk_processo_id = p.id_processo
+      JOIN processos_riscos pr ON p.id_processo = pr.fk_processo_id
+      JOIN riscos r ON pr.fk_risco_id = r.id_risco
+      JOIN riscos_medidas rm ON r.id_risco = rm.fk_risco_id
+      JOIN medidas m ON rm.fk_medida_id = m.id_medida
+      WHERE c.id_cnae IN (${placeholders})
+    `;
+
+    connection.query(query, cnaeIds, (err, results) => {
+      connection.release();
+      if (err) {
+        console.error('Erro na consulta SQL:', err);
+        return res.status(500).json({ error: 'Erro ao executar a consulta SQL' });
+      }
+
+      // Organizando os resultados no formato desejado
+      const cnaesMap = {};
+
+      results.forEach(row => {
+        const cnaeId = row.id_cnae;
+
+        if (!cnaesMap[cnaeId]) {
+          cnaesMap[cnaeId] = {
+            id: cnaeId,
+            subclasse_cnae: row.subclasse_cnae,
+            processos: {}
+          };
+        }
+
+        const processoId = row.id_processo;
+
+        if (!cnaesMap[cnaeId].processos[processoId]) {
+          cnaesMap[cnaeId].processos[processoId] = {
+            id: processoId,
+            nome: row.nome_processo,
+            riscos: {}
+          };
+        }
+
+        const riscoId = row.id_risco;
+
+        if (!cnaesMap[cnaeId].processos[processoId].riscos[riscoId]) {
+          cnaesMap[cnaeId].processos[processoId].riscos[riscoId] = {
+            id: riscoId,
+            nome: row.nome_risco,
+            medidas: {}
+          };
+        }
+
+        const medidaId = row.id_medida;
+
+        if (!cnaesMap[cnaeId].processos[processoId].riscos[riscoId].medidas[medidaId]) {
+          cnaesMap[cnaeId].processos[processoId].riscos[riscoId].medidas[medidaId] = {
+            id: medidaId,
+            descricao: row.descricao_medida
+          };
+        }
+      });
+
+      // Convertendo os mapas em arrays
+      const result = Object.values(cnaesMap).map(cnae => ({
+        ...cnae,
+        processos: Object.values(cnae.processos).map(processo => ({
+          ...processo,
+          riscos: Object.values(processo.riscos).map(risco => ({
+            ...risco,
+            medidas: Object.values(risco.medidas)
+          }))
+        }))
+      }));
+
+      res.status(200).json(result);
+    });
+  });
+});
+
+
+
+
 router.get("/processos_por_cnae", async (req, res) => {
   try {
     // Obter o ID do CNAE do query string
@@ -3086,8 +3189,6 @@ router.get("/medidas_por_risco", async (req, res) => {
     return res.status(500).json({ error: 'Erro interno do servidor', details: error.message });
   }
 });
-
-
 
 
 

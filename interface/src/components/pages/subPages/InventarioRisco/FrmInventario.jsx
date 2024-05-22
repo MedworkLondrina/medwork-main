@@ -1257,7 +1257,7 @@ function FrmInventario({
     className={`appearance-none block w-full rounded py-3 px-4 mb-3 mt-1 leading-tight focus:outline-gray-100 focus:bg-white ${
       nivel === "Baixo" ? "bg-green-200" :
       nivel === "Moderado" ? "bg-yellow-200" :
-      nivel === "Alto" ? "bg-orange-200" :
+      nivel === "Agit adlto" ? "bg-orange-200" :
       nivel === "Crítico" ? "bg-red-200" :
       "bg-gray-100"
     }`}
