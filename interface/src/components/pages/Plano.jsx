@@ -8,45 +8,70 @@ function Plano() {
 
   const {
     handleSetCompanyId, companyId, selectedCompany,
-    getUnidades, unidades,
-    getSetores, setores, setSetores,
+    fetchUnidades, 
+    fetchSetores, 
     getCargos, cargos,
-    getProcessos, processos,
+    getProcessos,
     getRiscos, riscos,
-    getMedidasAdm, medidasAdm, getMedidasEpi, medidasEpi, getMedidasEpc, medidasEpc,
+    fetchMedidas,
     getSetoresProcessos, setSetoresProcessos, setoresProcessos,
     getProcessosRiscos, setProcessosRiscos, processosRiscos,
     getRiscosMedidas, setRiscosMedidas, riscosMedidas,
     getInventario, inventario,
     getGlobalSprm, setGlobalSprm, globalSprm, getGlobalSprmByRiscoId,
     getPlano, setPlano, plano,
-    getContatos, setContatos, contatos,
+    fetchContatos
   } = useAuth(null);
   const [onEdit, setOnEdit] = useState(null);
   const [nameCompany, setNameCompany] = useState(null);
+	const [setores, setSetores] = useState([]);
+	const [unidades, setUnidades] = useState([]);
+  const [processos, setProcessos] = useState([]);
+  const [contactInfo, setContactInfo] = useState([]);
+  const [contatos,setContatos] = useState([]);
+  const [medidas, setMedidas] = useState([]);
 
+
+  
   useEffect(() => {
     handleSetCompanyId();
   }, []);
 
+  const get = async () => {
+		const sectors = await fetchSetores();
+		setSetores(sectors);
+		const units = await fetchUnidades();
+		setUnidades(units);
+    const proc = await getProcessos();
+    setProcessos(proc);
+      const data = await fetchContatos(companyId);
+      setContatos(data);
+        const response = await fetchMedidas('all');
+        setMedidas(response);    
+  	}
+
+	useEffect(() => {
+		get();
+    console.log(contatos)
+	}, [companyId]);
+
+
   useEffect(() => {
     setNameCompany(selectedCompany[0]?.nome_empresa)
-    getUnidades();
     getCargos();
-    getSetores();
-    getProcessos();
     getRiscos();
     getSetoresProcessos();
     getProcessosRiscos();
     getInventario();
     getRiscosMedidas();
-    getMedidasAdm();
-    getMedidasEpi();
-    getMedidasEpc();
     getPlano();
-    getContatos();
     getGlobalSprm();
   }, [companyId]);
+
+
+  useEffect(() => {
+    console.log("Plano:", plano);
+  }, [plano]);
 
   const handleEdit = (selectedInventario) => {
     setOnEdit(selectedInventario);
@@ -71,9 +96,7 @@ function Plano() {
         companyId={companyId}
         setOnEdit={setOnEdit}
         riscosMedidas={riscosMedidas}
-        medidasAdm={medidasAdm}
-        medidasEpi={medidasEpi}
-        medidasEpc={medidasEpc}
+        medidas = {medidas}
         getGlobalSprm={getGlobalSprm}
         setGlobalSprm={setGlobalSprm}
         globalSprm={globalSprm}
@@ -91,9 +114,6 @@ function Plano() {
           risco={riscos}
           companyId={companyId}
           plano={plano}
-          medidasAdm={medidasAdm}
-          medidasEpi={medidasEpi}
-          medidasEpc={medidasEpc}
         />
       </div>
     </>
