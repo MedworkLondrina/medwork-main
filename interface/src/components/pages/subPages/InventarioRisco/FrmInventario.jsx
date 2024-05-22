@@ -1247,7 +1247,6 @@ function FrmInventario({
               </div>
               {/* Nível */}
               <div className="w-full md:w-3/12 px-3">
-<<<<<<< HEAD
   <label className="tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="grid-raza_social">
     Nível:
   </label>
@@ -1269,23 +1268,7 @@ function FrmInventario({
   />
 </div>
 
-=======
-                <label className="tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="nivel">
-                  Nível:
-                </label>
-                <input
-                  className={`appearance-none block w-full rounded py-3 px-4 mb-3 mt-1 leading-tight focus:outline-gray-100 focus:bg-white ${nivel === "Baixo" ? "bg-green-200" : nivel === "Moderado" ? "bg-yellow-200" : nivel === "Alto" ? "bg-orange-200" : nivel === "Crítico" ? "bg-red-200" : "bg-gray-100"
-                    }`}
-                  type="text"
-                  name="nivel_risco"
-                  placeholder="Nível"
-                  disabled = {!handleCalor}
-                  value={nivel}
-                  onChange={(e) => setNivel(e.target.value)}
-                  id="nivel"
-                />
-              </div>
->>>>>>> fab6bf1d8a23e15d6cbd6990253f645f1af59fc9
+
             </div>
 
             <div className="w-full flex items-center">
