@@ -2997,7 +2997,7 @@ router.post("/relatorio", (req, res, next) => {
         c.*,
         p.*,
         r.*,
-        m.*
+        m.* 
       FROM cnae c
       JOIN processo_cnae pc ON c.id_cnae = pc.fk_cnae_id
       JOIN processos p ON pc.fk_processo_id = p.id_processo
@@ -3025,8 +3025,6 @@ router.post("/relatorio", (req, res, next) => {
           cnaesMap[cnaeId] = {
             id: cnaeId,
             subclasse_cnae: row.subclasse_cnae,
-            descricao_cnae: row.descricao_cnae,
-            grau_risco_cnae: row.grau_risco_cnae,
             processos: {}
           };
         }
@@ -3037,7 +3035,6 @@ router.post("/relatorio", (req, res, next) => {
           cnaesMap[cnaeId].processos[processoId] = {
             id: processoId,
             nome: row.nome_processo,
-            descricao: row.descricao_processo,
             riscos: {}
           };
         }
@@ -3048,7 +3045,6 @@ router.post("/relatorio", (req, res, next) => {
           cnaesMap[cnaeId].processos[processoId].riscos[riscoId] = {
             id: riscoId,
             nome: row.nome_risco,
-            descricao: row.descricao_risco,
             medidas: {}
           };
         }
@@ -3058,7 +3054,6 @@ router.post("/relatorio", (req, res, next) => {
         if (!cnaesMap[cnaeId].processos[processoId].riscos[riscoId].medidas[medidaId]) {
           cnaesMap[cnaeId].processos[processoId].riscos[riscoId].medidas[medidaId] = {
             id: medidaId,
-            nome: row.nome_medida,
             descricao: row.descricao_medida
           };
         }
