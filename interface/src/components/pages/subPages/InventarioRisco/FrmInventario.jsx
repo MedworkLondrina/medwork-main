@@ -16,6 +16,7 @@ import Back from '../../../layout/Back'
 import icon_sair from '../../../media/icon_sair.svg';
 import icon_lupa from '../../../media/icon_lupa.svg';
 import icon_warn from "../../../media/icon_warn.svg";
+import { BsFillPencilFill } from "react-icons/bs";
 
 function FrmInventario({
   unidades,
@@ -28,6 +29,7 @@ function FrmInventario({
   onEdit,
   companyId,
   setOnEdit,
+  handleEdit,
   getRiscosMedidas, riscosMedidas,
   getMedidas, medidas,
   medidasAdm, medidasEpi, medidasEpc,
@@ -227,6 +229,7 @@ function FrmInventario({
     }
   };
 
+
   useEffect(() => {
     if (setorId) {
       const filteredProcessosSetores = setoresProcessos.filter((i) => i.fk_setor_id === setorId);
@@ -296,6 +299,7 @@ function FrmInventario({
       setFiltereinventarioRisco(filterInventarioRisco)
 
 
+
       if (riscoId) {
         const filterIdUnidade = idsUnidades.includes(unidadeId);
         const filterIdsSetores = idsSetores.includes(setorId);
@@ -361,6 +365,10 @@ function FrmInventario({
     await verify(RiscoId);
   };
 
+
+  useEffect(() => {
+    
+  },[isVerify])
   const handleRiscoEscolhido = async (RiscoId) => {
     try {
       if (!setorId) {
@@ -474,26 +482,16 @@ function FrmInventario({
   };
 
   const handleProbabilidadeChange = (event) => {
-    const nivelValue = document.getElementById('nivel').value;
     const selectedProbabilidade = parseInt(event.target.value, 10);
     const severidadeValue = parseInt(severidade, 10);
   
     if (handleCalor) {
-      // Se handleCalor for verdadeiro, definimos o valor de nivelValue como o valor atual do elemento com ID 'nivel'
-      setProbabilidade(nivelValue); // Acho que você quis definir setProbabilidade aqui, mas confirmarei abaixo
+      // Se handleCalor for verdadeiro, permitimos que o usuário selecione o nível diretamente
+      setProbabilidade(null); // Limpa o valor de probabilidade
   
-      if (nivelValue >= 1 && nivelValue <= 6) {
-        setNivel("Baixo");
-      } else if (nivelValue >= 7 && nivelValue <= 12) {
-        setNivel("Moderado");
-      } else if (nivelValue >= 13 && nivelValue <= 16) {
-        setNivel("Alto");
-      } else if (nivelValue >= 20 && nivelValue <= 25) {
-        setNivel("Crítico");
-      } else {
-        setNivel(null);
-      }
+
     } else if (!isNaN(selectedProbabilidade) && !isNaN(severidadeValue)) {
+      // Se handleCalor for falso, calculamos o nível com base na probabilidade e severidade
       const nivelValue = selectedProbabilidade * severidadeValue;
       setProbabilidade(selectedProbabilidade);
   
@@ -510,6 +508,7 @@ function FrmInventario({
       }
     }
   };
+  
   
   const handleMedicaoCheck = () => {
     setCheckMedicao(!checkMedicao);
@@ -624,6 +623,7 @@ function FrmInventario({
         conclusao_li: conclusaoLi || '',
         conclusao_lp: conclusaoLp || '',
       };
+
 
       const url = onEdit
         ? `${connect}/inventario/${onEdit.id_inventario}`
@@ -765,7 +765,10 @@ function FrmInventario({
     setConclusaoLp('');
   };
 
+
+
   const handleCalor = riscoNome === "Calor" ? true : false;
+  const handleVerificado = isVerify ? true : false;
 
 
   useEffect(() => {
@@ -793,8 +796,11 @@ function FrmInventario({
                 </div>
                 <div>
                   <h2 className="font-medium">Risco já Cadastrado</h2>
-                  <div>
-                    <p className="font-normal text-gray-700">Risco: {riscoNome} - Porcesso: {processoNome} - Setor: {setorNome}- Unidade: {nomeUnidade}.</p>
+                  <div className="flex">
+                    <p className="font-normal text-gray-700">Risco: {riscoNome} - Processo: {processoNome} - Setor: {setorNome}- Unidade: {nomeUnidade}.</p>
+                    <div className="col-span-1 text-sky-500 hover:text-sky-600 m-1 px-2 text-sm cursor-pointer" onClick={() => setOnEdit(filteredInventarioRisco)} >
+                    <BsFillPencilFill />
+                  </div>
                   </div>
                 </div>
               </div>
@@ -1241,21 +1247,28 @@ function FrmInventario({
               </div>
               {/* Nível */}
               <div className="w-full md:w-3/12 px-3">
-                <label className="tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="nivel">
-                  Nível:
-                </label>
-                <input
-                  className={`appearance-none block w-full rounded py-3 px-4 mb-3 mt-1 leading-tight focus:outline-gray-100 focus:bg-white ${nivel === "Baixo" ? "bg-green-200" : nivel === "Moderado" ? "bg-yellow-200" : nivel === "Alto" ? "bg-orange-200" : nivel === "Crítico" ? "bg-red-200" : "bg-gray-100"
-                    }`}
-                  type="text"
-                  name="nivel_risco"
-                  placeholder="Nível"
-                  disabled = {!handleCalor}
-                  value={nivel}
-                  onChange={(e) => setNivel(e.target.value)}
-                  id="nivel"
-                />
-              </div>
+  <label className="tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="grid-raza_social">
+    Nível:
+  </label>
+  <input
+    className={`appearance-none block w-full rounded py-3 px-4 mb-3 mt-1 leading-tight focus:outline-gray-100 focus:bg-white ${
+      nivel === "Baixo" ? "bg-green-200" :
+      nivel === "Moderado" ? "bg-yellow-200" :
+      nivel === "Agit adlto" ? "bg-orange-200" :
+      nivel === "Crítico" ? "bg-red-200" :
+      "bg-gray-100"
+    }`}
+    type="text"
+    name="nivel_risco"
+    placeholder="Nível"
+    disabled={!handleCalor}
+    id="nivel"
+    value={nivel}
+    onChange={(e) => handleCalor && setNivel(e.target.value)} // Permite a edição somente quando handleCalor for verdadeiro
+  />
+</div>
+
+
             </div>
 
             <div className="w-full flex items-center">
@@ -1516,7 +1529,7 @@ function FrmInventario({
                 </button>
               </div>
               <div className="px-3 pl-8">
-                <button className={`w-full shadow mt-4 bg-green-600  focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded ${isMedidasSet ? 'hover:bg-green-700' : 'cursor-not-allowed opacity-50'}`} type="submit" disabled={!isMedidasSet}>
+                <button  disabled={isVerify || isMedidasSet} className={`w-full shadow mt-4 bg-green-600  focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded ${!isVerify ? 'hover:bg-green-700' : 'cursor-not-allowed opacity-50'}`} type="submit" >
                   Adicionar
                 </button>
               </div>
