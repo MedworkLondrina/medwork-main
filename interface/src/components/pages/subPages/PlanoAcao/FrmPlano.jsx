@@ -24,7 +24,7 @@ function FrmPlano({
   companyId,
   setOnEdit,
   riscosMedidas,
-  medidasAdm, medidasEpi, medidasEpc,
+  medidas,getMedidas,
   getGlobalSprm, setGlobalSprm, globalSprm,
   companyName,
   getPlano,
@@ -57,15 +57,15 @@ function FrmPlano({
   const [isOk, setIsOk] = useState(false);
   const [plano, setPlano] = useState(false);
   const [filterGlobalSprm, setFilterGlobalSprm] = useState([]);
+  const [filteredMedidas, setFilteredMedidas] = useState([]);
 
   //Inputs Form
   const [data, setData] = useState('');
   const [selectedPrazos, setSelectedPrazos] = useState({});
   const [existingPrazos, setExistingPrazos] = useState({});
 
-
-  //Funções do Modal
   //Função para abrir o Modal
+  console.log(medidas)
   const openModalUnidade = () => setShowModalUnidade(true);
   const openModalSetor = () => setShowModalSetor(true);
   const openModalProcesso = () => setShowModalProcesso(true);
@@ -73,6 +73,8 @@ function FrmPlano({
   const openModalMedidas = () => {
     const sprm = globalSprm.filter((i) => i.fk_setor_id === setorId && i.fk_processo_id === processoId && i.fk_risco_id === riscoId);
     const filterApply = sprm.filter((c) => c.status && c.status !== "Aplica");
+    const filterMedidas = medidas.filter((i) => sprm.includes(i.id_medida));
+    setFilteredMedidas(filterMedidas);
     setFilterGlobalSprm(filterApply);
     setPlano(true);
     setShowModalMedidas(true)
@@ -374,31 +376,7 @@ function FrmPlano({
     handleFilterGlobalSprm();
   }, [globalSprm])
 
-  const find = (item, tipo) => {
-    try {
-      if (!item) {
-        return 'N/A';
-      }
-
-      switch (tipo) {
-        case 1:
-          const admMedidas = medidasAdm.find((i) => i.id_medida_adm === item);
-          return admMedidas ? admMedidas.descricao_medida_adm : 'N/A';
-        case 2:
-          const epiMedidas = medidasEpi.find((i) => i.id_medida === item);
-          return epiMedidas ? epiMedidas.nome_medida : 'N/A';
-        case 3:
-          const epcMedidas = medidasEpc.find((i) => i.id_medida === item);
-          return epcMedidas ? epcMedidas.descricao_medida : 'N/A';
-
-        default:
-          return 'N/A';
-      }
-    } catch (error) {
-      console.log("Erro ao buscar Dados!", error);
-      return 'N/A';
-    }
-  };
+  
 
   const tipoDefine = (item) => {
     switch (item) {
@@ -641,16 +619,15 @@ function FrmPlano({
                 </button>
               </div>
               <ModalMedidasDefine
-                isOpen={showModalMedidas}
-                onCancel={closeModalMedidas}
-                companyName={companyName}
-                globalSprm={filterGlobalSprm}
-                medidasAdm={medidasAdm}
-                medidasEpi={medidasEpi}
-                medidasEpc={medidasEpc}
-                medidasDefine={handleMedidaChange}
-                plano={plano}
-              />
+        isOpen={showModalMedidas}
+        onCancel={closeModalMedidas}
+        companyName={companyName}
+        globalSprm={filterGlobalSprm}
+        medidas={filteredMedidas}
+        medidasDefine={handleMedidaChange}
+        plano={plano}
+        getGlobalSprm={getGlobalSprm}
+      />
             </div>
             {/* Medidas de Controle Aplicadas*/}
             <div className="w-full md:w-2/4 px-3">
@@ -663,7 +640,7 @@ function FrmPlano({
                     <div className="grid grid-cols-5 items-center space-x-4 rtl:space-x-reverse border-b border-gray-300 px-4 py-2 hover:bg-gray-50">
                       <div className="flex-1 min-w-0 pr-4 col-span-2">
                         <p className="text-sm font-medium text-gray-900 whitespace-break-spaces truncate">
-                          {find(item.fk_medida_id, item.tipo_medida)}
+                          {filteredMedidas.map((item)=>(item.fk_medida_id, item.tipo_medida))}
                         </p>
                       </div>
                       <div className="inline-flex justify-center items-center text-base font-semibold text-gray-900">
