@@ -230,7 +230,7 @@ function GridInventario({
               {inventario && sortedInventario.map((item, i) => (
                 <tr
                   key={i}
-                  className={`bg-white border-b`}
+                  className={`border-b ${i % 2 != 0 ? 'bg-gray-100' : 'bg-white'}`}
                 >
                   <th scope="row" className="px-2 py-2 text-gray-800 text-center">
                     {item.id_inventario}
