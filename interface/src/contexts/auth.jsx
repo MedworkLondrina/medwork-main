@@ -38,6 +38,7 @@ export const AuthProvider = ({ children }) => {
     }
   }, [loginUser]);
 
+
   const handleSetCompanyId = () => {
     try {
       setCompanyId(selectedCompany[0]?.id_empresa);
@@ -89,6 +90,7 @@ export const AuthProvider = ({ children }) => {
     try {
       const code = await checkTenantCode();
       if (!code) return;
+      
 
       const queryParams = new URLSearchParams({ tenent_code: code }).toString();
       const response = await fetch(`${connect}/empresas?${queryParams}`)

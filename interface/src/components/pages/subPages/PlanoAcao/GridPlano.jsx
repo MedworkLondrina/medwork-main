@@ -10,7 +10,7 @@ function GridPlano({
   risco,
   companyId,
   plano,
-  medidasAdm, medidasEpi, medidasEpc,
+  medidas,
 }) {
 
   const find = (item, tipo) => {
@@ -72,31 +72,7 @@ function GridPlano({
     }
   };
 
-  const findMedidas = (item, tipo) => {
-    try {
-      if (!item) {
-        return 'N/A';
-      }
-
-      switch (tipo) {
-        case 1:
-          const admMedidas = medidasAdm.find((i) => i.id_medida_adm === item);
-          return admMedidas ? admMedidas.descricao_medida_adm : 'N/A';
-        case 2:
-          const epiMedidas = medidasEpi.find((i) => i.id_medida === item);
-          return epiMedidas ? epiMedidas.nome_medida : 'N/A';
-        case 3:
-          const epcMedidas = medidasEpc.find((i) => i.id_medida === item);
-          return epcMedidas ? epcMedidas.descricao_medida : 'N/A';
-
-        default:
-          return 'N/A';
-      }
-    } catch (error) {
-      console.log("Erro ao buscar Dados!", error);
-      return 'N/A';
-    }
-  };
+  
 
   const handleEditClick = (item) => () => {
     handleEdit(item);
@@ -187,7 +163,7 @@ function GridPlano({
                     {find(item.fk_risco_id, 'nome_risco')}
                   </td>
                   <td className="px-4 py-2 text-gray-800 hyphens-auto text-justify whitespace-normal">
-                    {findMedidas(item.fk_medida_id, item.tipo_medida)}
+                    {(item.fk_medida_id, item.tipo_medida)}
                   </td>
                   <td className="px-4 py-2 text-gray-800 whitespace-normal text-center">
                     {item.prazo}
