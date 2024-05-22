@@ -7,7 +7,7 @@ import GridPlano from "./subPages/PlanoAcao/GridPlano";
 function Plano() {
 
   const {
-    handleSetCompanyId, companyId, selectedCompany,
+    handleSetCompanyId, selectedCompany,
     fetchUnidades, 
     fetchSetores, 
     getCargos, cargos,
@@ -30,12 +30,13 @@ function Plano() {
   const [contactInfo, setContactInfo] = useState([]);
   const [contatos,setContatos] = useState([]);
   const [medidas, setMedidas] = useState([]);
+  const [companyId, setCompanyId] = useState(null);
 
-
-  
+    
   useEffect(() => {
     handleSetCompanyId();
   }, []);
+  
 
   const get = async () => {
 		const sectors = await fetchSetores();
@@ -44,15 +45,16 @@ function Plano() {
 		setUnidades(units);
     const proc = await getProcessos();
     setProcessos(proc);
-      const data = await fetchContatos(companyId);
-      setContatos(data);
-        const response = await fetchMedidas('all');
-        setMedidas(response);    
+    const data = await fetchContatos(companyId);
+    setContatos(data);
+    const response = await fetchMedidas('all');
+    setMedidas(response);  
+    const userData = JSON.parse(localStorage.getItem("selectedCompanyData"));
+    setCompanyId(userData.id_empresa)  
   	}
 
 	useEffect(() => {
 		get();
-    console.log(contatos)
 	}, [companyId]);
 
 
@@ -68,9 +70,9 @@ function Plano() {
     getGlobalSprm();
   }, [companyId]);
 
+  console.log(plano)
 
   useEffect(() => {
-    console.log("Plano:", plano);
   }, [plano]);
 
   const handleEdit = (selectedInventario) => {
@@ -104,7 +106,6 @@ function Plano() {
         getPlano={getPlano}
         contatos={contatos}
       />
-
       <div className="mb-10">
         <GridPlano
           setOnEdit={setOnEdit}

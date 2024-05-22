@@ -163,7 +163,7 @@ function GridPlano({
                     {find(item.fk_risco_id, 'nome_risco')}
                   </td>
                   <td className="px-4 py-2 text-gray-800 hyphens-auto text-justify whitespace-normal">
-                    {medidas(item.fk_medida_id, item.tipo_medida)}
+                    {(item.fk_medida_id, item.tipo_medida)}
                   </td>
                   <td className="px-4 py-2 text-gray-800 whitespace-normal text-center">
                     {item.prazo}
