@@ -16,8 +16,8 @@ app.use(express.json());
 
 // Middleware para permitir solicitações CORS
 const corsConfig = {
-  //  origin: 'https://medwork-dev.vercel.app',
-  origin: 'http://localhost:3000',
+   origin: 'https://medwork-dev.vercel.app',
+  // origin: 'http://localhost:3000',
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
   credentials: true,
   optionsSuccessStatus: 204,
