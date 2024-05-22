@@ -11,6 +11,7 @@ const ModalMedidasDefine = ({ onCancel, isOpen, companyName, globalSprm, medidas
   const [globalId, setGlobalId] = useState('');
   const [globalData, setGlobalData] = useState('');
 
+
   useEffect(() => {
     if (globalSprm) {
       const initialStatus = {};
@@ -24,8 +25,9 @@ const ModalMedidasDefine = ({ onCancel, isOpen, companyName, globalSprm, medidas
 
   useEffect(() => {
     const mapSprm = globalSprm.map((i) => i.fk_medida_id);
-    const filterMed = medidas.filter((i) => mapSprm.includes(i.id_medida));
-    setFilteredMedidas(filterMed);
+    const filterMedidas = medidas.filter((i) => mapSprm.includes(i.id_medida));
+    console.log(filterMedidas)
+    setFilteredMedidas(filterMedidas);
   }, [isOpen, globalSprm]);
 
   const handleAplicationChange = async (event, itemId) => {
