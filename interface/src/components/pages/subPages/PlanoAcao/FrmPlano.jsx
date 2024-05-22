@@ -24,7 +24,7 @@ function FrmPlano({
   companyId,
   setOnEdit,
   riscosMedidas,
-  medidas,getMedidas,
+  medidas,
   getGlobalSprm, setGlobalSprm, globalSprm,
   companyName,
   getPlano,
@@ -65,7 +65,6 @@ function FrmPlano({
   const [existingPrazos, setExistingPrazos] = useState({});
 
   //Função para abrir o Modal
-  console.log(medidas)
   const openModalUnidade = () => setShowModalUnidade(true);
   const openModalSetor = () => setShowModalSetor(true);
   const openModalProcesso = () => setShowModalProcesso(true);
@@ -156,7 +155,7 @@ function FrmPlano({
     const unicunidade = unidades.filter((i) => i.id_unidade === unidadeId);
     const idResponsavel = unicunidade[0].fk_contato_id;
     const arrayResponsavel = contatos.find((i) => i.id_contato === idResponsavel);
-    const nomeResponsavel = arrayResponsavel.nome_contato;
+    const nomeResponsavel = arrayResponsavel?arrayResponsavel.nome_contato: '';
 
     setResponsavel(nomeResponsavel);
   };
@@ -282,8 +281,9 @@ function FrmPlano({
         toast.success("Meddias Adicionadas com sucesso!");
         getGlobalSprm();
       }
-      setLoading(false);
       setLoading(true);
+      setLoading(false);
+
     } catch (error) {
       console.error("Erro ao adicionar medidas", error);
     }
@@ -623,7 +623,7 @@ function FrmPlano({
         onCancel={closeModalMedidas}
         companyName={companyName}
         globalSprm={filterGlobalSprm}
-        medidas={filteredMedidas}
+        medidas={medidas}
         medidasDefine={handleMedidaChange}
         plano={plano}
         getGlobalSprm={getGlobalSprm}
