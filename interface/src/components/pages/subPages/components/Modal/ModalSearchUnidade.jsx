@@ -2,12 +2,12 @@ import React, { useEffect, useState } from 'react';
 import SearchInput from '../SearchInput';
 import useAuth from '../../../../../hooks/useAuth';
 
-const ModalSearchSetor = ({ onCancel, isOpen, children, onContactSelect }) => {
+const ModalSearchUnidade = ({ onCancel, isOpen, children, onContactSelect }) => {
 
   const { fetchContatos } = useAuth(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [contatos, setContatos] = useState([]);
-  const [filteredUnidades, setFilteredUnidades] = useState([]);
+  const [filteredUnidades, setFilteredUnidades] = useState(children);
 
   const getContatos = async () => {
     const contacts = await fetchContatos();
@@ -19,15 +19,9 @@ const ModalSearchSetor = ({ onCancel, isOpen, children, onContactSelect }) => {
   }, []);
 
   useEffect(() => {
-    if (!isOpen) {
-      setSearchTerm('');
-    }
-  }, [isOpen]);
-
-  useEffect(() => {
     const filtred = children.filter((udd) => udd.nome_unidade.toLowerCase().includes(searchTerm.toLocaleLowerCase()));
     setFilteredUnidades(filtred);
-  }, [searchTerm, contatos]);
+  }, [searchTerm, contatos, isOpen]);
 
   const handleSearch = (term) => {
     setSearchTerm(term);
@@ -71,7 +65,7 @@ const ModalSearchSetor = ({ onCancel, isOpen, children, onContactSelect }) => {
           </div>
         </div>
         <ul className='space-y-3 py-3'>
-          {children && filteredUnidades
+          {filteredUnidades
             .map((unidade, i) => (
               <li
                 key={i}
@@ -118,4 +112,4 @@ const ModalSearchSetor = ({ onCancel, isOpen, children, onContactSelect }) => {
 };
 
 
-export default ModalSearchSetor;
+export default ModalSearchUnidade;

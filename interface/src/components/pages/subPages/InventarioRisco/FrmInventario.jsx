@@ -365,10 +365,6 @@ function FrmInventario({
     await verify(RiscoId);
   };
 
-
-  useEffect(() => {
-    
-  },[isVerify])
   const handleRiscoEscolhido = async (RiscoId) => {
     try {
       if (!setorId) {
@@ -450,7 +446,8 @@ function FrmInventario({
     } else {
       setAvaliacao(risco.classificacao_risco);
     }
-    {handleCalor?setLimiteTolerancia(ltrisco.value) :setLimiteTolerancia(risco.limite_tolerancia_risco || '0');
+    {
+      handleCalor ? setLimiteTolerancia(ltrisco.value) : setLimiteTolerancia(risco.limite_tolerancia_risco || '0');
 
       setConsequencia(risco.danos_saude_risco);
       setMetodologia(risco.metodologia_risco);
@@ -484,17 +481,17 @@ function FrmInventario({
   const handleProbabilidadeChange = (event) => {
     const selectedProbabilidade = parseInt(event.target.value, 10);
     const severidadeValue = parseInt(severidade, 10);
-  
+
     if (handleCalor) {
       // Se handleCalor for verdadeiro, permitimos que o usuário selecione o nível diretamente
       setProbabilidade(null); // Limpa o valor de probabilidade
-  
+
 
     } else if (!isNaN(selectedProbabilidade) && !isNaN(severidadeValue)) {
       // Se handleCalor for falso, calculamos o nível com base na probabilidade e severidade
       const nivelValue = selectedProbabilidade * severidadeValue;
       setProbabilidade(selectedProbabilidade);
-  
+
       if (nivelValue >= 1 && nivelValue <= 6) {
         setNivel("Baixo");
       } else if (nivelValue >= 7 && nivelValue <= 12) {
@@ -508,8 +505,8 @@ function FrmInventario({
       }
     }
   };
-  
-  
+
+
   const handleMedicaoCheck = () => {
     setCheckMedicao(!checkMedicao);
     if (medicao === '0') {
@@ -768,7 +765,6 @@ function FrmInventario({
 
 
   const handleCalor = riscoNome === "Calor" ? true : false;
-  const handleVerificado = isVerify ? true : false;
 
 
   useEffect(() => {
@@ -788,7 +784,7 @@ function FrmInventario({
       {(isVerify && !onEdit) && (
         <>
           {/* Alert */}
-          <div className="block m-2 cursor-pointer" onClick={() => setIsVerify(false)}>
+          <div className="block m-2">
             <div className={`bg-orange-50 text-gray-600 rounded-lg px-6 py-2 ${isVerify ? 'block' : 'hidden'}`}>
               <div className="flex items-center gap-6">
                 <div className="">
@@ -799,8 +795,8 @@ function FrmInventario({
                   <div className="flex">
                     <p className="font-normal text-gray-700">Risco: {riscoNome} - Processo: {processoNome} - Setor: {setorNome}- Unidade: {nomeUnidade}.</p>
                     <div className="col-span-1 text-sky-500 hover:text-sky-600 m-1 px-2 text-sm cursor-pointer" onClick={() => setOnEdit(filteredInventarioRisco)} >
-                    <BsFillPencilFill />
-                  </div>
+                      <BsFillPencilFill />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1081,11 +1077,11 @@ function FrmInventario({
                   LT:
                 </label>
                 <input
-                  className={`${handleCalor? '':limiteTolerancia ? 'bg-gray-50 opacity-50 text-gray-600 cursor-not-allowed' : ''} appearence-none block w-full bg-gray-100 rounded py-3 px-4 mb-3 mt-1 leading-tight focus:outline-gray-100 focus:bg-white`}
+                  className={`${handleCalor ? '' : limiteTolerancia ? 'bg-gray-50 opacity-50 text-gray-600 cursor-not-allowed' : ''} appearence-none block w-full bg-gray-100 rounded py-3 px-4 mb-3 mt-1 leading-tight focus:outline-gray-100 focus:bg-white`}
                   type="text"
                   name="limite_tolerancia"
                   placeholder="LT"
-                  disabled = {!handleCalor}
+                  disabled={!handleCalor}
                   id="risco-lt"
                   step="any"
                 />
@@ -1108,10 +1104,10 @@ function FrmInventario({
                 <label className="tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="grid-raza_social">
                   Medição:
                 </label>
-              
+
                 <input
                   className={`appearence-none block w-full bg-gray-100 rounded py-3 px-4 mt-1 leading-tight focus:outline-gray-100 focus:bg-white ${medicao === 'N/A' || medicao === "0" ? 'bg-gray-50 opacity-50 text-gray-600 cursor-not-allowed' : ''} ${checkMedicao ? 'bg-gray-50 opacity-50 text-gray-600 cursor-not-allowed' : ''}`}
-                  type={handleCalor? "text" : "number"}
+                  type={handleCalor ? "text" : "number"}
                   name="medicao_risco"
                   placeholder="Medição"
                   value={medicao}
@@ -1148,7 +1144,7 @@ function FrmInventario({
                         </p>
                       </button>
                       <button className="ml-4" onClick={handleClearAparelhos} type="button">
-                      
+
                         <img src={icon_sair} alt="" className="h-9" />
                       </button>
                     </>
@@ -1250,26 +1246,25 @@ function FrmInventario({
               </div>
               {/* Nível */}
               <div className="w-full md:w-3/12 px-3">
-  <label className="tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="grid-raza_social">
-    Nível:
-  </label>
-  <input
-    className={`appearance-none block w-full rounded py-3 px-4 mb-3 mt-1 leading-tight focus:outline-gray-100 focus:bg-white ${
-      nivel === "Baixo" ? "bg-green-200" :
-      nivel === "Moderado" ? "bg-yellow-200" :
-      nivel === "Agit adlto" ? "bg-orange-200" :
-      nivel === "Crítico" ? "bg-red-200" :
-      "bg-gray-100"
-    }`}
-    type="text"
-    name="nivel_risco"
-    placeholder="Nível"
-    disabled={!handleCalor}
-    id="nivel"
-    value={nivel}
-    onChange={(e) => handleCalor && setNivel(e.target.value)} // Permite a edição somente quando handleCalor for verdadeiro
-  />
-</div>
+                <label className="tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="grid-raza_social">
+                  Nível:
+                </label>
+                <input
+                  className={`appearance-none block w-full rounded py-3 px-4 mb-3 mt-1 leading-tight focus:outline-gray-100 focus:bg-white ${nivel === "Baixo" ? "bg-green-200" :
+                      nivel === "Moderado" ? "bg-yellow-200" :
+                        nivel === "Agit adlto" ? "bg-orange-200" :
+                          nivel === "Crítico" ? "bg-red-200" :
+                            "bg-gray-100"
+                    }`}
+                  type="text"
+                  name="nivel_risco"
+                  placeholder="Nível"
+                  disabled={!handleCalor}
+                  id="nivel"
+                  value={nivel}
+                  onChange={(e) => handleCalor && setNivel(e.target.value)} // Permite a edição somente quando handleCalor for verdadeiro
+                />
+              </div>
 
 
             </div>
@@ -1532,7 +1527,7 @@ function FrmInventario({
                 </button>
               </div>
               <div className="px-3 pl-8">
-                <button  disabled={isVerify || isMedidasSet} className={`w-full shadow mt-4 bg-green-600  focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded ${!isVerify ? 'hover:bg-green-700' : 'cursor-not-allowed opacity-50'}`} type="submit" >
+                <button disabled={isVerify || isMedidasSet} className={`w-full shadow mt-4 bg-green-600  focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded ${!isVerify ? 'hover:bg-green-700' : 'cursor-not-allowed opacity-50'}`} type="submit" >
                   Adicionar
                 </button>
               </div>
