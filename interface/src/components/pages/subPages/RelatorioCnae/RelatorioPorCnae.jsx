@@ -68,26 +68,7 @@ function RelatorioCnae() {
 
   const handleGenerate = async (data) => {
     try {
-      // Buscar os processos dos cnaes selecionados
-      // const filterCompanyProc = processoCnae.filter((i) => i.fk_cnae_id === companyCnae.id_cnae);
-      // const findCompanyProc = processos.find((i) => i.id_processo === filterCompanyProc[0].fk_processo_id);
-      // const selectedCnaesMap = selectedCnaes.map((i) => i.id_cnae);
-      // const filterProcCnae = processoCnae.filter((i) => selectedCnaesMap.includes(i.fk_cnae_id));
-      // const filterProcCnaeMap = filterProcCnae.map((i) => i.fk_processo_id);
-      // const filterProcess = processos.filter((i) => filterProcCnaeMap.includes(i.id_processo));
-
-      // console.log("Empresa: ", company);
-      // console.log("Cnae Empresa: ", companyCnae);
-      // console.log("Processos Empresa: ", findCompanyProc);
-      // console.log("Cnaes Selecionados: ", selectedCnaes);
-      // console.log("Processos Filtrados: ", filterProcess);
-
       const doc = <RelatorioCnae
-        // company={company}
-        // companyCnae={companyCnae}
-        // companyProcess={findCompanyProc}
-        // selectedCnaes={selectedCnaes}
-        // filterProcess={filterProcess}
         data={data}
       />;
       setGeneratedPdf(doc);
@@ -332,6 +313,7 @@ function RelatorioCnae() {
                       <button
                         className="bg-red-600 py-2 px-4 font-bold text-white rounded cursor-pointer hover:bg-red-700"
                         onClick={handleClear}
+                        type="button"
                       >
                         Limpar
                       </button>
@@ -339,6 +321,7 @@ function RelatorioCnae() {
                       <button
                         className="bg-green-600 py-2 px-4 font-bold text-white rounded cursor-pointer hover:bg-green-700"
                         onClick={() => openPdfInNewTab(generatedPdf)}
+                        type="button"
                       >
                         Abrir em Nova Aba
                       </button>
@@ -346,13 +329,14 @@ function RelatorioCnae() {
                       <button
                         className="bg-teal-600 py-2 px-4 font-bold text-white rounded cursor-pointer hover:bg-teal-700"
                         onClick={() => printPdf(generatedPdf)}
+                        type="button"
                       >
                         Imprimir
                       </button>
                     </>
                   ) : (
                     <>
-                      <button type="button" className="bg-sky-600 py-2 px-4 font-bold text-white rounded cursor-pointer hover:bg-sky-700" onClick={() => fetchRelatorioCnae()}>
+                      <button type="button" className="bg-sky-600 py-2 px-4 font-bold text-white rounded cursor-pointer hover:bg-sky-700" onClick={handleGenerate}>
                         {loading ? 'Gerando...' : 'Gerar Relatório'}
                       </button>
                     </>
