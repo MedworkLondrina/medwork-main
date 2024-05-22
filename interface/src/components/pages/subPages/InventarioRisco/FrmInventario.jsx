@@ -1140,13 +1140,15 @@ function FrmInventario({
                     <>
                       <button
                         className={`flex appearance-none hover:shadow-sm text-sky-600 bg-gray-100 border-gray-200 justify-center mt-1 py-3 px-4 rounded leading-tight focus:outline-none with-text`}
+                        type="button"
                         onClick={openModalAparelhos}
                       >
                         <p className="font-bold">
                           {aparelhoNome}
                         </p>
                       </button>
-                      <button className="ml-4" onClick={handleClearAparelhos}>
+                      <button className="ml-4" onClick={handleClearAparelhos} type="button">
+                      
                         <img src={icon_sair} alt="" className="h-9" />
                       </button>
                     </>
@@ -1154,6 +1156,7 @@ function FrmInventario({
                     <button
                       className={`flex w-full appearance-none text-gray-400 bg-gray-100 border-gray-200 justify-center mt-1 py-3 px-4 rounded leading-tight focus:outline-none with-text ${medicao > 0 ? '' : 'cursor-auto'}`}
                       onClick={openModalAparelhos}
+                      type="button"
                       disabled={medicao <= 0}
                     >
                       <p className="truncate text-sm font-medium">
