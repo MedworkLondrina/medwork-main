@@ -157,6 +157,7 @@ function FrmCadastroSetor({ onEdit, setOnEdit, getSetor, unidades, onCancel, uni
                   <button
                     className="w-full flex appearance-none hover:shadow-sm text-sky-600 bg-gray-100 border-gray-200 mt-1 py-3 px-4 rounded leading-tight focus:outline-none with-text"
                     onClick={openModal}
+                    type="button"
                   >
                     <p className="px-2 text-sm font-sm text-gray-600">
                       unidade:
@@ -165,7 +166,7 @@ function FrmCadastroSetor({ onEdit, setOnEdit, getSetor, unidades, onCancel, uni
                       {nomeUnidade}
                     </p>
                   </button>
-                  <button className="ml-4" onClick={handleClearUnidade}>
+                  <button className="ml-4" onClick={handleClearUnidade}  type="button">
                     <img src={icon_sair} alt="" className="h-9" />
                   </button>
                 </>
@@ -173,6 +174,7 @@ function FrmCadastroSetor({ onEdit, setOnEdit, getSetor, unidades, onCancel, uni
                 <button
                   className="flex w-full appearance-none text-gray-400 bg-gray-100 border-gray-200 justify-center mt-1 py-3 px-4 rounded leading-tight focus:outline-none with-text"
                   onClick={openModal}
+                  type="button"
                 >
                   <p className="text-sm font-medium">
                     Nenhuma Unidade Selecionado

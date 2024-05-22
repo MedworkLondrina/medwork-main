@@ -268,6 +268,7 @@ function FrmCadastroCargo({ onEdit, setOnEdit, getCargo, set, setor }) {
                 <>
                   <button
                     className="flex appearance-none hover:shadow-sm text-sky-600 bg-gray-100 border-gray-200 justify-center mt-1 py-3 px-4 rounded leading-tight focus:outline-none with-text"
+                    type="button"
                     onClick={openModal}
                   >
                     <p name="fk_contato_id" className="px-2 text-sm font-sm text-gray-600">
@@ -277,13 +278,14 @@ function FrmCadastroCargo({ onEdit, setOnEdit, getCargo, set, setor }) {
                       {setorNome}
                     </p>
                   </button>
-                  <button className="ml-4" onClick={handleClearSetor}>
+                  <button className="ml-4" onClick={handleClearSetor}  type="button">
                     <img src={icon_sair} alt="" className="h-9" />
                   </button>
                 </>
               ) : (
                 <button
                   className="flex w-full appearance-none text-gray-400 bg-gray-100 border-gray-200 justify-center mt-1 py-3 px-4 rounded leading-tight focus:outline-none with-text"
+                  type="button"
                   onClick={openModal}
                 >
                   <p className="px-2 text-sm font-medium">
