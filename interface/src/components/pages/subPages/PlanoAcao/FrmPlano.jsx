@@ -27,9 +27,6 @@ function FrmPlano({
   medidas,
   getGlobalSprm, setGlobalSprm, globalSprm,
   companyName,
-  plano,
-  getPlano,
-  setPlano,
   contatos,
   planos,
 }) {
@@ -62,6 +59,7 @@ function FrmPlano({
   const [filteredMedidas, setFilteredMedidas] = useState([]);
   const [filteredPlanoRisco, setFilteredPlanoRisco] = useState([]);
   const [isVerify, setIsVerify] = useState(false);
+  const [plano, setPlano] = useState(false);
 
   //Inputs Form
   const [data, setData] = useState('');
