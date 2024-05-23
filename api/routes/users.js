@@ -2586,7 +2586,6 @@ router.put("/plano/:id_plano", (req, res) => {
   ];
 
   pool.getConnection((err, con) => {
-    con.release();
 
     if (err) return next(err);
 

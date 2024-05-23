@@ -29,6 +29,7 @@ function FrmPlano({
   companyName,
   getPlano,
   contatos,
+  planos,
 }) {
 
   const user = useRef();
@@ -58,6 +59,8 @@ function FrmPlano({
   const [plano, setPlano] = useState(false);
   const [filterGlobalSprm, setFilterGlobalSprm] = useState([]);
   const [filteredMedidas, setFilteredMedidas] = useState([]);
+  const [filteredPlanoRisco, setFilteredPlanoRisco] = useState([]);
+  const [isVerify, setIsVerify] = useState(false);
 
   //Inputs Form
   const [data, setData] = useState('');
@@ -70,11 +73,6 @@ function FrmPlano({
   const openModalProcesso = () => setShowModalProcesso(true);
   const openModalRisco = () => setShowModalRisco(true);
   const openModalMedidas = () => {
-    const sprm = globalSprm.filter((i) => i.fk_setor_id === setorId && i.fk_processo_id === processoId && i.fk_risco_id === riscoId);
-    const filterApply = sprm.filter((c) => c.status && c.status !== "Aplica");
-    const filterMedidas = medidas.filter((i) => sprm.includes(i.id_medida));
-    setFilteredMedidas(filterMedidas);
-    setFilterGlobalSprm(filterApply);
     setPlano(true);
     setShowModalMedidas(true)
   };
@@ -108,12 +106,29 @@ function FrmPlano({
   }, [showModalSetor, unidadeId, setores]);
 
   useEffect(() => {
-    const sprm = globalSprm.filter((i) => i.fk_setor_id === setorId && i.fk_processo_id === processoId && i.fk_risco_id === riscoId);
-    console.log(sprm)
-    const filterApply = sprm.filter((c) => c.status && c.status !== "Aplica");
-    console.log(filterApply)
-    setFilterGlobalSprm(filterApply);
-  }, [riscoId])
+    const filterList = () => {
+      if (!onEdit) {
+        const sprm = globalSprm.filter(
+          ({ fk_setor_id, fk_processo_id, fk_risco_id }) =>
+            fk_setor_id === setorId && fk_processo_id === processoId && fk_risco_id === riscoId
+        );
+        const filterApply = sprm.filter(({ status }) => status && status !== "Aplica");
+        const planFilter = planos.filter(
+          ({ fk_empresa_id, fk_medida_id }) =>
+            fk_empresa_id === companyId && filterApply.some(({ fk_medida_id: sprmId }) => sprmId === fk_medida_id)
+        );
+        const filterSprm = sprm.filter(({ status }) => status && status === "Não Aplica");
+        const sprmMap = new Set(filterSprm.map(({ fk_medida_id }) => fk_medida_id));
+        const filterPlan = planos.filter(({ fk_empresa_id, fk_medida_id }) => fk_empresa_id === companyId && sprmMap.has(fk_medida_id));
+        const listMedidas = medidas.filter(({ id_medida }) => sprmMap.has(id_medida) && !filterPlan.some(({ fk_medida_id }) => fk_medida_id === id_medida));
+        const listModalMedidas = filterApply.filter(({ fk_medida_id }) => !planFilter.map(({ fk_medida_id }) => fk_medida_id).includes(fk_medida_id));
+        setFilterGlobalSprm(listModalMedidas);
+        setFilteredMedidas(listMedidas);
+      }
+    }
+
+    filterList();
+  }, [riscoId, globalSprm]);
 
   useEffect(() => {
     const handleEdit = async () => {
@@ -134,6 +149,16 @@ function FrmPlano({
           if (onEdit.fk_risco_id) {
             const riscoSelect = riscos.find((i) => i.id_risco === onEdit.fk_risco_id);
             await handleRiscoSelect(onEdit.fk_risco_id, riscoSelect.nome_risco, onEdit.fk_medida_id, onEdit.tipo_medida);
+          }
+          if (onEdit.fk_medida_id) {
+            const findMedida = medidas.find((i) => i.id_medida === onEdit.fk_medida_id);
+            setFilteredMedidas([findMedida]);
+            if (onEdit.prazo) {
+              setSelectedPrazos((prevPrazos) => ({
+                ...prevPrazos,
+                [onEdit.fk_medida_id]: onEdit.prazo,
+              }));
+            }
           }
           handleFilterGlobalSprm();
         } catch (error) {
@@ -211,6 +236,38 @@ function FrmPlano({
     handleClearRisco();
     setFilteredRiscos([]);
   };
+  const verify = async (riscoId) => {
+    getPlano();
+    try {
+      const idsUnidades = plano.map((i) => i.fk_unidade_id);
+      const idsSetores = plano.map((i) => i.fk_setor_id);
+      const idsProcessos = plano.map((i) => i.fk_processo_id);
+      const idsRiscos = plano.map((i) => i.fk_risco_id);
+
+      const filterPlanoUnidade = plano.filter((i) => i.fk_unidade_id === unidadeId);
+      const filterPlanoSetor = filterPlanoUnidade.filter((i) => i.fk_setor_id === setorId);
+      const filterPlanoProcesso = filterPlanoSetor.filter((i) => i.fk_processo_id === processoId);
+      const filterPlanoRisco = filterPlanoProcesso.find((i) => i.fk_risco_id === riscoId);
+      setFilteredPlanoRisco(filterPlanoRisco)
+
+
+
+      if (riscoId) {
+        const filterIdUnidade = idsUnidades.includes(unidadeId);
+        const filterIdsSetores = idsSetores.includes(setorId);
+        const filterIdsProcesso = idsProcessos.includes(processoId);
+        const filteridsRicos = idsRiscos.includes(riscoId);
+
+        if (filterIdUnidade === true && filterIdsSetores === true && filterIdsProcesso === true && filteridsRicos === true) {
+          setIsVerify(true);
+        } else {
+          setIsVerify(false);
+        }
+      }
+    } catch (error) {
+      console.error("Erro ao verificar cadastro duplicado!", error)
+    }
+  };
 
   // Função para atualizar o Risco
   const handleRiscoSelect = async (RiscoId, RiscoNome) => {
@@ -280,6 +337,8 @@ function FrmPlano({
         const adicionarData = await adicionarResponse.json();
         toast.success("Meddias Adicionadas com sucesso!");
         getGlobalSprm();
+        await verify(RiscoId);
+
       }
       setLoading(true);
       setLoading(false);
@@ -305,8 +364,8 @@ function FrmPlano({
     }
 
     try {
-      for (const medida of filterGlobalSprm) {
-        const prazo = selectedPrazos[`${medida.fk_medida_id}-${medida.tipo_medida}`];
+      for (const medida of filteredMedidas) {
+        const prazo = selectedPrazos[`${medida.id_medida}`];
 
         const planoData = {
           data: data || '',
@@ -315,7 +374,7 @@ function FrmPlano({
           fk_setor_id: setorId || '',
           fk_processo_id: processoId || '',
           fk_risco_id: riscoId || '',
-          fk_medida_id: medida.fk_medida_id || '',
+          fk_medida_id: medida.id_medida || '',
           tipo_medida: medida.tipo_medida || '',
           responsavel: responsavel || '',
           prazo: prazo || '',
@@ -370,31 +429,31 @@ function FrmPlano({
   const handleFilterGlobalSprm = () => {
     const sprm = globalSprm.filter((i) => i.fk_setor_id === setorId && i.fk_processo_id === processoId && i.fk_risco_id === riscoId);
     const filterApply = sprm.filter((c) => c.status && c.status !== "Aplica");
-  };
-
-  useEffect(() => {
-    handleFilterGlobalSprm();
-  }, [globalSprm])
-
-
-
-  const tipoDefine = (item) => {
-    switch (item) {
-      case 1:
-        return 'Adm'
-      case 2:
-        return 'EPI'
-      case 3:
-        return 'EPC'
-
-      default:
-        return 'N/A'
-    }
+    setFilterGlobalSprm(filterApply);
   };
 
   const handleChangeData = (event) => {
     setData(event.target.value);
   };
+
+  const handlePrazoChange = (event, id) => {
+    setIsOk(false);
+    setSelectedPrazos((prevPrazos) => ({
+      ...prevPrazos,
+      [id]: onEdit ? event.target.value : event.target.value,
+    }));
+
+    const prazosValues = Object.values({
+      ...selectedPrazos,
+      [id]: onEdit ? event.target.value : event.target.value,
+    });
+
+    const allPrazosSelected = prazosValues.every((prazo) => prazo !== '0');
+    if (allPrazosSelected) {
+      setIsOk(true);
+    };
+  }
+
 
   return (
     <>
@@ -414,12 +473,13 @@ function FrmPlano({
                     <button
                       className="flex appearance-none hover:shadow-sm text-sky-600 bg-gray-100 border-gray-200 mt-1 py-3 px-4 rounded leading-tight focus:outline-none with-text"
                       onClick={openModalUnidade}
+                      type="button"
                     >
                       <p className="font-bold">
                         {nomeUnidade}
                       </p>
                     </button>
-                    <button className="ml-4" onClick={handleClearUnidade}>
+                    <button className="ml-4" onClick={handleClearUnidade} type="button">
                       <img src={icon_sair} alt="" className="h-9" />
                     </button>
                   </>
@@ -427,6 +487,7 @@ function FrmPlano({
                   <button
                     className="flex w-full appearance-none text-gray-400 bg-gray-100 border-gray-200 justify-center mt-1 py-3 px-4 rounded leading-tight focus:outline-none with-text"
                     onClick={openModalUnidade}
+                    type="button"
                   >
                     <p className="text-sm font-medium">
                       Nenhuma Unidade Selecionado
@@ -459,12 +520,15 @@ function FrmPlano({
                     <button
                       className="flex appearance-none hover:shadow-sm text-sky-600 bg-gray-100 border-gray-200 justify-center mt-1 py-3 px-4 rounded leading-tight focus:outline-none with-text"
                       onClick={openModalSetor}
+                      type="button"
+
                     >
                       <p className="font-bold">
                         {setorNome}
                       </p>
                     </button>
-                    <button className="ml-4" onClick={handleClearSetor}>
+                    <button className="ml-4" onClick={handleClearSetor} type="button"
+                    >
                       <img src={icon_sair} alt="" className="h-9" />
                     </button>
                   </>
@@ -472,6 +536,7 @@ function FrmPlano({
                   <button
                     className="flex w-full appearance-none text-gray-400 bg-gray-100 border-gray-200 justify-center mt-1 py-3 px-4 rounded leading-tight focus:outline-none with-text"
                     onClick={openModalSetor}
+                    type="button"
                   >
                     <p className="px-2 text-sm font-medium">
                       Nenhum Setor Selecionado
@@ -505,12 +570,15 @@ function FrmPlano({
                     <button
                       className="flex appearance-none hover:shadow-sm text-sky-600 bg-gray-100 border-gray-200 justify-center mt-1 py-3 px-4 rounded leading-tight focus:outline-none with-text"
                       onClick={openModalProcesso}
+                      type="button"
+
                     >
                       <p className="font-bold">
                         {processoNome}
                       </p>
                     </button>
-                    <button className="ml-4" onClick={handleClearProcesso}>
+                    <button className="ml-4" onClick={handleClearProcesso} type="button"
+                    >
                       <img src={icon_sair} alt="" className="h-9" />
                     </button>
                   </>
@@ -518,6 +586,8 @@ function FrmPlano({
                   <button
                     className="flex w-full appearance-none text-gray-400 bg-gray-100 border-gray-200 justify-center mt-1 py-3 px-4 rounded leading-tight focus:outline-none with-text"
                     onClick={openModalProcesso}
+                    type="button"
+
                   >
                     <p className="px-2 text-sm font-medium">
                       Nenhum Processo Selecionado
@@ -551,20 +621,26 @@ function FrmPlano({
                   <>
                     <button
                       className="flex appearance-none hover:shadow-sm text-sky-600 bg-gray-100 border-gray-200 justify-center py-3 px-4 rounded leading-tight focus:outline-none with-text"
+
                       onClick={openModalRisco}
+                      type="button"
                     >
                       <p className="font-bold">
                         {riscoNome}
                       </p>
                     </button>
-                    <button className="ml-4" onClick={handleClearRisco}>
+                    <button className="ml-4" onClick={handleClearRisco} type="button"
+                    >
                       <img src={icon_sair} alt="" className="h-9" />
+
                     </button>
                   </>
                 ) : (
                   <button
                     className="flex w-full appearance-none text-gray-400 bg-gray-100 border-gray-200 justify-center py-3 px-4 rounded leading-tight focus:outline-none with-text"
                     onClick={openModalRisco}
+                    type="button"
+
                   >
                     <p className="px-2 text-sm font-medium">
                       Nenhum Risco Selecionado
@@ -633,43 +709,26 @@ function FrmPlano({
               <label className="tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="grid-raza_social">
                 Medidas Não Aplicadas:
               </label>
-              {riscoId && filterGlobalSprm.filter((i) => i.status === "Não Aplica").map((item, i) => (
+              {riscoId && filteredMedidas.length > 0 && filteredMedidas.map((item, i) => (
                 <ul key={i}>
                   <li className="pb-3 sm:pb-4">
                     <div className="grid grid-cols-5 items-center space-x-4 rtl:space-x-reverse border-b border-gray-300 px-4 py-2 hover:bg-gray-50">
                       <div className="flex-1 min-w-0 pr-4 col-span-2">
                         <p className="text-sm font-medium text-gray-900 whitespace-break-spaces truncate">
-                          {filteredMedidas.map((item) => (item.fk_medida_id, item.tipo_medida))}
+                          {item.descricao_medida}
                         </p>
                       </div>
                       <div className="inline-flex justify-center items-center text-base font-semibold text-gray-900">
-                        {tipoDefine(item.tipo_medida)}
+                        {item.grupo_medida}
                       </div>
                       <div className="inline-flex justify-center col-span-2 items-center text-base text-gray-800">
                         <select
                           className="appearence-none bg-gray-100 rounded py-3 px-4 mb-3 mt-1 leading-tight cursor-pointer"
                           type="text"
                           name="prazo_medida"
-                          value={
-                            onEdit
-                              ? onEdit.prazo || '0'
-                              : selectedPrazos[`${item.fk_medida_id}-${item.tipo_medida}`] || '0'
+                          value={selectedPrazos[`${item.id_medida}`] || '0'
                           }
-                          onChange={(e) => {
-                            const key = `${item.fk_medida_id}-${item.tipo_medida}`;
-                            setSelectedPrazos((prevPrazos) => ({
-                              ...prevPrazos,
-                              [key]: onEdit ? e.target.value : e.target.value,
-                            }));
-
-                            const prazosValues = Object.values({
-                              ...selectedPrazos,
-                              [key]: onEdit ? e.target.value : e.target.value,
-                            });
-
-                            const allPrazosSelected = prazosValues.every((prazo) => prazo !== '0');
-                            setIsOk(true);
-                          }}
+                          onChange={(e) => handlePrazoChange(e, item.id_medida)}
                         >
                           <option value="0">Selecione um Prazo</option>
                           <option value="6 Meses">6 Meses</option>

@@ -32,6 +32,10 @@ function GridPlano({
           const processoEncontrado = processo.find((c) => c.id_processo === item);
           return processoEncontrado ? processoEncontrado.nome_processo : 'N/A';
 
+        case 'medida':
+          const medidaEncontrada = medidas.find((c) => c.id_medida === item);
+          return medidaEncontrada ? medidaEncontrada.descricao_medida : '-';
+
         case 'nome_risco':
         case 'grupo_risco':
         case 'consequencia':
@@ -72,8 +76,6 @@ function GridPlano({
     }
   };
 
-  
-
   const handleEditClick = (item) => () => {
     handleEdit(item);
   };
@@ -86,7 +88,7 @@ function GridPlano({
   const formatData = (item) => {
     const data_formatada = new Date(item).toLocaleDateString('pr-BR');
     return data_formatada;
-  }
+  };
 
   const filteredPlano = plano.filter((i) => i.fk_empresa_id === companyId)
 
@@ -103,25 +105,25 @@ function GridPlano({
                 <th scope="col" className="px-4 py-2 text-center">
                   Data
                 </th>
-                <th scope="col" className="px-4 py-2">
+                <th scope="col" className="px-4 py-2 text-center">
                   Unidade
                 </th>
-                <th scope="col" className="px-4 py-2">
+                <th scope="col" className="px-4 py-2 text-center">
                   Setor
                 </th>
-                <th scope="col" className="px-4 py-2">
+                <th scope="col" className="px-4 py-2 text-center">
                   Responsável
                 </th>
-                <th scope="col" className="px-4 py-2">
+                <th scope="col" className="px-4 py-2 text-center">
                   Processo
                 </th>
-                <th scope="col" className="px-4 py-2">
+                <th scope="col" className="px-4 py-2 text-center">
                   Risco
                 </th>
-                <th scope="col" className="px-4 py-2">
+                <th scope="col" className="px-4 py-2 text-center">
                   Medida
                 </th>
-                <th scope="col" className="px-4 py-2">
+                <th scope="col" className="px-4 py-2 text-center">
                   Prazo
                 </th>
                 <th scope="col" className="px-4 py-2 text-center">
@@ -163,7 +165,7 @@ function GridPlano({
                     {find(item.fk_risco_id, 'nome_risco')}
                   </td>
                   <td className="px-4 py-2 text-gray-800 hyphens-auto text-justify whitespace-normal">
-                    {(item.fk_medida_id, item.tipo_medida)}
+                    {find(item.fk_medida_id, 'medida')}
                   </td>
                   <td className="px-4 py-2 text-gray-800 whitespace-normal text-center">
                     {item.prazo}
