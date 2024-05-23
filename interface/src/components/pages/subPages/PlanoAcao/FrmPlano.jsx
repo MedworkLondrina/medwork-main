@@ -58,6 +58,8 @@ function FrmPlano({
   const [plano, setPlano] = useState(false);
   const [filterGlobalSprm, setFilterGlobalSprm] = useState([]);
   const [filteredMedidas, setFilteredMedidas] = useState([]);
+  const [filteredPlanoRisco,  setFilteredPlanoRisco] = useState([]);
+  const [isVerify, setIsVerify] = useState(false);
 
   //Inputs Form
   const [data, setData] = useState('');
@@ -109,7 +111,6 @@ function FrmPlano({
 
   useEffect(() => {
     const sprm = globalSprm.filter((i) => i.fk_setor_id === setorId && i.fk_processo_id === processoId && i.fk_risco_id === riscoId);
-    console.log(sprm)
     const filterApply = sprm.filter((c) => c.status && c.status !== "Aplica");
     console.log(filterApply)
     setFilterGlobalSprm(filterApply);
@@ -211,7 +212,38 @@ function FrmPlano({
     handleClearRisco();
     setFilteredRiscos([]);
   };
+  const verify = async (riscoId) => {
+    getPlano();
+    try {
+      const idsUnidades = plano.map((i) => i.fk_unidade_id);
+      const idsSetores = plano.map((i) => i.fk_setor_id);
+      const idsProcessos = plano.map((i) => i.fk_processo_id);
+      const idsRiscos = plano.map((i) => i.fk_risco_id);
 
+      const filterPlanoUnidade = plano.filter((i) => i.fk_unidade_id === unidadeId);
+      const filterPlanoSetor = filterPlanoUnidade.filter((i) => i.fk_setor_id === setorId);
+      const filterPlanoProcesso = filterPlanoSetor.filter((i) => i.fk_processo_id === processoId);
+      const filterPlanoRisco = filterPlanoProcesso.find((i) => i.fk_risco_id === riscoId);
+      setFilteredPlanoRisco(filterPlanoRisco)
+
+
+
+      if (riscoId) {
+        const filterIdUnidade = idsUnidades.includes(unidadeId);
+        const filterIdsSetores = idsSetores.includes(setorId);
+        const filterIdsProcesso = idsProcessos.includes(processoId);
+        const filteridsRicos = idsRiscos.includes(riscoId);
+
+        if (filterIdUnidade === true && filterIdsSetores === true && filterIdsProcesso === true && filteridsRicos === true) {
+          setIsVerify(true);
+        } else {
+          setIsVerify(false);
+        }
+      }
+    } catch (error) {
+      console.error("Erro ao verificar cadastro duplicado!", error)
+    }
+  };
   // Função para atualizar o Risco
   const handleRiscoSelect = async (RiscoId, RiscoNome) => {
     closeModalRisco();
@@ -280,6 +312,8 @@ function FrmPlano({
         const adicionarData = await adicionarResponse.json();
         toast.success("Meddias Adicionadas com sucesso!");
         getGlobalSprm();
+        await verify(RiscoId);
+
       }
       setLoading(true);
       setLoading(false);
@@ -396,13 +430,14 @@ function FrmPlano({
     setData(event.target.value);
   };
 
+  
+
   return (
     <>
       {loading && <LoadingScreen />}
       <div className="flex justify-center">
         <form className="w-full max-w-7xl" ref={user} onSubmit={handleSubmit}>
           <div className="flex flex-wrap -mx-3 mb-6 p-3">
-
             {/* Data */}
             <div className="w-full md:w-1/4 px-3">
               <label className="tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="grid-raza_social">
@@ -427,12 +462,13 @@ function FrmPlano({
                     <button
                       className="flex appearance-none hover:shadow-sm text-sky-600 bg-gray-100 border-gray-200 mt-1 py-3 px-4 rounded leading-tight focus:outline-none with-text"
                       onClick={openModalUnidade}
+                      type="button"
                     >
                       <p className="font-bold">
                         {nomeUnidade}
                       </p>
                     </button>
-                    <button className="ml-4" onClick={handleClearUnidade}>
+                    <button className="ml-4" onClick={handleClearUnidade} type="button">
                       <img src={icon_sair} alt="" className="h-9" />
                     </button>
                   </>
@@ -440,6 +476,7 @@ function FrmPlano({
                   <button
                     className="flex w-full appearance-none text-gray-400 bg-gray-100 border-gray-200 justify-center mt-1 py-3 px-4 rounded leading-tight focus:outline-none with-text"
                     onClick={openModalUnidade}
+                    type="button"
                   >
                     <p className="text-sm font-medium">
                       Nenhuma Unidade Selecionado
@@ -472,12 +509,15 @@ function FrmPlano({
                     <button
                       className="flex appearance-none hover:shadow-sm text-sky-600 bg-gray-100 border-gray-200 justify-center mt-1 py-3 px-4 rounded leading-tight focus:outline-none with-text"
                       onClick={openModalSetor}
+                      type="button"
+
                     >
                       <p className="font-bold">
                         {setorNome}
                       </p>
                     </button>
-                    <button className="ml-4" onClick={handleClearSetor}>
+                    <button className="ml-4" onClick={handleClearSetor}                       type="button"
+>
                       <img src={icon_sair} alt="" className="h-9" />
                     </button>
                   </>
@@ -485,6 +525,7 @@ function FrmPlano({
                   <button
                     className="flex w-full appearance-none text-gray-400 bg-gray-100 border-gray-200 justify-center mt-1 py-3 px-4 rounded leading-tight focus:outline-none with-text"
                     onClick={openModalSetor}
+                    type="button"
                   >
                     <p className="px-2 text-sm font-medium">
                       Nenhum Setor Selecionado
@@ -518,12 +559,15 @@ function FrmPlano({
                     <button
                       className="flex appearance-none hover:shadow-sm text-sky-600 bg-gray-100 border-gray-200 justify-center mt-1 py-3 px-4 rounded leading-tight focus:outline-none with-text"
                       onClick={openModalProcesso}
+                      type="button"
+
                     >
                       <p className="font-bold">
                         {processoNome}
                       </p>
                     </button>
-                    <button className="ml-4" onClick={handleClearProcesso}>
+                    <button className="ml-4" onClick={handleClearProcesso}                       type="button"
+>
                       <img src={icon_sair} alt="" className="h-9" />
                     </button>
                   </>
@@ -531,6 +575,8 @@ function FrmPlano({
                   <button
                     className="flex w-full appearance-none text-gray-400 bg-gray-100 border-gray-200 justify-center mt-1 py-3 px-4 rounded leading-tight focus:outline-none with-text"
                     onClick={openModalProcesso}
+                    type="button"
+
                   >
                     <p className="px-2 text-sm font-medium">
                       Nenhum Processo Selecionado
@@ -566,20 +612,26 @@ function FrmPlano({
                   <>
                     <button
                       className="flex appearance-none hover:shadow-sm text-sky-600 bg-gray-100 border-gray-200 justify-center py-3 px-4 rounded leading-tight focus:outline-none with-text"
+                      
                       onClick={openModalRisco}
+                      type="button"
                     >
                       <p className="font-bold">
                         {riscoNome}
                       </p>
                     </button>
-                    <button className="ml-4" onClick={handleClearRisco}>
+                    <button className="ml-4" onClick={handleClearRisco}                       type="button"
+>
                       <img src={icon_sair} alt="" className="h-9" />
+                      
                     </button>
                   </>
                 ) : (
                   <button
                     className="flex w-full appearance-none text-gray-400 bg-gray-100 border-gray-200 justify-center py-3 px-4 rounded leading-tight focus:outline-none with-text"
                     onClick={openModalRisco}
+                    type="button"
+
                   >
                     <p className="px-2 text-sm font-medium">
                       Nenhum Risco Selecionado
