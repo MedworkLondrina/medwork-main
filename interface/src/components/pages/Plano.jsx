@@ -70,7 +70,6 @@ function Plano() {
     getGlobalSprm();
   }, [companyId]);
 
-  console.log(plano)
 
   useEffect(() => {
   }, [plano]);

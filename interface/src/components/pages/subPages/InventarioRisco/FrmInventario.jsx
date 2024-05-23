@@ -285,6 +285,8 @@ function FrmInventario({
   };
 
   const verify = async (riscoId) => {
+    console.log('Função verify chamada'); // Adicione esta linha
+
     getInventario();
     try {
       const idsUnidades = inventario.map((i) => i.fk_unidade_id);
