@@ -403,54 +403,6 @@ function FrmPlano({
         <form className="w-full max-w-7xl" ref={user} onSubmit={handleSubmit}>
           <div className="flex flex-wrap -mx-3 mb-6 p-3">
 
-            {/* Risco */}
-            <div className="w-full md:w-1/4 px-3">
-              <label className="tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="grid-fk_contato_id">
-                Risco:
-              </label>
-              <div className="flex items-center w-full">
-                {riscoNome ? (
-                  <>
-                    <button
-                      className="flex appearance-none hover:shadow-sm text-sky-600 bg-gray-100 border-gray-200 justify-center py-3 px-4 rounded leading-tight focus:outline-none with-text"
-                      onClick={openModalRisco}
-                    >
-                      <p className="font-bold">
-                        {riscoNome}
-                      </p>
-                    </button>
-                    <button className="ml-4" onClick={handleClearRisco}>
-                      <img src={icon_sair} alt="" className="h-9" />
-                    </button>
-                  </>
-                ) : (
-                  <button
-                    className="flex w-full appearance-none text-gray-400 bg-gray-100 border-gray-200 justify-center py-3 px-4 rounded leading-tight focus:outline-none with-text"
-                    onClick={openModalRisco}
-                  >
-                    <p className="px-2 text-sm font-medium">
-                      Nenhum Risco Selecionado
-                    </p>
-                  </button>
-                )}
-
-                <button
-                  type="button"
-                  onClick={openModalRisco}
-                  className={`flex cursor-pointer ml-4`}
-                >
-                  <img src={icon_lupa} className="h-9" alt="Icone adicionar Risco"></img>
-                </button>
-              </div>
-              <ModalSearchRisco
-                isOpen={showModalRisco}
-                onCancel={closeModalRisco}
-                children={filteredRiscos}
-                setorName={riscoNome}
-                onSelect={handleRiscoSelect}
-              />
-            </div>
-
             {/* Unidade */}
             <div className="w-full md:w-1/4 px-3">
               <label className="tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="grid-fk_contato_id">
@@ -587,6 +539,53 @@ function FrmPlano({
                 children={filteredProcessos}
                 setorName={setorNome}
                 onSetorSelect={handleProcessoSelect}
+              />
+            </div>
+            {/* Risco */}
+            <div className="w-full md:w-1/4 px-3">
+              <label className="tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="grid-fk_contato_id">
+                Risco:
+              </label>
+              <div className="flex items-center w-full">
+                {riscoNome ? (
+                  <>
+                    <button
+                      className="flex appearance-none hover:shadow-sm text-sky-600 bg-gray-100 border-gray-200 justify-center py-3 px-4 rounded leading-tight focus:outline-none with-text"
+                      onClick={openModalRisco}
+                    >
+                      <p className="font-bold">
+                        {riscoNome}
+                      </p>
+                    </button>
+                    <button className="ml-4" onClick={handleClearRisco}>
+                      <img src={icon_sair} alt="" className="h-9" />
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    className="flex w-full appearance-none text-gray-400 bg-gray-100 border-gray-200 justify-center py-3 px-4 rounded leading-tight focus:outline-none with-text"
+                    onClick={openModalRisco}
+                  >
+                    <p className="px-2 text-sm font-medium">
+                      Nenhum Risco Selecionado
+                    </p>
+                  </button>
+                )}
+
+                <button
+                  type="button"
+                  onClick={openModalRisco}
+                  className={`flex cursor-pointer ml-4`}
+                >
+                  <img src={icon_lupa} className="h-9" alt="Icone adicionar Risco"></img>
+                </button>
+              </div>
+              <ModalSearchRisco
+                isOpen={showModalRisco}
+                onCancel={closeModalRisco}
+                children={filteredRiscos}
+                setorName={riscoNome}
+                onSelect={handleRiscoSelect}
               />
             </div>
 
