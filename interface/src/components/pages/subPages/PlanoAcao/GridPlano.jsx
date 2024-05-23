@@ -83,12 +83,22 @@ function GridPlano({
   //Função para editar Item
   const handleEdit = (item) => {
     setOnEdit(item);
+    
   };
 
   const formatData = (item) => {
-    const data_formatada = new Date(item).toLocaleDateString('pr-BR');
-    return data_formatada;
+    // Verifica se o item é uma instância de Date ou pode ser convertido em uma
+    if (item instanceof Date || !isNaN(Date.parse(item))) {
+      // Se for uma string, converte para Date
+      const dateObj = item instanceof Date ? item : new Date(item);
+      // Formata a data para o formato 'pt-BR'
+      const data_formatada = dateObj.toLocaleDateString('pt-BR');
+      return data_formatada;
+    }
+    return "N/A";
   };
+  
+  
 
   const filteredPlano = plano.filter((i) => i.fk_empresa_id === companyId)
 
@@ -171,7 +181,7 @@ function GridPlano({
                     {item.prazo}
                   </td>
                   <td className="px-4 py-2 text-gray-800 whitespace-normal text-center">
-                    {item.data_conclusao}
+                    {formatData(item.data_conclusao)}
                   </td>
                   <td className="px-4 py-2 text-gray-800 text-center">
                     {item.status}
