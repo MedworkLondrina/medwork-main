@@ -26,7 +26,6 @@ const ModalMedidasDefine = ({ onCancel, isOpen, companyName, globalSprm, medidas
   useEffect(() => {
     const mapSprm = globalSprm.map((i) => i.fk_medida_id);
     const filterMedidas = medidas.filter((i) => mapSprm.includes(i.id_medida));
-    console.log(filterMedidas)
     setFilteredMedidas(filterMedidas);
   }, [isOpen, globalSprm]);
 
@@ -174,7 +173,7 @@ const ModalMedidasDefine = ({ onCancel, isOpen, companyName, globalSprm, medidas
                     </select>
                   </td>
                   <td className="text-center">
-                    {item.grupo_medida === 'MI' ? (
+                    {item.grupo_medida === 'MI' && !plano ? (
                       <div className='w-full' onClick={() => handleEditEpi(item.id_medida)}>
                         <div className='inline-flex py-2 px-4 rounded bg-sky-600 text-white font-bold text-xs cursor-pointer hover:bg-sky-700'>
                           Adicionar dados
