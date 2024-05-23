@@ -27,9 +27,8 @@ function FrmPlano({
   medidas,
   getGlobalSprm, setGlobalSprm, globalSprm,
   companyName,
-  plano,
+  
   getPlano,
-  setPlano,
   contatos,
   planos,
 }) {
@@ -62,7 +61,7 @@ function FrmPlano({
   const [filteredMedidas, setFilteredMedidas] = useState([]);
   const [filteredPlanoRisco, setFilteredPlanoRisco] = useState([]);
   const [isVerify, setIsVerify] = useState(false);
-
+  const [plano, setPlano] = useState(false);
   //Inputs Form
   const [data, setData] = useState('');
   const [selectedPrazos, setSelectedPrazos] = useState({});
@@ -99,10 +98,7 @@ function FrmPlano({
     setData(obterDataFormatada)
   }, [])
 
-  useEffect(() => {
-   verify(unidadeId, setorId, processoId, riscoId)
-  }, [riscoId]);
-
+ 
   useEffect(() => {
     if (showModalSetor && unidadeId) {
       const filtered = setores.filter((i) => i.fk_unidade_id === unidadeId);
