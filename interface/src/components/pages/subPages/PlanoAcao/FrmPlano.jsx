@@ -27,10 +27,8 @@ function FrmPlano({
   medidas,
   getGlobalSprm, setGlobalSprm, globalSprm,
   companyName,
-
   
   getPlano,
-
   contatos,
   planos,
 }) {
@@ -64,9 +62,10 @@ function FrmPlano({
   const [filteredPlanoRisco, setFilteredPlanoRisco] = useState([]);
   const [isVerify, setIsVerify] = useState(false);
   const [plano, setPlano] = useState(false);
-
   //Inputs Form
   const [data, setData] = useState('');
+  const [data_conclusao, setDataConclusao] = useState('');
+  const [status,setStatus] = useState('');
   const [selectedPrazos, setSelectedPrazos] = useState({});
   const [existingPrazos, setExistingPrazos] = useState({});
 
@@ -99,6 +98,7 @@ function FrmPlano({
 
   useEffect(() => {
     setData(obterDataFormatada)
+    setDataConclusao(obterDataFormatada)
   }, [])
 
   useEffect(() => {
@@ -244,20 +244,23 @@ function FrmPlano({
     setFilteredRiscos([]);
   };
   
-  const verify = async (unidadeId, setorId, processoId, riscoId) => {
+  const verify = async (unidadeId, setorId, processoId, riscoId, onEdit) => {
     try {
-    
+      if (onEdit) {
+        setIsVerify(true);
+        return;
+      }
   
       // Faz uma requisição para verificar a existência da combinação
       const response = await fetch(`${connect}/plano/existe?unidadeId=${unidadeId}&setorId=${setorId}&processoId=${processoId}&riscoId=${riscoId}`);
       const data = await response.json();
   
       if (data.existeCombinação) {
-        setIsOk(false);
+        setIsVerify(false);
         toast.error("Esta combinação de unidade, setor, processo e risco já está cadastrada.");
       } else {
         // Se a combinação não existe, prosseguir com outras ações
-        setIsOk(true);
+        setIsVerify(true);
       }
     } catch (error) {
       console.error("Erro ao verificar a existência da combinação:", error);
@@ -385,8 +388,8 @@ function FrmPlano({
           tipo_medida: medida.tipo_medida || '',
           responsavel: responsavel || '',
           prazo: prazo || '',
-          status: 'Não Realizado',
-          data_conclusao: '',
+          status: status,
+          data_conclusao: data_conclusao || '',
         };
         const url = onEdit
           ? `${connect}/plano/${onEdit.id_plano}`
@@ -423,6 +426,7 @@ function FrmPlano({
     setOnEdit(null);
     setIsOk(false);
     setData(obterDataFormatada);
+    setDataConclusao(obterDataFormatada);
     setFilterGlobalSprm([]);
   };
 
@@ -439,6 +443,11 @@ function FrmPlano({
 
   const handleChangeData = (event) => {
     setData(event.target.value);
+    
+  };
+  const handleChangeDataConclusao = (event) => {
+    setDataConclusao(event.target.value);
+    
   };
 
   const handlePrazoChange = (event, id) => {
@@ -709,6 +718,42 @@ function FrmPlano({
                 getGlobalSprm={getGlobalSprm}
               />
             </div>
+            {onEdit ? (
+  <div className="w-full md:w-1/4 px-3">
+    <div className="flex space-x-4">
+      {/* Data */}
+      <div className="flex-1">
+        <label className="tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="data_conclusao">
+          Data:
+        </label>
+        <input
+          className="appearance-none block w-full bg-gray-100 rounded py-3 px-4 mb-3 mt-1 leading-tight focus:outline-gray-100 focus:bg-white"
+          type="date"
+          name="data_conclusao"
+          value={data_conclusao}
+          onChange={handleChangeDataConclusao}
+        />
+      </div>
+      {/* Status */}
+      <div className="flex-1">
+        <label className="tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="status">
+          Status:
+        </label>
+        <select
+          className="appearance-none bg-gray-100 rounded py-3 px-4 mb-3 mt-1 leading-tight cursor-pointer"
+          name="status"
+          value={status} // Substitua 'status' com o valor adequado do estado
+          onChange={(e) => setStatus(e.target.value)} // Função de manipulação de estado para 'status'
+        >
+          <option value="0">Selecione o Status</option>
+          <option value="Realizado">Realizado</option>
+          <option value="Não Realizado">Não Realizado</option>
+        </select>
+      </div>
+    </div>
+  </div>
+) : ''}
+
             {/* Medidas de Controle Aplicadas*/}
             <div className="w-full md:w-2/4 px-3">
               <label className="tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="grid-raza_social">
@@ -756,9 +801,9 @@ function FrmPlano({
               </div>
               <div className="px-3 pl-8">
                 <button
-                  className={`shadow mt-4 bg-green-600 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded ${isOk ? 'hover:bg-green-700' : 'opacity-50 cursor-not-allowed'}`}
+                  className={`shadow mt-4 bg-green-600 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded ${isOk && !isVerify ? 'hover:bg-green-700' : 'opacity-50 cursor-not-allowed'}`}
                   type="submit"
-                  disabled={isOk}
+                  disabled={isOk && !isVerify}
                 >
                   Adicionar
                 </button>
