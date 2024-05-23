@@ -27,7 +27,9 @@ function FrmPlano({
   medidas,
   getGlobalSprm, setGlobalSprm, globalSprm,
   companyName,
+  plano,
   getPlano,
+  setPlano,
   contatos,
   planos,
 }) {
@@ -56,7 +58,6 @@ function FrmPlano({
   const [riscoNome, setRiscoNome] = useState('');
   const [responsavel, setResponsavel] = useState('');
   const [isOk, setIsOk] = useState(false);
-  const [plano, setPlano] = useState(false);
   const [filterGlobalSprm, setFilterGlobalSprm] = useState([]);
   const [filteredMedidas, setFilteredMedidas] = useState([]);
   const [filteredPlanoRisco, setFilteredPlanoRisco] = useState([]);
@@ -97,6 +98,10 @@ function FrmPlano({
   useEffect(() => {
     setData(obterDataFormatada)
   }, [])
+
+  useEffect(() => {
+   verify(unidadeId, setorId, processoId, riscoId)
+  }, [riscoId]);
 
   useEffect(() => {
     if (showModalSetor && unidadeId) {
@@ -236,39 +241,28 @@ function FrmPlano({
     handleClearRisco();
     setFilteredRiscos([]);
   };
-  const verify = async (riscoId) => {
-    getPlano();
+  
+  const verify = async (unidadeId, setorId, processoId, riscoId) => {
     try {
-      const idsUnidades = plano.map((i) => i.fk_unidade_id);
-      const idsSetores = plano.map((i) => i.fk_setor_id);
-      const idsProcessos = plano.map((i) => i.fk_processo_id);
-      const idsRiscos = plano.map((i) => i.fk_risco_id);
-
-      const filterPlanoUnidade = plano.filter((i) => i.fk_unidade_id === unidadeId);
-      const filterPlanoSetor = filterPlanoUnidade.filter((i) => i.fk_setor_id === setorId);
-      const filterPlanoProcesso = filterPlanoSetor.filter((i) => i.fk_processo_id === processoId);
-      const filterPlanoRisco = filterPlanoProcesso.find((i) => i.fk_risco_id === riscoId);
-      setFilteredPlanoRisco(filterPlanoRisco)
-
-
-
-      if (riscoId) {
-        const filterIdUnidade = idsUnidades.includes(unidadeId);
-        const filterIdsSetores = idsSetores.includes(setorId);
-        const filterIdsProcesso = idsProcessos.includes(processoId);
-        const filteridsRicos = idsRiscos.includes(riscoId);
-
-        if (filterIdUnidade === true && filterIdsSetores === true && filterIdsProcesso === true && filteridsRicos === true) {
-          setIsVerify(true);
-        } else {
-          setIsVerify(false);
-        }
+    
+  
+      // Faz uma requisição para verificar a existência da combinação
+      const response = await fetch(`${connect}/plano/existe?unidadeId=${unidadeId}&setorId=${setorId}&processoId=${processoId}&riscoId=${riscoId}`);
+      const data = await response.json();
+  
+      if (data.existeCombinação) {
+        setIsOk(false);
+        toast.error("Esta combinação de unidade, setor, processo e risco já está cadastrada.");
+      } else {
+        // Se a combinação não existe, prosseguir com outras ações
+        setIsOk(true);
       }
     } catch (error) {
-      console.error("Erro ao verificar cadastro duplicado!", error)
+      console.error("Erro ao verificar a existência da combinação:", error);
+      toast.error("Ocorreu um erro ao verificar a existência da combinação. Por favor, tente novamente mais tarde.");
     }
   };
-
+  
   // Função para atualizar o Risco
   const handleRiscoSelect = async (RiscoId, RiscoNome) => {
     closeModalRisco();
@@ -289,10 +283,14 @@ function FrmPlano({
   const handleRiscoEscolhido = async (RiscoId, medidasTipos) => {
     try {
       if (onEdit) {
-        return
+        return;
       }
-
+  
+      // Usar um array para acumular promessas para Promise.all, se aplicável
+      const promises = [];
+  
       for (const { medidaId, medidaTipo } of medidasTipos) {
+        // Verificar se a combinação já existe
         const verificarResponse = await fetch(
           `${connect}/verificar_sprm?fk_setor_id=${setorId}&fk_processo_id=${processoId}&fk_risco_id=${RiscoId}&fk_medida_id=${medidaId}&tipo_medida=${medidaTipo}`,
           {
@@ -302,19 +300,19 @@ function FrmPlano({
             },
           }
         );
-
+  
         if (!verificarResponse.ok) {
           throw new Error(`Erro ao verificar a existência. Status: ${verificarResponse.status}`);
         }
-
+  
         const verificarData = await verificarResponse.json();
-
+  
         // Se a combinação já existir, continue para a próxima iteração
         if (verificarData.existeCombinação) {
           continue;
         }
-
-        // Caso contrário, adicione a nova medida
+  
+        // Adicionar a nova medida
         const adicionarResponse = await fetch(`${connect}/global_sprm`, {
           method: 'POST',
           headers: {
@@ -329,25 +327,32 @@ function FrmPlano({
             status: 'Não Aplicavel',
           }),
         });
-
+  
         if (!adicionarResponse.ok) {
           throw new Error(`Erro ao adicionar medida. Status: ${adicionarResponse.status}`);
         }
-
+  
         const adicionarData = await adicionarResponse.json();
-        toast.success("Meddias Adicionadas com sucesso!");
-        getGlobalSprm();
-        await verify(RiscoId);
 
+        promises.push(adicionarData); // Acumular promessa se for necessário
+  
+        // Atualizar global SPRM e verificar risco
+        await getGlobalSprm();
+        await verify(unidadeId, setorId, processoId, riscoId);
       }
+  
+      if (promises.length > 0) {
+        await Promise.all(promises);
+        toast.success("Medidas adicionadas com sucesso!");
+      }
+  
       setLoading(true);
       setLoading(false);
-
     } catch (error) {
       console.error("Erro ao adicionar medidas", error);
     }
   };
-
+  
   const handleClearRisco = () => {
     setRiscoId(null);
     setRiscoNome(null);
@@ -381,7 +386,6 @@ function FrmPlano({
           status: 'Não Realizado',
           data_conclusao: '',
         };
-
         const url = onEdit
           ? `${connect}/plano/${onEdit.id_plano}`
           : `${connect}/plano`;
@@ -404,7 +408,6 @@ function FrmPlano({
         const responseData = await response.json();
 
         toast.success(responseData);
-        getPlano();
       }
     } catch (error) {
       console.log("Erro ao inserir inventário: ", error);
@@ -753,7 +756,7 @@ function FrmPlano({
                 <button
                   className={`shadow mt-4 bg-green-600 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded ${isOk ? 'hover:bg-green-700' : 'opacity-50 cursor-not-allowed'}`}
                   type="submit"
-                  disabled={!isOk}
+                  disabled={isOk}
                 >
                   Adicionar
                 </button>

@@ -285,7 +285,6 @@ function FrmInventario({
   };
 
   const verify = async (riscoId) => {
-    console.log('Função verify chamada'); // Adicione esta linha
 
     getInventario();
     try {
