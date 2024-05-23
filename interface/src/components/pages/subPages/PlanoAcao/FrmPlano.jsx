@@ -31,6 +31,7 @@ function FrmPlano({
   getPlano,
   setPlano,
   contatos,
+  planos,
 }) {
 
   const user = useRef();
@@ -59,7 +60,7 @@ function FrmPlano({
   const [isOk, setIsOk] = useState(false);
   const [filterGlobalSprm, setFilterGlobalSprm] = useState([]);
   const [filteredMedidas, setFilteredMedidas] = useState([]);
-  const [filteredPlanoRisco,  setFilteredPlanoRisco] = useState([]);
+  const [filteredPlanoRisco, setFilteredPlanoRisco] = useState([]);
   const [isVerify, setIsVerify] = useState(false);
 
   //Inputs Form
@@ -73,11 +74,7 @@ function FrmPlano({
   const openModalProcesso = () => setShowModalProcesso(true);
   const openModalRisco = () => setShowModalRisco(true);
   const openModalMedidas = () => {
-    const sprm = globalSprm.filter((i) => i.fk_setor_id === setorId && i.fk_processo_id === processoId && i.fk_risco_id === riscoId);
-    const filterApply = sprm.filter((c) => c.status && c.status !== "Aplica");
-    const filterMedidas = medidas.filter((i) => sprm.includes(i.id_medida));
-    setFilteredMedidas(filterMedidas);
-    setFilterGlobalSprm(filterApply);
+    setPlano(true);
     setShowModalMedidas(true)
   };
   //Função para fechar o Modal
@@ -113,19 +110,30 @@ function FrmPlano({
     }
   }, [showModalSetor, unidadeId, setores]);
 
- useEffect(() => {
-  const sprm = globalSprm.filter((i) => i.fk_setor_id === setorId && i.fk_processo_id === processoId && i.fk_risco_id === riscoId);
-  const filterApply = sprm.filter((c) => c.status && c.status !== "Aplica");
-  
-  // Adiciona a propriedade "unidadeId" a cada objeto em filterApply
-  filterApply.forEach(item => {
-    item.unidadeId = unidadeId;
-  });
-  
-  
-  // Defina planoData e filterGlobalSprm com o array filterApply
-  setFilterGlobalSprm(filterApply);
-}, [riscoId]);
+  useEffect(() => {
+    const filterList = () => {
+      if (!onEdit) {
+        const sprm = globalSprm.filter(
+          ({ fk_setor_id, fk_processo_id, fk_risco_id }) =>
+            fk_setor_id === setorId && fk_processo_id === processoId && fk_risco_id === riscoId
+        );
+        const filterApply = sprm.filter(({ status }) => status && status !== "Aplica");
+        const planFilter = planos.filter(
+          ({ fk_empresa_id, fk_medida_id }) =>
+            fk_empresa_id === companyId && filterApply.some(({ fk_medida_id: sprmId }) => sprmId === fk_medida_id)
+        );
+        const filterSprm = sprm.filter(({ status }) => status && status === "Não Aplica");
+        const sprmMap = new Set(filterSprm.map(({ fk_medida_id }) => fk_medida_id));
+        const filterPlan = planos.filter(({ fk_empresa_id, fk_medida_id }) => fk_empresa_id === companyId && sprmMap.has(fk_medida_id));
+        const listMedidas = medidas.filter(({ id_medida }) => sprmMap.has(id_medida) && !filterPlan.some(({ fk_medida_id }) => fk_medida_id === id_medida));
+        const listModalMedidas = filterApply.filter(({ fk_medida_id }) => !planFilter.map(({ fk_medida_id }) => fk_medida_id).includes(fk_medida_id));
+        setFilterGlobalSprm(listModalMedidas);
+        setFilteredMedidas(listMedidas);
+      }
+    }
+
+    filterList();
+  }, [riscoId, globalSprm]);
 
   useEffect(() => {
     const handleEdit = async () => {
@@ -147,6 +155,16 @@ function FrmPlano({
             const riscoSelect = riscos.find((i) => i.id_risco === onEdit.fk_risco_id);
             await handleRiscoSelect(onEdit.fk_risco_id, riscoSelect.nome_risco, onEdit.fk_medida_id, onEdit.tipo_medida);
           }
+          if (onEdit.fk_medida_id) {
+            const findMedida = medidas.find((i) => i.id_medida === onEdit.fk_medida_id);
+            setFilteredMedidas([findMedida]);
+            if (onEdit.prazo) {
+              setSelectedPrazos((prevPrazos) => ({
+                ...prevPrazos,
+                [onEdit.fk_medida_id]: onEdit.prazo,
+              }));
+            }
+          }
           handleFilterGlobalSprm();
         } catch (error) {
           console.error("Erro ao buscar dados para edição!", error)
@@ -167,7 +185,7 @@ function FrmPlano({
     const unicunidade = unidades.filter((i) => i.id_unidade === unidadeId);
     const idResponsavel = unicunidade[0].fk_contato_id;
     const arrayResponsavel = contatos.find((i) => i.id_contato === idResponsavel);
-    const nomeResponsavel = arrayResponsavel?arrayResponsavel.nome_contato: '';
+    const nomeResponsavel = arrayResponsavel ? arrayResponsavel.nome_contato : '';
 
     setResponsavel(nomeResponsavel);
   };
@@ -244,8 +262,6 @@ function FrmPlano({
       toast.error("Ocorreu um erro ao verificar a existência da combinação. Por favor, tente novamente mais tarde.");
     }
   };
-  
-  
   
   // Função para atualizar o Risco
   const handleRiscoSelect = async (RiscoId, RiscoNome) => {
@@ -353,8 +369,8 @@ function FrmPlano({
     }
 
     try {
-      for (const medida of filterGlobalSprm) {
-        const prazo = selectedPrazos[`${medida.fk_medida_id}-${medida.tipo_medida}`];
+      for (const medida of filteredMedidas) {
+        const prazo = selectedPrazos[`${medida.id_medida}`];
 
         const planoData = {
           data: data || '',
@@ -363,7 +379,7 @@ function FrmPlano({
           fk_setor_id: setorId || '',
           fk_processo_id: processoId || '',
           fk_risco_id: riscoId || '',
-          fk_medida_id: medida.fk_medida_id || '',
+          fk_medida_id: medida.id_medida || '',
           tipo_medida: medida.tipo_medida || '',
           responsavel: responsavel || '',
           prazo: prazo || '',
@@ -416,33 +432,31 @@ function FrmPlano({
   const handleFilterGlobalSprm = () => {
     const sprm = globalSprm.filter((i) => i.fk_setor_id === setorId && i.fk_processo_id === processoId && i.fk_risco_id === riscoId);
     const filterApply = sprm.filter((c) => c.status && c.status !== "Aplica");
-  };
-
-  useEffect(() => {
-    handleFilterGlobalSprm();
-  }, [globalSprm])
-
-  
-
-  const tipoDefine = (item) => {
-    switch (item) {
-      case 1:
-        return 'Adm'
-      case 2:
-        return 'EPI'
-      case 3:
-        return 'EPC'
-
-      default:
-        return 'N/A'
-    }
+    setFilterGlobalSprm(filterApply);
   };
 
   const handleChangeData = (event) => {
     setData(event.target.value);
   };
 
-  
+  const handlePrazoChange = (event, id) => {
+    setIsOk(false);
+    setSelectedPrazos((prevPrazos) => ({
+      ...prevPrazos,
+      [id]: onEdit ? event.target.value : event.target.value,
+    }));
+
+    const prazosValues = Object.values({
+      ...selectedPrazos,
+      [id]: onEdit ? event.target.value : event.target.value,
+    });
+
+    const allPrazosSelected = prazosValues.every((prazo) => prazo !== '0');
+    if (allPrazosSelected) {
+      setIsOk(true);
+    };
+  }
+
 
   return (
     <>
@@ -450,19 +464,7 @@ function FrmPlano({
       <div className="flex justify-center">
         <form className="w-full max-w-7xl" ref={user} onSubmit={handleSubmit}>
           <div className="flex flex-wrap -mx-3 mb-6 p-3">
-            {/* Data */}
-            <div className="w-full md:w-1/4 px-3">
-              <label className="tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="grid-raza_social">
-                Data:
-              </label>
-              <input
-                className={`appearence-none block w-full bg-gray-100 rounded py-3 px-4 mb-3 mt-1 leading-tight focus:outline-gray-100 focus:bg-white`}
-                type="date"
-                name="data_inventario"
-                value={data}
-                onChange={handleChangeData}
-              />
-            </div>
+
             {/* Unidade */}
             <div className="w-full md:w-1/4 px-3">
               <label className="tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="grid-fk_contato_id">
@@ -528,8 +530,8 @@ function FrmPlano({
                         {setorNome}
                       </p>
                     </button>
-                    <button className="ml-4" onClick={handleClearSetor}                       type="button"
->
+                    <button className="ml-4" onClick={handleClearSetor} type="button"
+                    >
                       <img src={icon_sair} alt="" className="h-9" />
                     </button>
                   </>
@@ -578,8 +580,8 @@ function FrmPlano({
                         {processoNome}
                       </p>
                     </button>
-                    <button className="ml-4" onClick={handleClearProcesso}                       type="button"
->
+                    <button className="ml-4" onClick={handleClearProcesso} type="button"
+                    >
                       <img src={icon_sair} alt="" className="h-9" />
                     </button>
                   </>
@@ -612,8 +614,6 @@ function FrmPlano({
                 onSetorSelect={handleProcessoSelect}
               />
             </div>
-
-
             {/* Risco */}
             <div className="w-full md:w-1/4 px-3">
               <label className="tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="grid-fk_contato_id">
@@ -624,7 +624,7 @@ function FrmPlano({
                   <>
                     <button
                       className="flex appearance-none hover:shadow-sm text-sky-600 bg-gray-100 border-gray-200 justify-center py-3 px-4 rounded leading-tight focus:outline-none with-text"
-                      
+
                       onClick={openModalRisco}
                       type="button"
                     >
@@ -632,10 +632,10 @@ function FrmPlano({
                         {riscoNome}
                       </p>
                     </button>
-                    <button className="ml-4" onClick={handleClearRisco}                       type="button"
->
+                    <button className="ml-4" onClick={handleClearRisco} type="button"
+                    >
                       <img src={icon_sair} alt="" className="h-9" />
-                      
+
                     </button>
                   </>
                 ) : (
@@ -668,6 +668,20 @@ function FrmPlano({
               />
             </div>
 
+            {/* Data */}
+            <div className="w-full md:w-1/4 px-3">
+              <label className="tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="grid-raza_social">
+                Data:
+              </label>
+              <input
+                className={`appearence-none block w-full bg-gray-100 rounded py-3 px-4 mb-3 mt-1 leading-tight focus:outline-gray-100 focus:bg-white`}
+                type="date"
+                name="data_inventario"
+                value={data}
+                onChange={handleChangeData}
+              />
+            </div>
+
             {/* Medidas de Controle */}
             <div className="w-full md:w-1/4 px-3">
               <label className="tracking-wide text-gray-700 text-xs font-bold" htmlFor="grid-raza_social">
@@ -683,58 +697,41 @@ function FrmPlano({
                 </button>
               </div>
               <ModalMedidasDefine
-        isOpen={showModalMedidas}
-        onCancel={closeModalMedidas}
-        companyName={companyName}
-        globalSprm={filterGlobalSprm}
-        medidas={medidas}
-        medidasDefine={handleMedidaChange}
-        plano={plano}
-        getGlobalSprm={getGlobalSprm}
-      />
+                isOpen={showModalMedidas}
+                onCancel={closeModalMedidas}
+                companyName={companyName}
+                globalSprm={filterGlobalSprm}
+                medidas={medidas}
+                medidasDefine={handleMedidaChange}
+                plano={plano}
+                getGlobalSprm={getGlobalSprm}
+              />
             </div>
             {/* Medidas de Controle Aplicadas*/}
             <div className="w-full md:w-2/4 px-3">
               <label className="tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="grid-raza_social">
                 Medidas Não Aplicadas:
               </label>
-              {riscoId && filterGlobalSprm.filter((i) => i.status === "Não Aplica").map((item, i) => (
+              {riscoId && filteredMedidas.length > 0 && filteredMedidas.map((item, i) => (
                 <ul key={i}>
                   <li className="pb-3 sm:pb-4">
                     <div className="grid grid-cols-5 items-center space-x-4 rtl:space-x-reverse border-b border-gray-300 px-4 py-2 hover:bg-gray-50">
                       <div className="flex-1 min-w-0 pr-4 col-span-2">
                         <p className="text-sm font-medium text-gray-900 whitespace-break-spaces truncate">
-                          {filteredMedidas.map((item)=>(item.fk_medida_id, item.tipo_medida))}
+                          {item.descricao_medida}
                         </p>
                       </div>
                       <div className="inline-flex justify-center items-center text-base font-semibold text-gray-900">
-                        {tipoDefine(item.tipo_medida)}
+                        {item.grupo_medida}
                       </div>
                       <div className="inline-flex justify-center col-span-2 items-center text-base text-gray-800">
                         <select
                           className="appearence-none bg-gray-100 rounded py-3 px-4 mb-3 mt-1 leading-tight cursor-pointer"
                           type="text"
                           name="prazo_medida"
-                          value={
-                            onEdit
-                              ? onEdit.prazo || '0'
-                              : selectedPrazos[`${item.fk_medida_id}-${item.tipo_medida}`] || '0'
+                          value={selectedPrazos[`${item.id_medida}`] || '0'
                           }
-                          onChange={(e) => {
-                            const key = `${item.fk_medida_id}-${item.tipo_medida}`;
-                            setSelectedPrazos((prevPrazos) => ({
-                              ...prevPrazos,
-                              [key]: onEdit ? e.target.value : e.target.value,
-                            }));
-
-                            const prazosValues = Object.values({
-                              ...selectedPrazos,
-                              [key]: onEdit ? e.target.value : e.target.value,
-                            });
-
-                            const allPrazosSelected = prazosValues.every((prazo) => prazo !== '0');
-                            setIsOk(true);
-                          }}
+                          onChange={(e) => handlePrazoChange(e, item.id_medida)}
                         >
                           <option value="0">Selecione um Prazo</option>
                           <option value="6 Meses">6 Meses</option>
@@ -748,7 +745,7 @@ function FrmPlano({
               ))}
             </div>
 
-
+            {/* Buttons */}
             <div className="w-full px-3 pl-8 flex justify-end">
               <div className="px-3 pl-8">
                 <button onClick={() => handleClear()} className="shadow mt-4 bg-red-600 hover:bg-red-700 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded" type="button">

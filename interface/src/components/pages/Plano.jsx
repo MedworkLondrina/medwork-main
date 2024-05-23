@@ -104,6 +104,7 @@ function Plano() {
         getGlobalSprmByRiscoId={getGlobalSprmByRiscoId}
         getPlano={getPlano}
         contatos={contatos}
+        planos={plano}
       />
       <div className="mb-10">
         <GridPlano
@@ -114,6 +115,7 @@ function Plano() {
           risco={riscos}
           companyId={companyId}
           plano={plano}
+          medidas={medidas}
         />
       </div>
     </>

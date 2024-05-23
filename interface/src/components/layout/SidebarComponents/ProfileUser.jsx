@@ -18,10 +18,6 @@ function ProfileUser({ user }) {
   const [edit, setEdit] = useState(false);
   const [emailTrocado, setEmailTrocado] = useState(false);
 
-  useEffect(() => {
-    console.log("Nome do usuário alterado:", user.nome_usuario);
-  }, [user.nome_usuario]);
-
   const handleMudarEmail = async (e) => {
     e.preventDefault();
     if (!novoEmail) {
