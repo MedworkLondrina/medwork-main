@@ -2735,6 +2735,29 @@ router.put("/inventario/:id_inventario", (req, res) => {
 
 });
 
+// Verificar se uma combinação de unidade, setor, processo e risco já existe
+router.get("/plano/existe", (req, res) => {
+  const { unidadeId, setorId, processoId, riscoId } = req.query;
+
+  const q = `SELECT COUNT(*) AS total FROM plano WHERE fk_unidade_id = ? AND fk_setor_id = ? AND fk_processo_id = ? AND fk_risco_id = ?`;
+
+  pool.getConnection((err, con) => {
+    if (err) return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
+
+    con.query(q, [unidadeId, setorId, processoId, riscoId], (err, result) => {
+      con.release();
+
+      if (err) {
+        console.error("Erro ao verificar a existência da combinação:", err);
+        return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
+      }
+
+      const total = result[0].total;
+
+      return res.status(200).json({ existeCombinação: total > 0 });
+    });
+  });
+});
 
 
 
