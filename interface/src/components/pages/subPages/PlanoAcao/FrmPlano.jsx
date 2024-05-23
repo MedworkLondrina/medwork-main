@@ -101,7 +101,10 @@ function FrmPlano({
     setData(obterDataFormatada)
   }, [])
 
- 
+  useEffect(() => {
+   verify(unidadeId, setorId, processoId, riscoId)
+  }, [riscoId]);
+
   useEffect(() => {
     if (showModalSetor && unidadeId) {
       const filtered = setores.filter((i) => i.fk_unidade_id === unidadeId);
