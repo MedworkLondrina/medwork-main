@@ -14,18 +14,8 @@ export const supabase = createClient(
 
 
 
-<<<<<<< HEAD
-// export const connect = "https://medwork-dev-api.vercel.app";
-
-<<<<<<< HEAD
-export const connect = "http://localhost:8800";
-=======
-//export const connect = "http://localhost:8800";
->>>>>>> fc3e838c469a65b316fc0f3cf5be524dbcb393a3
-=======
 export const connect = "https://medwork-dev-api.vercel.app";
-//export const connect = "http://localhost:8800";
->>>>>>> 64e4b32373c11e53e700da9b180cd847db71698c
+// export const connect = "http://localhost:8800";
 
 
 

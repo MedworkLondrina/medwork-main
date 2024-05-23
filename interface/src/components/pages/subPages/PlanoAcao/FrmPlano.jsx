@@ -155,7 +155,7 @@ function FrmPlano({
     const unicunidade = unidades.filter((i) => i.id_unidade === unidadeId);
     const idResponsavel = unicunidade[0].fk_contato_id;
     const arrayResponsavel = contatos.find((i) => i.id_contato === idResponsavel);
-    const nomeResponsavel = arrayResponsavel?arrayResponsavel.nome_contato: '';
+    const nomeResponsavel = arrayResponsavel ? arrayResponsavel.nome_contato : '';
 
     setResponsavel(nomeResponsavel);
   };
@@ -376,7 +376,7 @@ function FrmPlano({
     handleFilterGlobalSprm();
   }, [globalSprm])
 
-  
+
 
   const tipoDefine = (item) => {
     switch (item) {
@@ -403,19 +403,54 @@ function FrmPlano({
         <form className="w-full max-w-7xl" ref={user} onSubmit={handleSubmit}>
           <div className="flex flex-wrap -mx-3 mb-6 p-3">
 
-            {/* Data */}
+            {/* Risco */}
             <div className="w-full md:w-1/4 px-3">
-              <label className="tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="grid-raza_social">
-                Data:
+              <label className="tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="grid-fk_contato_id">
+                Risco:
               </label>
-              <input
-                className={`appearence-none block w-full bg-gray-100 rounded py-3 px-4 mb-3 mt-1 leading-tight focus:outline-gray-100 focus:bg-white`}
-                type="date"
-                name="data_inventario"
-                value={data}
-                onChange={handleChangeData}
+              <div className="flex items-center w-full">
+                {riscoNome ? (
+                  <>
+                    <button
+                      className="flex appearance-none hover:shadow-sm text-sky-600 bg-gray-100 border-gray-200 justify-center py-3 px-4 rounded leading-tight focus:outline-none with-text"
+                      onClick={openModalRisco}
+                    >
+                      <p className="font-bold">
+                        {riscoNome}
+                      </p>
+                    </button>
+                    <button className="ml-4" onClick={handleClearRisco}>
+                      <img src={icon_sair} alt="" className="h-9" />
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    className="flex w-full appearance-none text-gray-400 bg-gray-100 border-gray-200 justify-center py-3 px-4 rounded leading-tight focus:outline-none with-text"
+                    onClick={openModalRisco}
+                  >
+                    <p className="px-2 text-sm font-medium">
+                      Nenhum Risco Selecionado
+                    </p>
+                  </button>
+                )}
+
+                <button
+                  type="button"
+                  onClick={openModalRisco}
+                  className={`flex cursor-pointer ml-4`}
+                >
+                  <img src={icon_lupa} className="h-9" alt="Icone adicionar Risco"></img>
+                </button>
+              </div>
+              <ModalSearchRisco
+                isOpen={showModalRisco}
+                onCancel={closeModalRisco}
+                children={filteredRiscos}
+                setorName={riscoNome}
+                onSelect={handleRiscoSelect}
               />
             </div>
+
             {/* Unidade */}
             <div className="w-full md:w-1/4 px-3">
               <label className="tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="grid-fk_contato_id">
@@ -555,52 +590,17 @@ function FrmPlano({
               />
             </div>
 
-
-            {/* Risco */}
+            {/* Data */}
             <div className="w-full md:w-1/4 px-3">
-              <label className="tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="grid-fk_contato_id">
-                Risco:
+              <label className="tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="grid-raza_social">
+                Data:
               </label>
-              <div className="flex items-center w-full">
-                {riscoNome ? (
-                  <>
-                    <button
-                      className="flex appearance-none hover:shadow-sm text-sky-600 bg-gray-100 border-gray-200 justify-center py-3 px-4 rounded leading-tight focus:outline-none with-text"
-                      onClick={openModalRisco}
-                    >
-                      <p className="font-bold">
-                        {riscoNome}
-                      </p>
-                    </button>
-                    <button className="ml-4" onClick={handleClearRisco}>
-                      <img src={icon_sair} alt="" className="h-9" />
-                    </button>
-                  </>
-                ) : (
-                  <button
-                    className="flex w-full appearance-none text-gray-400 bg-gray-100 border-gray-200 justify-center py-3 px-4 rounded leading-tight focus:outline-none with-text"
-                    onClick={openModalRisco}
-                  >
-                    <p className="px-2 text-sm font-medium">
-                      Nenhum Risco Selecionado
-                    </p>
-                  </button>
-                )}
-
-                <button
-                  type="button"
-                  onClick={openModalRisco}
-                  className={`flex cursor-pointer ml-4`}
-                >
-                  <img src={icon_lupa} className="h-9" alt="Icone adicionar Risco"></img>
-                </button>
-              </div>
-              <ModalSearchRisco
-                isOpen={showModalRisco}
-                onCancel={closeModalRisco}
-                children={filteredRiscos}
-                setorName={riscoNome}
-                onSelect={handleRiscoSelect}
+              <input
+                className={`appearence-none block w-full bg-gray-100 rounded py-3 px-4 mb-3 mt-1 leading-tight focus:outline-gray-100 focus:bg-white`}
+                type="date"
+                name="data_inventario"
+                value={data}
+                onChange={handleChangeData}
               />
             </div>
 
@@ -619,15 +619,15 @@ function FrmPlano({
                 </button>
               </div>
               <ModalMedidasDefine
-        isOpen={showModalMedidas}
-        onCancel={closeModalMedidas}
-        companyName={companyName}
-        globalSprm={filterGlobalSprm}
-        medidas={medidas}
-        medidasDefine={handleMedidaChange}
-        plano={plano}
-        getGlobalSprm={getGlobalSprm}
-      />
+                isOpen={showModalMedidas}
+                onCancel={closeModalMedidas}
+                companyName={companyName}
+                globalSprm={filterGlobalSprm}
+                medidas={medidas}
+                medidasDefine={handleMedidaChange}
+                plano={plano}
+                getGlobalSprm={getGlobalSprm}
+              />
             </div>
             {/* Medidas de Controle Aplicadas*/}
             <div className="w-full md:w-2/4 px-3">
@@ -640,7 +640,7 @@ function FrmPlano({
                     <div className="grid grid-cols-5 items-center space-x-4 rtl:space-x-reverse border-b border-gray-300 px-4 py-2 hover:bg-gray-50">
                       <div className="flex-1 min-w-0 pr-4 col-span-2">
                         <p className="text-sm font-medium text-gray-900 whitespace-break-spaces truncate">
-                          {filteredMedidas.map((item)=>(item.fk_medida_id, item.tipo_medida))}
+                          {filteredMedidas.map((item) => (item.fk_medida_id, item.tipo_medida))}
                         </p>
                       </div>
                       <div className="inline-flex justify-center items-center text-base font-semibold text-gray-900">
@@ -684,7 +684,7 @@ function FrmPlano({
               ))}
             </div>
 
-
+            {/* Buttons */}
             <div className="w-full px-3 pl-8 flex justify-end">
               <div className="px-3 pl-8">
                 <button onClick={() => handleClear()} className="shadow mt-4 bg-red-600 hover:bg-red-700 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded" type="button">
