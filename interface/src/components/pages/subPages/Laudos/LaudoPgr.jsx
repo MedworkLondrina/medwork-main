@@ -73,8 +73,6 @@ function LaudoPgr() {
   const [generatedPdf, setGeneratedPdf] = useState(null);
   const [pdfComponent, setPdfComponent] = useState(null);
 
-
-
   useEffect(() => {
     loadSelectedCompanyFromLocalStorage();
   }, []);
@@ -291,8 +289,8 @@ function LaudoPgr() {
         setGeneratedPdf(res)
       } else {
         const res = await generatePdf(filterCompany, filterContato, user, filterSetor, filterCargo, filterInventario, filterPlano, filterUnidades, laudos, data, versao);
-        handleDownloadPGR(res)
-        setGeneratedPdf(res)
+        handleDownloadPGR(res);
+        setGeneratedPdf(res);
       }
 
       window.scrollTo({ top: 0, behavior: 'smooth' });
