@@ -20,13 +20,13 @@ function LaudoPgr() {
 
   const {
     loadSelectedCompanyFromLocalStorage, companyId, selectedCompany,
-    getUnidades, unidades,
-    getSetores, setores, setSetores,
-    getEmpresas, empresas,
+    fetchUnidades,
+    fetchSetores,
+    fetchEmpresas,
     getCargos, cargos,
-    getProcessos, processos,
+    getProcessos,
     getRiscos, riscos,
-    getMedidasAdm, medidasAdm, getMedidasEpi, medidasEpi, getMedidasEpc, medidasEpc,
+    fetchMedidas,
     getSetoresProcessos, setSetoresProcessos, setoresProcessos,
     getProcessosRiscos, setProcessosRiscos, processosRiscos,
     getRiscosMedidas, setRiscosMedidas, riscosMedidas,
@@ -34,7 +34,7 @@ function LaudoPgr() {
     getGlobalSprm, setGlobalSprm, globalSprm, getGlobalSprmByRiscoId,
     getPlano, setPlano, plano,
     getUsuarios, usuarios,
-    getContatos, contatos,
+    fetchContatos,
     checkSignIn, user,
     getAparelhos, aparelhos,
     getLaudoVersion, laudoVersion,
@@ -69,6 +69,33 @@ function LaudoPgr() {
   const [showModalUnidade, setShowModalUnidade] = useState(false);
   const [showModalSetor, setShowModalSetor] = useState(false);
 
+  const [setores, setSetores] = useState([]);
+  const [unidades,setUnidades] = useState([]);
+  const [processos, setProcessos] = useState([]);
+  const [contatos,setContatos] = useState([]);
+  const [medidas, setMedidas] = useState([]);
+  const [empresas, setEmpresas] = useState([]);
+
+
+  const get = async () => {
+		const sectors = await fetchSetores();
+		setSetores(sectors);
+		const units = await fetchUnidades();
+		setUnidades(units);
+    const proc = await getProcessos();
+    setProcessos(proc);
+    const data = await fetchContatos(companyId);
+    setContatos(data);
+    const response = await fetchMedidas('all');
+    setMedidas(response);  
+    const companys = await fetchEmpresas();
+    setEmpresas(companys)
+  	}
+
+	useEffect(() => {
+		get();
+	}, [companyId]);
+
 
 
   useEffect(() => {
@@ -77,8 +104,7 @@ function LaudoPgr() {
 
   const handleGet = async () => {
     setNameCompany(selectedCompany ? selectedCompany.nome_empresa : '');
-    getUnidades();
-    getSetores();
+   
     getCargos();
     getProcessos();
     getRiscos();
@@ -86,13 +112,8 @@ function LaudoPgr() {
     getProcessosRiscos();
     getInventario();
     getRiscosMedidas();
-    getMedidasAdm();
-    getMedidasEpi();
-    getMedidasEpc();
     getPlano();
     getUsuarios();
-    getContatos();
-    getEmpresas();
     getAparelhos();
     getLaudoVersion();
   };
@@ -423,12 +444,14 @@ function LaudoPgr() {
                     <button
                       className="flex appearance-none w-full hover:shadow-sm text-sky-600 bg-gray-100 border-gray-200 mt-1 py-3 px-4 rounded leading-tight focus:outline-none with-text"
                       onClick={openModalUnidade}
+                      type="button"
                     >
                       <p className="font-bold w-full">
                         {nomeUnidade}
                       </p>
                     </button>
-                    <button className="ml-4" onClick={handleClearUnidade}>
+                    <button className="ml-4" onClick={handleClearUnidade}
+                    type="button">
                       <img src={icon_sair} alt="" className="h-9" />
                     </button>
                   </>
@@ -436,6 +459,7 @@ function LaudoPgr() {
                   <button
                     className="flex w-full appearance-none text-gray-400 bg-gray-100 border-gray-200 justify-center mt-1 py-3 px-4 rounded leading-tight focus:outline-none with-text"
                     onClick={openModalUnidade}
+                    type="button"
                   >
                     <p className="text-sm font-medium w-full">
                       Nenhuma Unidade Selecionado
@@ -445,6 +469,7 @@ function LaudoPgr() {
                 <button
                   type="button"
                   onClick={openModalUnidade}
+                  
                   className={`flex cursor-pointer ml-4 `}
                 >
                   <img src={icon_lupa} className="h-9 cursor-pointer" alt="Icone adicionar unidade"></img>
@@ -469,12 +494,13 @@ function LaudoPgr() {
                     <button
                       className="flex w-full appearance-none hover:shadow-sm text-sky-600 bg-gray-100 border-gray-200 justify-center mt-1 py-3 px-4 rounded leading-tight focus:outline-none with-text"
                       onClick={openModalSetor}
+                      type="button"
                     >
                       <p className="font-bold w-full">
                         {setorNome}
                       </p>
                     </button>
-                    <button className="ml-4 cursor-pointer" onClick={handleClearSetor}>
+                    <button className="ml-4 cursor-pointer" onClick={handleClearSetor} type="button">
                       <img src={icon_sair} alt="" className="h-9" />
                     </button>
                   </>
@@ -482,6 +508,7 @@ function LaudoPgr() {
                   <button
                     className="flex w-full appearance-none text-gray-400 bg-gray-100 border-gray-200 justify-center mt-1 py-3 px-4 rounded leading-tight focus:outline-none with-text"
                     onClick={openModalSetor}
+                    type="button"
                   >
                     <p className="px-2 text-sm font-medium w-full">
                       Nenhum Setor Selecionado

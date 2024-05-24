@@ -22,13 +22,13 @@ function LaudoPgr() {
 
   const {
     loadSelectedCompanyFromLocalStorage, companyId, selectedCompany,
-    getUnidades, unidades,
-    getSetores, setores, setSetores,
-    getEmpresas, empresas,
+    fetchUnidades,
+    fetchSetores,
+    fetchEmpresas,
     getCargos, cargos,
-    getProcessos, processos,
+    getProcessos,
     getRiscos, riscos,
-    getMedidasAdm, medidasAdm, getMedidasEpi, medidasEpi, getMedidasEpc, medidasEpc,
+    fetchMedidas,
     getSetoresProcessos, setSetoresProcessos, setoresProcessos,
     getProcessosRiscos, setProcessosRiscos, processosRiscos,
     getRiscosMedidas, setRiscosMedidas, riscosMedidas,
@@ -36,7 +36,7 @@ function LaudoPgr() {
     getGlobalSprm, setGlobalSprm, globalSprm, getGlobalSprmByRiscoId,
     getPlano, setPlano, plano,
     getUsuarios, usuarios,
-    getContatos, contatos,
+    fetchContatos,
     checkSignIn, user,
     getAparelhos, aparelhos,
     getLaudoVersion, laudoVersion,
@@ -71,16 +71,39 @@ function LaudoPgr() {
   const [showModalUnidade, setShowModalUnidade] = useState(false);
   const [showModalSetor, setShowModalSetor] = useState(false);
 
+  const [setores, setSetores] = useState([]);
+  const [unidades,setUnidades] = useState([]);
+  const [processos, setProcessos] = useState([]);
+  const [contatos,setContatos] = useState([]);
+  const [medidas, setMedidas] = useState([]);
+  const [empresas, setEmpresas] = useState([]);
 
+  const get = async () => {
+		const sectors = await fetchSetores();
+		setSetores(sectors);
+		const units = await fetchUnidades();
+		setUnidades(units);
+    const proc = await getProcessos();
+    setProcessos(proc);
+    const data = await fetchContatos(companyId);
+    setContatos(data);
+    const response = await fetchMedidas('all');
+    setMedidas(response);  
+    const companys = await fetchEmpresas();
+    setEmpresas(companys)
+  	}
+
+	useEffect(() => {
+		get();
+	}, [companyId]);
 
   useEffect(() => {
     loadSelectedCompanyFromLocalStorage();
   }, []);
 
+    
   const handleGet = async () => {
     setNameCompany(selectedCompany ? selectedCompany.nome_empresa : '');
-    getUnidades();
-    getSetores();
     getCargos();
     getProcessos();
     getRiscos();
@@ -88,13 +111,9 @@ function LaudoPgr() {
     getProcessosRiscos();
     getInventario();
     getRiscosMedidas();
-    getMedidasAdm();
-    getMedidasEpi();
-    getMedidasEpc();
     getPlano();
     getUsuarios();
-    getContatos();
-    getEmpresas();
+    fetchEmpresas();
     getAparelhos();
     getLaudoVersion();
   };
@@ -207,23 +226,21 @@ function LaudoPgr() {
   const handleGenerate = async () => {
     await handleGet();
     try {
-
       const filterRisco = riscos.filter((i) => i.lip_risco === 1);
       const mapRisk = filterRisco.map((i) => i.id_risco);
-
+  
       let filterUnidades;
       let filterSetor;
       let mapUnidades;
       let mapSetor;
       let filterInventario;
-
+  
       if (unidadeId) {
         filterUnidades = unidades.filter((i) => i.id_unidade === unidadeId);
         mapUnidades = filterUnidades.map((i) => i.id_unidade);
         filterSetor = setores.filter((i) => i.fk_unidade_id === unidadeId);
         mapSetor = filterSetor.map((i) => i.id_setor);
-
-
+  
         if (setorId) {
           filterSetor = setores.filter((i) => i.id_setor === setorId);
           mapSetor = filterSetor.map((i) => i.id_setor);
@@ -234,40 +251,95 @@ function LaudoPgr() {
         filterSetor = setores.filter((i) => mapUnidades.includes(i.fk_unidade_id));
         mapSetor = filterSetor.map((i) => i.id_setor);
       }
-
-      filterInventario = inventario.filter((i) => mapRisk.includes(i.fk_risco_id) && i.fk_empresa_id === companyId && mapUnidades.includes(i.fk_unidade_id) && mapSetor.includes(i.fk_setor_id));
-
+  
+      filterInventario = inventario.filter(
+        (i) =>
+          mapRisk.includes(i.fk_risco_id) &&
+          i.fk_empresa_id === companyId &&
+          mapUnidades.includes(i.fk_unidade_id) &&
+          mapSetor.includes(i.fk_setor_id)
+      );
+  
       if (filterInventario.length === 0) {
         return toast.warn("Selecione outro setor ou outra unidade!");
       }
-
+  
+      // Verificar se companyId está definido corretamente
+      console.log('companyId:', companyId); // Adicione este log
+  
+      // Verificar se empresas está carregado corretamente
+      console.log('empresas:', empresas); // Adicione este log
+  
       const filterCompany = empresas.find((i) => i.id_empresa === companyId);
+      console.log('filterCompany:', filterCompany); // Adicione este log
+  
+      if (!filterCompany) {
+        console.error('Empresa não encontrada!');
+        return toast.error('Empresa não encontrada!');
+      }
+  
+      // Verificar se fk_contato_id está presente em filterCompany
+      console.log('filterCompany.fk_contato_id:', filterCompany.fk_contato_id); // Adicione este log
+  
+      if (!filterCompany.fk_contato_id) {
+        console.error('Contato da empresa não encontrado!');
+        return toast.error('Contato da empresa não encontrado!');
+      }
+  
       const filterContato = contatos.find((i) => i.id_contato === filterCompany.fk_contato_id);
       await checkSignIn();
       const filterCargo = cargos.filter((i) => mapSetor.includes(i.fk_setor_id));
-
-
+  
       if (laudo === "LP") {
-        const res = await generateLP(filterInventario, filterCompany, filterContato, filterSetor, filterCargo, filterUnidades, user, data);
+        const res = await generateLP(
+          filterInventario,
+          filterCompany,
+          filterContato,
+          filterSetor,
+          filterCargo,
+          filterUnidades,
+          user,
+          data
+        );
         handleDownloadLtcat(res);
         setGeneratedPdf(res);
       } else if (laudo === "LI") {
-        const res = await generateLI(filterInventario, filterCompany, filterContato, filterSetor, filterCargo, filterUnidades, user, data);
+        const res = await generateLI(
+          filterInventario,
+          filterCompany,
+          filterContato,
+          filterSetor,
+          filterCargo,
+          filterUnidades,
+          user,
+          data
+        );
         handleDownloadLtcat(res);
         setGeneratedPdf(res);
       } else {
-        const res = await generatePdf(filterInventario, filterCompany, filterContato, filterSetor, filterCargo, filterUnidades, user, data);
+        const res = await generatePdf(
+          filterInventario,
+          filterCompany,
+          filterContato,
+          filterSetor,
+          filterCargo,
+          filterUnidades,
+          user,
+          data
+        );
         handleDownloadLtcat(res);
         setGeneratedPdf(res);
       }
-
+  
       handleSubmit();
     } catch (error) {
-      console.log("Erro ao filtrar dados!", error)
+      console.log("Erro ao filtrar dados!", error);
     }
-
+  
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+  
+  
 
   const generatePdf = async (filterInventario, filterCompany, filterContato, filterSetor, filterCargo, filterUnidades, user, data) => {
     return (
@@ -486,12 +558,13 @@ function LaudoPgr() {
                     <button
                       className="flex appearance-none w-full hover:shadow-sm text-sky-600 bg-gray-100 border-gray-200 mt-1 py-3 px-4 rounded leading-tight focus:outline-none with-text"
                       onClick={openModalUnidade}
+                      type="button"
                     >
                       <p className="font-bold w-full">
                         {nomeUnidade}
                       </p>
                     </button>
-                    <button className="ml-4" onClick={handleClearUnidade}>
+                    <button className="ml-4" onClick={handleClearUnidade} type="button">
                       <img src={icon_sair} alt="" className="h-9" />
                     </button>
                   </>
@@ -499,6 +572,7 @@ function LaudoPgr() {
                   <button
                     className="flex w-full appearance-none text-gray-400 bg-gray-100 border-gray-200 justify-center mt-1 py-3 px-4 rounded leading-tight focus:outline-none with-text"
                     onClick={openModalUnidade}
+                    type="button"
                   >
                     <p className="text-sm font-medium w-full">
                       Nenhuma Unidade Selecionado
@@ -532,12 +606,13 @@ function LaudoPgr() {
                     <button
                       className="flex w-full appearance-none hover:shadow-sm text-sky-600 bg-gray-100 border-gray-200 justify-center mt-1 py-3 px-4 rounded leading-tight focus:outline-none with-text"
                       onClick={openModalSetor}
+                      type="button"
                     >
                       <p className="font-bold w-full">
                         {setorNome}
                       </p>
                     </button>
-                    <button className="ml-4 cursor-pointer" onClick={handleClearSetor}>
+                    <button className="ml-4 cursor-pointer" onClick={handleClearSetor} type="button">
                       <img src={icon_sair} alt="" className="h-9" />
                     </button>
                   </>
@@ -545,6 +620,7 @@ function LaudoPgr() {
                   <button
                     className="flex w-full appearance-none text-gray-400 bg-gray-100 border-gray-200 justify-center mt-1 py-3 px-4 rounded leading-tight focus:outline-none with-text"
                     onClick={openModalSetor}
+                    type="button"
                   >
                     <p className="px-2 text-sm font-medium w-full">
                       Nenhum Setor Selecionado
