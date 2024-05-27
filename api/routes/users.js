@@ -3109,8 +3109,7 @@ router.post("/relatorio_pgr", (req, res, next) => {
         if (!companyMap[idEmpresa]) {
           companyMap[idEmpresa] = {
             id_empresa: idEmpresa,
-            nome_empresa: row.nome_empresa,
-            unidades: {}
+            nome_empresa: row.nome_empresa
           };
         }
 
@@ -3119,8 +3118,7 @@ router.post("/relatorio_pgr", (req, res, next) => {
         if (!unidadesMap[unidadeId]) {
           unidadesMap[unidadeId] = {
             id_unidade: unidadeId,
-            nome_unidade: row.nome_unidade,
-            setores: {}
+            nome_unidade: row.nome_unidade
           };
         }
 
@@ -3129,8 +3127,7 @@ router.post("/relatorio_pgr", (req, res, next) => {
         if (!setoresMap[setorId]) {
           setoresMap[setorId] = {
             id_setor: setorId,
-            nome_setor: row.nome_setor,
-            cargos: {}
+            nome_setor: row.nome_setor
           };
         }
 

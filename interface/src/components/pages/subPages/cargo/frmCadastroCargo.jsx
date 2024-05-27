@@ -50,15 +50,16 @@ function FrmCadastroCargo({ onEdit, setOnEdit, getCargo, set, setor }) {
     const queryParams = new URLSearchParams({ tenant_code: tenant , nome_usuario:nome, companyId:companyId}).toString();
     const user = ref.current;
 
-    if (
-      !user.nome_cargo.value ||
-      !setorId ||
-      !funcMasc ||
-      !funcFem ||
-      !funcMenor ||
-      !user.descricao.value) {
-      return toast.warn("Preencha Todos os Campos!")
-    }
+    // if (
+    //   !user.nome_cargo.value ||
+    //   !setorId ||
+    //   !funcMasc ||
+    //   !funcFem ||
+    //   !funcMenor ||
+    //   !user.descricao.value) {
+    //   return toast.warn("Preencha Todos os Campos!")
+    // }
+    
     try {
       const cargoData = {
         nome_cargo: user.nome_cargo.value || null,

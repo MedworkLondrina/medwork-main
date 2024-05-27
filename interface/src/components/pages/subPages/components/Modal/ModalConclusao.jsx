@@ -31,11 +31,12 @@ const ModalConclusaoLtcat = ({ onCancel, isOpen, riscoId, riscos, lip, ltcat, in
       setConclusao(order);
     }
   };
-  useEffect(() => {
-    get()
-  },[conclusao])
 
-  console.log(conclusoes)
+  // useEffect(() => {
+  //   get()
+  // },[conclusao])
+
+  // console.log(conclusoes)
   useEffect(() => {
     if (onEdit) {
       setNome(onEdit.nome_conclusao);
