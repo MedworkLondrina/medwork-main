@@ -15,7 +15,7 @@ function PgrGenerate({
   inventario, plano,
   company, unidades, setores, cargos, contatos,
   processos, riscos, medidasAdm, medidasEpi, medidasEpc,
-  user, aparelhos, data, versao, pdfVersion, elaborador,
+  user, aparelhos, data, versao, pdfVersion, elaborador, dados,
 }) {
 
   const findSetor = (item) => {
@@ -51,21 +51,25 @@ function PgrGenerate({
 
       switch (tipo) {
         case 'nome_unidade':
-          const unidadeEncontrada = unidades.find((c) => c.id_unidade === item);
+          const unidadeEncontrada = dados.unidades.find((c) => c.id_unidade === item);
           return unidadeEncontrada ? unidadeEncontrada.nome_unidade : 'N/A';
 
         case 'nome_setor':
-          const setorEncontrado = setores.find((c) => c.id_setor === item);
+          const setorEncontrado = dados.setores.find((c) => c.id_setor === item);
           return setorEncontrado ? setorEncontrado.nome_setor : 'N/A';
 
         case 'nome_processo':
-          const processoEncontrado = processos.find((c) => c.id_processo === item);
+          const processoEncontrado = dados.processos.find((c) => c.id_processo === item);
           return processoEncontrado ? processoEncontrado.nome_processo : 'N/A';
 
         case 'nome_aparelho':
           const aparelhosEncontrado = aparelhos.find((c) => c.id_aparelho === item);
           const aparelho = `${aparelhosEncontrado.nome_aparelho} - ${aparelhosEncontrado.marca_aparelho} (${formatData(aparelhosEncontrado.data_calibracao_aparelho)})`
           return aparelho;
+
+        case 'nome_medida':
+          const medidaEncontrada = dados.medidas.find((c) => c.id_medida === item);
+          return medidaEncontrada ? medidaEncontrada.descricao_medida : 'N/A';
 
         case 'nome_risco':
         case 'grupo_risco':
@@ -75,7 +79,7 @@ function PgrGenerate({
         case 'metodologia':
         case 'severidade':
         case 'unidade_medida':
-          const riscoEncontrado = riscos.find((c) => c.id_risco === item);
+          const riscoEncontrado = dados.riscos.find((c) => c.id_risco === item);
           if (riscoEncontrado) {
             switch (tipo) {
               case 'nome_risco':
@@ -106,6 +110,15 @@ function PgrGenerate({
       return 'N/A';
     }
   };
+
+  const findUnidade = (fkUnidadeId) => {
+    try {
+      const unidadeEncontrada = dados.find((c) => c.id_unidade === fkUnidadeId);
+      return unidadeEncontrada ? unidadeEncontrada.nome_unidade : 'N/A';
+    } catch (error) {
+      console.error("Erro ao filtrar unidades. ", error)
+    }
+  }
 
   const formatData = (item) => {
     try {
@@ -4012,7 +4025,7 @@ function PgrGenerate({
       <Page size="A4" orientation='landscape' style={PageStyles.LandscapePage}>
 
         {/* Cabeçalho */}
-        <HeaderPage />
+        {/* <HeaderPage /> */}
 
         {/* Sumário */}
         <Text style={TextStyles.subTitleSumary}>18. Inventário de Riscos</Text>
@@ -4092,7 +4105,7 @@ function PgrGenerate({
               </View>
               <View style={[TableStyles.contentRiskCell, { width: '8%' }]}>
                 <Text style={[RiskInventoryStyles.contentText, { textAlign: 'left', }]}>
-                  {find(item.fk_unidade_id, 'nome_unidade')}
+                  {find(item.fk_unidade_id, 'nome_unidade') || 'N/A'}
                 </Text>
               </View>
               <View style={[TableStyles.contentRiskCell, { width: '10%' }]}>
@@ -4147,7 +4160,8 @@ function PgrGenerate({
               </View>
               <View style={[TableStyles.contentRiskCell, { width: '10%' }]}>
                 <Text style={[RiskInventoryStyles.contentText, { textAlign: 'left', }]}>
-                  {find(item.fk_aparelho_id, 'nome_aparelho') || 'N/A'}
+                  {/* {find(item.fk_aparelho_id, 'nome_aparelho') || 'N/A'} */}
+                  {item.fk_aparelho_id}
                 </Text>
               </View>
               <View style={[TableStyles.contentRiskCell, { width: '5%' }]}>
@@ -4162,20 +4176,21 @@ function PgrGenerate({
               </View>
               <View style={[TableStyles.contentRiskCell, { width: '10%' }]}>
                 <Text style={[RiskInventoryStyles.contentText, { textAlign: 'left', }]}>
-                  {convertMedidas(item.medidas) || 'N/A'}
+                  {/* {convertMedidas(item.medidas) || 'N/A'} */}
+                  {item.medidas}
                 </Text>
               </View>
-              <View style={[TableStyles.contentRiskCell, { width: '5%', backgroundColor: getColor(item.probabilidade) }]}>
+              <View style={[TableStyles.contentRiskCell, { width: '5%' }]}>
                 <Text style={[RiskInventoryStyles.contentText, { textAlign: 'left', }]}>
                   {item.probabilidade || '-'}
                 </Text>
               </View>
-              <View style={[TableStyles.contentRiskCell, { width: '5%', backgroundColor: getColor(find(item.fk_risco_id, 'severidade')) }]}>
+              <View style={[TableStyles.contentRiskCell, { width: '5%' }]}>
                 <Text style={[RiskInventoryStyles.contentText, { textAlign: 'left', }]}>
                   {find(item.fk_risco_id, 'severidade') || '-'}
                 </Text>
               </View>
-              <View style={[TableStyles.contentRiskCell, { width: '5%', backgroundColor: getColorNivel(item.nivel) }]}>
+              <View style={[TableStyles.contentRiskCell, { width: '5%' }]}>
                 <Text style={[RiskInventoryStyles.contentText, { textAlign: 'left', }]}>
                   {item.nivel || '-'}
                 </Text>
@@ -4201,7 +4216,7 @@ function PgrGenerate({
         </View>
 
         {/* Footer */}
-        <FooterPage />
+        {/* <FooterPage /> */}
       </Page>
     );
   };
@@ -4324,28 +4339,28 @@ function PgrGenerate({
   const MyDocument = () => {
     return (
       <Document>
-        <CoverPage />
+        {/* <CoverPage /> */}
         {/* <SumaryPage /> */}
-        <VersionTable />
-        <CompanyPage />
-        <IntroductionPage />
-        <AbrangencePage />
-        <DefinePage />
-        <StrategyPage />
-        <RiskIdentificationPage />
-        <AssessmentPage />
-        <AssessmentTable />
-        <AssessmentFrame />
-        <AssessmentText />
-        <AssessmentFrameSeverity />
-        <AssessmentFrameText />
-        <AssessmentFrameSeven />
-        <FrequencyPage />
-        <GROPage />
-        <UnidadesPage />
-        <PostPage />
+        {/* <VersionTable /> */}
+        {/* <CompanyPage /> */}
+        {/* <IntroductionPage /> */}
+        {/* <AbrangencePage /> */}
+        {/* <DefinePage /> */}
+        {/* <StrategyPage /> */}
+        {/* <RiskIdentificationPage /> */}
+        {/* <AssessmentPage /> */}
+        {/* <AssessmentTable /> */}
+        {/* <AssessmentFrame /> */}
+        {/* <AssessmentText /> */}
+        {/* <AssessmentFrameSeverity /> */}
+        {/* <AssessmentFrameText /> */}
+        {/* <AssessmentFrameSeven /> */}
+        {/* <FrequencyPage /> */}
+        {/* <GROPage /> */}
+        {/* <UnidadesPage /> */}
+        {/* <PostPage /> */}
         <RiskInventoryPage />
-        <PlanPage />
+        {/* <PlanPage /> */}
       </Document>
     );
   };

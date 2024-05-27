@@ -3059,7 +3059,6 @@ router.post("/relatorio_cnae", (req, res, next) => {
 
 router.post("/relatorio_pgr", (req, res, next) => {
   const companyId = req.body.companyId;
-  console.log(companyId)
 
   pool.getConnection((err, connection) => {
     if (err) {
@@ -3072,78 +3071,129 @@ router.post("/relatorio_pgr", (req, res, next) => {
         e.*,
         u.*,
         s.*,
-        c.* 
+        c.* ,
+        p.*,
+        r.*,
+        m.*
       FROM empresas e
       JOIN unidades u ON e.id_empresa = u.fk_empresa_id
-      JOIN processos p ON pc.fk_processo_id = p.id_processo
+      JOIN setores s ON u.id_unidade = s.fk_unidade_id
+      JOIN cargos c ON s.id_setor = c.fk_setor_id
+      JOIN setores_processos sp ON sp.fk_setor_id = s.id_setor
+      JOIN processos p ON sp.fk_processo_id = p.id_processo
       JOIN processos_riscos pr ON p.id_processo = pr.fk_processo_id
       JOIN riscos r ON pr.fk_risco_id = r.id_risco
       JOIN riscos_medidas rm ON r.id_risco = rm.fk_risco_id
       JOIN medidas m ON rm.fk_medida_id = m.id_medida
-      WHERE c.id_cnae IN (${placeholders})
+      WHERE e.id_empresa IN (${companyId})
     `;
 
-    connection.query(query, cnaeIds, (err, results) => {
+    connection.query(query, companyId, (err, results) => {
       connection.release();
       if (err) {
         console.error('Erro na consulta SQL:', err);
         return res.status(500).json({ error: 'Erro ao executar a consulta SQL' });
       }
 
-      // Organizando os resultados no formato desejado
-      const cnaesMap = {};
+      const companyMap = {};
+      const unidadesMap = {};
+      const setoresMap = {};
+      const cargosMap = {};
+      const processosMap = {};
+      const riscosMap = {};
+      const medidasMap = {};
 
       results.forEach(row => {
-        const cnaeId = row.id_cnae;
+        const idEmpresa = row.id_empresa;
 
-        if (!cnaesMap[cnaeId]) {
-          cnaesMap[cnaeId] = {
-            id: cnaeId,
-            subclasse_cnae: row.subclasse_cnae,
-            processos: {}
+        if (!companyMap[idEmpresa]) {
+          companyMap[idEmpresa] = {
+            id_empresa: idEmpresa,
+            nome_empresa: row.nome_empresa,
+            unidades: {}
+          };
+        }
+
+        const unidadeId = row.id_unidade;
+
+        if (!unidadesMap[unidadeId]) {
+          unidadesMap[unidadeId] = {
+            id_unidade: unidadeId,
+            nome_unidade: row.nome_unidade,
+            setores: {}
+          };
+        }
+
+        const setorId = row.id_setor;
+
+        if (!setoresMap[setorId]) {
+          setoresMap[setorId] = {
+            id_setor: setorId,
+            nome_setor: row.nome_setor,
+            cargos: {}
+          };
+        }
+
+        const cargoId = row.id_cargo;
+
+        if (!cargosMap[cargoId]) {
+          cargosMap[cargoId] = {
+            id_cargo: cargoId,
+            nome_cargo: row.nome_cargo
           };
         }
 
         const processoId = row.id_processo;
 
-        if (!cnaesMap[cnaeId].processos[processoId]) {
-          cnaesMap[cnaeId].processos[processoId] = {
-            id: processoId,
-            nome: row.nome_processo,
-            riscos: {}
+        if (!processosMap[processoId]) {
+          processosMap[processoId] = {
+            id_processo: processoId,
+            nome_processo: row.nome_processo
           };
         }
 
         const riscoId = row.id_risco;
 
-        if (!cnaesMap[cnaeId].processos[processoId].riscos[riscoId]) {
-          cnaesMap[cnaeId].processos[processoId].riscos[riscoId] = {
-            id: riscoId,
-            nome: row.nome_risco,
-            medidas: {}
+        if (!riscosMap[riscoId]) {
+          riscosMap[riscoId] = {
+            id_risco: riscoId,
+            nome_risco: row.nome_risco,
+            grupo_risco: row.grupo_risco,
+            codigo_esocial_risco: row.codigo_esocial_risco,
+            meio_propagacao_risco: row.meio_propagacao_risco,
+            unidade_medida_risco: row.unidade_medida_risco,
+            classificacao_risco: row.classificacao_risco,
+            nivel_acao_risco: row.nivel_acao_risco,
+            limite_tolerancia_risco: row.limite_tolerancia_risco,
+            danos_saude_risco: row.danos_saude_risco,
+            metodologia_risco: row.metodologia_risco,
+            severidade_risco: row.severidade_risco,
+            pgr_risco: row.pgr_risco,
+            ltcat_risco: row.ltcat_risco,
+            lip_risco: row.lip_risco,
+            tenant_code: row.tenant_code
           };
         }
 
         const medidaId = row.id_medida;
 
-        if (!cnaesMap[cnaeId].processos[processoId].riscos[riscoId].medidas[medidaId]) {
-          cnaesMap[cnaeId].processos[processoId].riscos[riscoId].medidas[medidaId] = {
-            id: medidaId,
-            descricao: row.descricao_medida
+        if (!medidasMap[medidaId]) {
+          medidasMap[medidaId] = {
+            id_medida: medidaId,
+            descricao_medida: row.descricao_medida,
           };
         }
       });
 
-      const result = Object.values(cnaesMap).map(cnae => ({
-        ...cnae,
-        processos: Object.values(cnae.processos).map(processo => ({
-          ...processo,
-          riscos: Object.values(processo.riscos).map(risco => ({
-            ...risco,
-            medidas: Object.values(risco.medidas)
-          }))
-        }))
-      }));
+      const result = {
+        epresas: Object.values(companyMap),
+        unidades: Object.values(unidadesMap),
+        setores: Object.values(setoresMap),
+        cargos: Object.values(cargosMap),
+        processos: Object.values(processosMap),
+        riscos: Object.values(riscosMap),
+        medidas: Object.values(medidasMap),
+      }
 
       res.status(200).json(result);
     });

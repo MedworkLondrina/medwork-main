@@ -53,7 +53,6 @@ function getMedidasFromTabela(tenantCode, grupo) {
             });
         });
     });
-  });
 }
 
 export default getMedidasFromTabela;
