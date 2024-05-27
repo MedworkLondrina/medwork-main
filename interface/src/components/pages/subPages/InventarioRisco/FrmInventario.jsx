@@ -1528,7 +1528,7 @@ function FrmInventario({
                 </button>
               </div>
               <div className="px-3 pl-8">
-                <button disabled={isVerify || isMedidasSet} className={`w-full shadow mt-4 bg-green-600  focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded ${!isVerify ? 'hover:bg-green-700' : 'cursor-not-allowed opacity-50'}`} type="submit" >
+                <button disabled={isVerify} className={`w-full shadow mt-4 bg-green-600  focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded ${!isVerify ? 'hover:bg-green-700' : 'cursor-not-allowed opacity-50'}`} type="submit" >
                   Adicionar
                 </button>
               </div>
