@@ -2880,7 +2880,22 @@ router.put("/update_epi_sprm/:id_global_sprm", (req, res) => {
 });
 
 
+//Tabela Elaboradores
+//Get table
+router.get("/elaboradores", (req, res) => {
+  const queryParams = req.query.tenent_code;
 
+
+  getElaboradoresfromTenant(queryParams)
+    .then(data => {
+
+      return res.status(200).json(data);
+    })
+    .catch(error => {
+      return res.status(500).json(error);
+    });
+
+});
 
 router.post("/elaboradores", (req, res) => {
   const data = req.body;
@@ -2908,69 +2923,13 @@ router.post("/elaboradores", (req, res) => {
           formatted += `${key}: ${obj[key]}, `;
         }
       }
-      return formatted.slice(0, -2); // Remove a última vírgula e espaço
+      return formatted.slice(0, -2);
     };
     const bodyString = formatBody(data)
     registrarLog('elaboradores', 'create', `Cadastrou Elaborador`, `${nome}`, tenant, new Date(), bodyString);
 
     con.release();
   })
-
-});
-
-// router.route('/:table')
-//   .post(async (req, res) => {
-//     const table = req.params.table;
-//     const data = req.body;
-// const nome = req.query.nome_usuario
-//     const tenant = req.query.tenant_code
-
-//     const q = `INSERT INTO ${table} SET ?`
-
-//     pool.getConnection((err, con) => {
-//       if (err) return next(err);
-
-//       con.query(q, data, (err, result) => {
-//         if (err) {
-//           console.error(`Erro ao registrar dado na tabela ${table}. Status: ${err}`);
-//           return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
-//         }
-
-// const formatBody = (obj) => {
-//   let formatted = '';
-//   for (const key in obj) {
-//     if (obj.hasOwnProperty(key)) {
-//       formatted += `${key}: ${obj[key]}, `;
-//     }
-//   }
-//   return formatted.slice(0, -2); // Remove a última vírgula e espaço
-// };
-// const bodyString = formatBody(data)
-
-//         registrarLog('elaboradores', 'create', `Cadastrou Elaborador`, `${nome}`, tenant, new Date(), bodyString);
-
-//         return res.status(200).json(`Registro concluido com sucesso!`)
-//       });
-
-//       con.release();
-//     })
-//   })
-
-
-//Tabela Elaboradores
-//Get table
-router.get("/elaboradores", (req, res) => {
-  const queryParams = req.query.tenent_code;
-
-
-  getElaboradoresfromTenant(queryParams)
-    .then(data => {
-
-      return res.status(200).json(data);
-    })
-    .catch(error => {
-      return res.status(500).json(error);
-    });
 
 });
 
@@ -2999,7 +2958,7 @@ router.put("/elaboradores/activate/:id_elaborador", (req, res) => {
 
 
 
-router.post("/relatorio", (req, res, next) => {
+router.post("/relatorio_cnae", (req, res, next) => {
   const cnaeIds = req.body.cnaes;
 
   if (!Array.isArray(cnaeIds) || cnaeIds.length === 0) {
@@ -3098,119 +3057,99 @@ router.post("/relatorio", (req, res, next) => {
   });
 });
 
+router.post("/relatorio_pgr", (req, res, next) => {
+  const companyId = req.body.companyId;
+  console.log(companyId)
 
-
-
-router.get("/processos_por_cnae", async (req, res) => {
-  try {
-    // Obter o ID do CNAE do query string
-    const { id_cnae } = req.query;
-
-    // Verificar se o ID do CNAE foi fornecido
-    if (!id_cnae) {
-      return res.status(400).json({ error: 'ID do CNAE não fornecido.' });
-    }
-
-    // Construir a consulta SQL para buscar os processos vinculados ao CNAE
-    const query = `
-      SELECT 
-        p.id_processo
-      FROM 
-        processo_cnae pc
-      JOIN 
-        processos p ON pc.fk_processo_id = p.id_processo
-      WHERE 
-        pc.fk_cnae_id = ?
-      ORDER BY 
-        p.id_processo;
-    `;
-
-    // Executar a consulta SQL com o ID do CNAE
-    pool.query(query, [id_cnae], (err, rows) => {
-      if (err) {
-        return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
-      }
-
-      // Verificar se algum processo foi encontrado
-      if (rows.length === 0) {
-        return res.status(404).json({ message: 'Nenhum processo encontrado para o CNAE fornecido.' });
-      }
-
-      // Enviar os resultados como resposta
-      res.status(200).json(rows);
-    });
-  } catch (error) {
-    return res.status(500).json({ error: 'Erro interno do servidor', details: error.message });
-  }
-});
-
-// Rota para obter os riscos associados a um processo
-router.get("/riscos_por_processo", async (req, res) => {
-  try {
-    const { id_processo } = req.query;
-
-    if (!id_processo) {
-      return res.status(400).json({ error: 'ID do processo não fornecido.' });
+  pool.getConnection((err, connection) => {
+    if (err) {
+      console.error('Erro ao obter conexão do pool:', err);
+      return next(err);
     }
 
     const query = `
-      SELECT 
-        r.id_risco
-      FROM 
-        processos_riscos pr
-      JOIN 
-        riscos r ON pr.fk_risco_id = r.id_risco
-      WHERE 
-        pr.fk_processo_id = ?
-      ORDER BY 
-        r.id_risco;
+      SELECT
+        e.*,
+        u.*,
+        s.*,
+        c.* 
+      FROM empresas e
+      JOIN unidades u ON e.id_empresa = u.fk_empresa_id
+      JOIN processos p ON pc.fk_processo_id = p.id_processo
+      JOIN processos_riscos pr ON p.id_processo = pr.fk_processo_id
+      JOIN riscos r ON pr.fk_risco_id = r.id_risco
+      JOIN riscos_medidas rm ON r.id_risco = rm.fk_risco_id
+      JOIN medidas m ON rm.fk_medida_id = m.id_medida
+      WHERE c.id_cnae IN (${placeholders})
     `;
 
-    pool.query(query, [id_processo], (err, rows) => {
+    connection.query(query, cnaeIds, (err, results) => {
+      connection.release();
       if (err) {
-        return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
+        console.error('Erro na consulta SQL:', err);
+        return res.status(500).json({ error: 'Erro ao executar a consulta SQL' });
       }
 
-      res.status(200).json(rows || []);
+      // Organizando os resultados no formato desejado
+      const cnaesMap = {};
+
+      results.forEach(row => {
+        const cnaeId = row.id_cnae;
+
+        if (!cnaesMap[cnaeId]) {
+          cnaesMap[cnaeId] = {
+            id: cnaeId,
+            subclasse_cnae: row.subclasse_cnae,
+            processos: {}
+          };
+        }
+
+        const processoId = row.id_processo;
+
+        if (!cnaesMap[cnaeId].processos[processoId]) {
+          cnaesMap[cnaeId].processos[processoId] = {
+            id: processoId,
+            nome: row.nome_processo,
+            riscos: {}
+          };
+        }
+
+        const riscoId = row.id_risco;
+
+        if (!cnaesMap[cnaeId].processos[processoId].riscos[riscoId]) {
+          cnaesMap[cnaeId].processos[processoId].riscos[riscoId] = {
+            id: riscoId,
+            nome: row.nome_risco,
+            medidas: {}
+          };
+        }
+
+        const medidaId = row.id_medida;
+
+        if (!cnaesMap[cnaeId].processos[processoId].riscos[riscoId].medidas[medidaId]) {
+          cnaesMap[cnaeId].processos[processoId].riscos[riscoId].medidas[medidaId] = {
+            id: medidaId,
+            descricao: row.descricao_medida
+          };
+        }
+      });
+
+      const result = Object.values(cnaesMap).map(cnae => ({
+        ...cnae,
+        processos: Object.values(cnae.processos).map(processo => ({
+          ...processo,
+          riscos: Object.values(processo.riscos).map(risco => ({
+            ...risco,
+            medidas: Object.values(risco.medidas)
+          }))
+        }))
+      }));
+
+      res.status(200).json(result);
     });
-  } catch (error) {
-    return res.status(500).json({ error: 'Erro interno do servidor', details: error.message });
-  }
-});
+  });
 
-// Rota para obter as medidas associadas a um risco
-router.get("/medidas_por_risco", async (req, res) => {
-  try {
-    const { id_risco } = req.query;
-
-    if (!id_risco) {
-      return res.status(400).json({ error: 'ID do risco não fornecido.' });
-    }
-
-    const query = `
-      SELECT 
-        m.id_medida
-      FROM 
-        riscos_medidas rm
-      JOIN 
-        medidas m ON rm.fk_medida_id = m.id_medida
-      WHERE 
-        rm.fk_risco_id = ?
-      ORDER BY 
-        m.id_medida;
-    `;
-
-    pool.query(query, [id_risco], (err, rows) => {
-      if (err) {
-        return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
-      }
-
-      res.status(200).json(rows || []);
-    });
-  } catch (error) {
-    return res.status(500).json({ error: 'Erro interno do servidor', details: error.message });
-  }
-});
+})
 
 
 

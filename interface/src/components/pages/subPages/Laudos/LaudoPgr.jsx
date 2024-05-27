@@ -282,7 +282,7 @@ function LaudoPgr() {
       const filterInventario = inventario.filter((i) => i.fk_empresa_id === companyId);
       const filterPlano = plano.filter((i) => i.fk_empresa_id === companyId);
       await getLaudoVersion();
-      
+
       if (grid) {
         const res = await generatePdf(companys, contacts, users, sectors, departaments, inventarios, planos, units, laudos, date, version);
         handleDownloadPGR(res, grid)
@@ -299,6 +299,18 @@ function LaudoPgr() {
       console.log("Erro ao filtrar dados!", error)
     }
   };
+
+  const handleGerarRelatorio = async () => {
+    console.log(companyId)
+
+    const res = await fetch(`${connect}/relatorio_pgr`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ companyId: companyId }),
+    });
+  }
 
   const handleClear = () => {
     setPdfComponent(null);
@@ -396,12 +408,12 @@ function LaudoPgr() {
     const filter = elaboradores.find((i) => i.id_elaborador === authorsId);
     setFilteredElaborador(filter);
     closeModalElaborador();
-  }
+  };
 
   const handleClearElaborador = () => {
     setElaboradorId('');
     setElaboradorNome('');
-  }
+  };
 
   return (
     <>
@@ -644,7 +656,7 @@ function LaudoPgr() {
             {pdfComponent ? (
               pdfComponent
             ) : (
-              <button type="button" className="bg-green-600 py-2 px-8 font-bold text-lg text-white rounded cursor-pointer hover:bg-green-700" onClick={handleGenerate}>
+              <button type="button" className="bg-green-600 py-2 px-8 font-bold text-lg text-white rounded cursor-pointer hover:bg-green-700" onClick={handleGerarRelatorio}>
                 Gerar PDF
               </button>
             )}
