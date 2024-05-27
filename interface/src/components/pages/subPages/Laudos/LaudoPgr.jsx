@@ -301,7 +301,6 @@ function LaudoPgr() {
   };
 
   const handleGerarRelatorio = async () => {
-    console.log(companyId)
 
     const res = await fetch(`${connect}/relatorio_pgr`, {
       method: 'POST',
@@ -310,6 +309,16 @@ function LaudoPgr() {
       },
       body: JSON.stringify({ companyId: companyId }),
     });
+
+    const data = await res.json();
+    console.log(data);
+
+    const resRelatorio = await pgrGenerate(data);
+    setGeneratedPdf(resRelatorio);
+  };
+
+  const pgrGenerate = async (data) => {
+    return <PgrGenerate inventario={inventario} dados={data} />
   }
 
   const handleClear = () => {
@@ -576,19 +585,21 @@ function LaudoPgr() {
                   <>
                     <button
                       className="flex w-full appearance-none hover:shadow-sm text-sky-600 bg-gray-100 border-gray-200 justify-center mt-1 py-3 px-4 rounded leading-tight focus:outline-none with-text"
+                      type="button"
                       onClick={openModalElaborador}
                     >
                       <p className="font-bold w-full">
                         {elaboradorNome}
                       </p>
                     </button>
-                    <button className="ml-4 cursor-pointer" onClick={handleClearElaborador}>
+                    <button className="ml-4 cursor-pointer" onClick={handleClearElaborador} type="button">
                       <img src={icon_sair} alt="" className="h-9" />
                     </button>
                   </>
                 ) : (
                   <button
                     className="flex w-full appearance-none text-gray-400 bg-gray-100 border-gray-200 justify-center mt-1 py-3 px-4 rounded leading-tight focus:outline-none with-text"
+                    type="button"
                     onClick={openModalElaborador}
                   >
                     <p className="px-2 text-sm font-medium w-full">
