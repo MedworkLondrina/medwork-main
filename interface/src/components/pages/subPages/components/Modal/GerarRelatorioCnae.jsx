@@ -62,7 +62,7 @@ const ModalRelatorioCnae = ({ onCancel, isOpen, companyId, empresas }) => {
       const selectedCnaesMap = [...selectedCnaes, companyCnae].map(cnae => cnae.id_cnae);
       console.log(selectedCnaesMap)
 
-      const response = await fetch(`${connect}/relatorio`, {
+      const response = await fetch(`${connect}/relatorio_cnae`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

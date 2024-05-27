@@ -5,8 +5,8 @@ function getMedidasFromTabela(tenantCode, grupo) {
         const queryGlobalCheck = 'SELECT global FROM tenant WHERE tenant_code = ?';
         pool.getConnection((err, con) => {
             if (err) {
-                reject(err);
-                return;
+              reject(err);
+              return;
             }
             con.query(queryGlobalCheck, [tenantCode], (err, results) => {
                 if (err) {
@@ -53,6 +53,7 @@ function getMedidasFromTabela(tenantCode, grupo) {
             });
         });
     });
+  });
 }
 
 export default getMedidasFromTabela;
