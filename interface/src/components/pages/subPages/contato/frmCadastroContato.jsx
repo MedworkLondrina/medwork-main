@@ -23,7 +23,6 @@ function FrmCadastroContato({ setContatoData, onEdit, contact }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const user = ref.current;
-    const userData = JSON.parse(localStorage.getItem("selectedCompanyData"));
 
     if (
       !user.nome_contato.value) {

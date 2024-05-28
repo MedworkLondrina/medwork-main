@@ -7,76 +7,80 @@ import GridPlano from "./subPages/PlanoAcao/GridPlano";
 function Plano() {
 
   const {
-    handleSetCompanyId, selectedCompany,
-    fetchUnidades, 
-    fetchSetores, 
+    loadSelectedCompanyFromLocalStorage,
+    fetchUnidades,
+    fetchSetores,
     getCargos, cargos,
     getProcessos,
-    getRiscos, riscos,
+    getRiscos,
     fetchMedidas,
-    getSetoresProcessos, setSetoresProcessos, setoresProcessos,
-    getProcessosRiscos, setProcessosRiscos, processosRiscos,
-    getRiscosMedidas, setRiscosMedidas, riscosMedidas,
+    getSetoresProcessos,
+    getProcessosRiscos,
+    getRiscosMedidas,
     getInventario, inventario,
-    getGlobalSprm, setGlobalSprm, globalSprm, getGlobalSprmByRiscoId,
-    getPlano, setPlano, plano,
+    getGlobalSprm,
+    getPlano,
     fetchContatos
   } = useAuth(null);
+
   const [onEdit, setOnEdit] = useState(null);
-  const [nameCompany, setNameCompany] = useState(null);
-	const [setores, setSetores] = useState([]);
-	const [unidades, setUnidades] = useState([]);
+  const [setores, setSetores] = useState([]);
+  const [unidades, setUnidades] = useState([]);
   const [processos, setProcessos] = useState([]);
   const [contactInfo, setContactInfo] = useState([]);
-  const [contatos,setContatos] = useState([]);
+  const [contatos, setContatos] = useState([]);
   const [medidas, setMedidas] = useState([]);
   const [companyId, setCompanyId] = useState(null);
+  const [plano, setPlano] = useState([]);
+  const [setoresProcessos, setSetoresProcessos] = useState([]);
+  const [processosRiscos, setProcessosRiscos] = useState([]);
+  const [riscosMedidas, setRiscosMedidas] = useState([]);
+  const [riscos, setRiscos] = useState([]);
+  const [globalSprm, setGlobalSprm] = useState([]);
 
-    
+
   useEffect(() => {
-    handleSetCompanyId();
+    loadSelectedCompanyFromLocalStorage();
   }, []);
-  
+
+  const fetchPlano = async () => {
+    const response = await getPlano();
+    setPlano(response);
+  }
+
+  const fetchGlobalSprm = async () => {
+    const response = await getGlobalSprm();
+    setGlobalSprm(response);
+  }
 
   const get = async () => {
-		const sectors = await fetchSetores();
-		setSetores(sectors);
-		const units = await fetchUnidades();
-		setUnidades(units);
+    fetchPlano();
+    const sectors = await fetchSetores();
+    setSetores(sectors);
+    const units = await fetchUnidades();
+    setUnidades(units);
     const proc = await getProcessos();
     setProcessos(proc);
     const data = await fetchContatos(companyId);
     setContatos(data);
     const response = await fetchMedidas('all');
-    setMedidas(response);  
+    setMedidas(response);
     const userData = JSON.parse(localStorage.getItem("selectedCompanyData"));
-    setCompanyId(userData.id_empresa)  
-  	}
-
-	useEffect(() => {
-		get();
-	}, [companyId]);
-
+    setCompanyId(userData.id_empresa);
+    const setProc = await getSetoresProcessos();
+    setSetoresProcessos(setProc);
+    const procRisc = await getProcessosRiscos();
+    setProcessosRiscos(procRisc);
+    const riscMed = await getRiscosMedidas();
+    setRiscosMedidas(riscMed);
+    const risc = await getRiscos();
+    setRiscos(risc);
+    fetchGlobalSprm();
+  }
 
   useEffect(() => {
-    setNameCompany(selectedCompany[0]?.nome_empresa)
-    getCargos();
-    getRiscos();
-    getSetoresProcessos();
-    getProcessosRiscos();
-    getInventario();
-    getRiscosMedidas();
-    getPlano();
-    getGlobalSprm();
+    get();
   }, [companyId]);
-
-
-  useEffect(() => {
-  }, [plano]);
-
-  const handleEdit = (selectedInventario) => {
-    setOnEdit(selectedInventario);
-  };
 
   return (
     <>
@@ -97,15 +101,15 @@ function Plano() {
         companyId={companyId}
         setOnEdit={setOnEdit}
         riscosMedidas={riscosMedidas}
-        medidas = {medidas}
-        getGlobalSprm={getGlobalSprm}
+        medidas={medidas}
+        getGlobalSprm={fetchGlobalSprm}
         setGlobalSprm={setGlobalSprm}
         globalSprm={globalSprm}
-        getGlobalSprmByRiscoId={getGlobalSprmByRiscoId}
-        getPlano={getPlano}
+        getPlano={fetchPlano}
         contatos={contatos}
         planos={plano}
       />
+
       <div className="mb-10">
         <GridPlano
           setOnEdit={setOnEdit}

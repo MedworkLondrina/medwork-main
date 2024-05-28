@@ -50,15 +50,15 @@ function FrmCadastroCargo({ onEdit, setOnEdit, getCargo, set, setor }) {
     const queryParams = new URLSearchParams({ tenant_code: tenant , nome_usuario:nome, companyId:companyId}).toString();
     const user = ref.current;
 
-    // if (
-    //   !user.nome_cargo.value ||
-    //   !setorId ||
-    //   !funcMasc ||
-    //   !funcFem ||
-    //   !funcMenor ||
-    //   !user.descricao.value) {
-    //   return toast.warn("Preencha Todos os Campos!")
-    // }
+    if (
+      !user.nome_cargo.value ||
+      !setorId ||
+      !funcMasc ||
+      !funcFem ||
+      !funcMenor ||
+      !user.descricao.value) {
+      return toast.warn("Preencha Todos os Campos!")
+    }
     
     try {
       const cargoData = {
@@ -204,9 +204,7 @@ function FrmCadastroCargo({ onEdit, setOnEdit, getCargo, set, setor }) {
               type="number"
               name="func_masc"
               placeholder="0"
-              onInput={handleInputChange}
               value={funcMasc}
-              onFocus={handleFocusInputFuncMasc}
               onChange={(e) => setFuncMasc(e.target.value)}
             />
           </div>
@@ -221,9 +219,7 @@ function FrmCadastroCargo({ onEdit, setOnEdit, getCargo, set, setor }) {
               type="number"
               name="func_fem"
               placeholder="0"
-              onInput={handleInputChange}
               value={funcFem}
-              onFocus={handleFocusInputFuncFem}
               onChange={(e) => setFuncFem(e.target.value)}
             />
           </div>
@@ -238,9 +234,7 @@ function FrmCadastroCargo({ onEdit, setOnEdit, getCargo, set, setor }) {
               type="number"
               name="func_menor"
               placeholder="0"
-              onInput={handleInputChange}
               value={funcMenor}
-              onFocus={handleFocusInputFuncMenor}
               onChange={(e) => setFuncMenor(e.target.value)}
             />
           </div>

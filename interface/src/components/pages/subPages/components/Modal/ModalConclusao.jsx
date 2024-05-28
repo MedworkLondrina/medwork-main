@@ -10,33 +10,27 @@ import GridModalConclusao from '../gridsModal/GridModalConclusao';
 
 const ModalConclusaoLtcat = ({ onCancel, isOpen, riscoId, riscos, lip, ltcat, inventario, onSelect }) => {
 
-  const { getConclusoes, conclusoes } = useAuth(null);
+  const { getConclusoes } = useAuth(null);
 
   const [nome, setNome] = useState('');
   const [conclusao, setConclusao] = useState('');
   const [laudo, setLaudo] = useState('0');
   const [tipo, setTipo] = useState('');
   const [onEdit, setOnEdit] = useState(null);
-  const [att, setAtt] = useState(false);
+  const [conclusoes, setConclusoes] = useState([]);
 
   useEffect(() => {
     get(riscoId);
   }, [isOpen])
 
-
   const get = async () => {
     const conclusoes = await getConclusoes(riscoId);
     if (conclusoes) {
       const order = conclusoes.sort((a, b) => b.ativo - a.ativo);
-      setConclusao(order);
+      setConclusoes(order);
     }
   };
 
-  // useEffect(() => {
-  //   get()
-  // },[conclusao])
-
-  // console.log(conclusoes)
   useEffect(() => {
     if (onEdit) {
       setNome(onEdit.nome_conclusao);
@@ -48,11 +42,7 @@ const ModalConclusaoLtcat = ({ onCancel, isOpen, riscoId, riscos, lip, ltcat, in
       }
 
     }
-  }, [onEdit, att]);
-
-  if (!isOpen) {
-    return null;
-  }
+  }, [onEdit]);
 
   const handleClear = () => {
     setNome('');
@@ -65,8 +55,12 @@ const ModalConclusaoLtcat = ({ onCancel, isOpen, riscoId, riscos, lip, ltcat, in
     e.preventDefault();
 
     try {
-      if (!nome || !conclusao) {
+      if (!nome || !conclusao || !laudo) {
         return toast.info("Preencha todos os campos!");
+      }
+
+      if (laudo === 'lip' || laudo === 'ambos' && !tipo) {
+        return toast.info("Selecione o tipo da conclusão!");
       }
 
       const conclusaoData = {
@@ -102,8 +96,6 @@ const ModalConclusaoLtcat = ({ onCancel, isOpen, riscoId, riscos, lip, ltcat, in
       console.log("Erro ao adicionar conclusão", error)
     }
     handleClear();
-    ;
-    setAtt(!att);
     setOnEdit(null);
   };
 
@@ -112,6 +104,9 @@ const ModalConclusaoLtcat = ({ onCancel, isOpen, riscoId, riscos, lip, ltcat, in
     return filterRisk ? filterRisk.nome_risco : ''
   };
 
+  if (!isOpen) {
+    return null;
+  };
 
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50">

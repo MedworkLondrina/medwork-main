@@ -544,7 +544,8 @@ export const AuthProvider = ({ children }) => {
       }
 
       const data = await response.json();
-      setPlano(data)
+      setPlano(data);
+      return data;
     } catch (error) {
       toast.warn("Erro ao buscar Plano de Ação");
       console.log(`Erro ao buscar Plano de Ação. ${error}`)

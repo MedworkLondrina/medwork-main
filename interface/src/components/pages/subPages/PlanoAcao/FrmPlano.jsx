@@ -25,9 +25,8 @@ function FrmPlano({
   setOnEdit,
   riscosMedidas,
   medidas,
-  getGlobalSprm, setGlobalSprm, globalSprm,
+  getGlobalSprm, globalSprm,
   companyName,
-  
   getPlano,
   contatos,
   planos,
@@ -40,6 +39,8 @@ function FrmPlano({
   const [filteredSetores, setFilteredSetores] = useState([])
   const [filteredProcessos, setFilteredProcessos] = useState([])
   const [filteredRiscos, setFilteredRiscos] = useState([]);
+  const [filteredGlobalSprm, setFilteredGlobalSprm] = useState([]);
+  const [filteredMedidas, setFilteredMedidas] = useState([]);
 
   const [showModalUnidade, setShowModalUnidade] = useState(false);
   const [showModalSetor, setShowModalSetor] = useState(false);
@@ -57,15 +58,13 @@ function FrmPlano({
   const [riscoNome, setRiscoNome] = useState('');
   const [responsavel, setResponsavel] = useState('');
   const [isOk, setIsOk] = useState(false);
-  const [filterGlobalSprm, setFilterGlobalSprm] = useState([]);
-  const [filteredMedidas, setFilteredMedidas] = useState([]);
   const [filteredPlanoRisco, setFilteredPlanoRisco] = useState([]);
   const [isVerify, setIsVerify] = useState(false);
   const [plano, setPlano] = useState(false);
   //Inputs Form
   const [data, setData] = useState('');
   const [data_conclusao, setDataConclusao] = useState('');
-  const [status,setStatus] = useState('');
+  const [status, setStatus] = useState('');
   const [selectedPrazos, setSelectedPrazos] = useState({});
   const [existingPrazos, setExistingPrazos] = useState({});
 
@@ -102,7 +101,7 @@ function FrmPlano({
   }, [])
 
   useEffect(() => {
-   verify(unidadeId, setorId, processoId, riscoId)
+    verify(unidadeId, setorId, processoId, riscoId)
   }, [riscoId]);
 
   useEffect(() => {
@@ -129,7 +128,7 @@ function FrmPlano({
         const filterPlan = planos.filter(({ fk_empresa_id, fk_medida_id }) => fk_empresa_id === companyId && sprmMap.has(fk_medida_id));
         const listMedidas = medidas.filter(({ id_medida }) => sprmMap.has(id_medida) && !filterPlan.some(({ fk_medida_id }) => fk_medida_id === id_medida));
         const listModalMedidas = filterApply.filter(({ fk_medida_id }) => !planFilter.map(({ fk_medida_id }) => fk_medida_id).includes(fk_medida_id));
-        setFilterGlobalSprm(listModalMedidas);
+        setFilteredGlobalSprm(listModalMedidas);
         setFilteredMedidas(listMedidas);
       }
     }
@@ -167,7 +166,7 @@ function FrmPlano({
               }));
             }
           }
-          handleFilterGlobalSprm();
+          handleFilteredGlobalSprm();
         } catch (error) {
           console.error("Erro ao buscar dados para edição!", error)
         }
@@ -201,18 +200,21 @@ function FrmPlano({
     setFilteredSetores([]);
   };
 
+  useEffect(() => {
+    if (processos.length > 0) {
+      const filterProcSet = setoresProcessos.filter((i) => i.fk_setor_id === setorId);
+      const IdsProcessos = filterProcSet.map((item) => item.fk_processo_id);
+      const filterProc = processos.filter((i) => IdsProcessos.includes(i.id_processo));
+      setFilteredProcessos(filterProc);
+    }
+  }, [setorId, processos])
+
   // Função para atualizar o Setor
   const handleSetorSelect = async (SetorId, SetorName) => {
     closeModalSetor();
     setSetorId(SetorId);
     setSetorNome(SetorName);
     handleClearProcesso();
-
-    const filteredProcessosSetores = setoresProcessos.filter((i) => i.fk_setor_id === SetorId);
-    const IdsProcesso = filteredProcessosSetores.map((item) => item.fk_processo_id);
-    const filteredProcessos = processos.filter((i) => IdsProcesso.includes(i.id_processo));
-
-    setFilteredProcessos(filteredProcessos);
   };
 
   const handleClearSetor = () => {
@@ -243,31 +245,31 @@ function FrmPlano({
     handleClearRisco();
     setFilteredRiscos([]);
   };
-  
+
   const verify = async (unidadeId, setorId, processoId, riscoId, onEdit) => {
     try {
       if (onEdit) {
         setIsVerify(true);
         return;
       }
-  
+
       // Faz uma requisição para verificar a existência da combinação
       const response = await fetch(`${connect}/plano/existe?unidadeId=${unidadeId}&setorId=${setorId}&processoId=${processoId}&riscoId=${riscoId}`);
       const data = await response.json();
-  
+
       if (data.existeCombinação) {
         setIsVerify(false);
         toast.error("Esta combinação de unidade, setor, processo e risco já está cadastrada.");
       } else {
-        // Se a combinação não existe, prosseguir com outras ações
         setIsVerify(true);
       }
+
     } catch (error) {
       console.error("Erro ao verificar a existência da combinação:", error);
       toast.error("Ocorreu um erro ao verificar a existência da combinação. Por favor, tente novamente mais tarde.");
     }
   };
-  
+
   // Função para atualizar o Risco
   const handleRiscoSelect = async (RiscoId, RiscoNome) => {
     closeModalRisco();
@@ -275,29 +277,24 @@ function FrmPlano({
     setRiscoNome(RiscoNome);
 
     const filteresRiscosMedidas = riscosMedidas.filter((i) => i.fk_risco_id === RiscoId);
+    const mapRiscosMedias = filteresRiscosMedidas.map((i) => i.fk_medida_id);
 
-    const medidasTipos = filteresRiscosMedidas.map((filteredRiscosMedidas) => ({
-      medidaId: filteredRiscosMedidas.fk_medida_id,
-      medidaTipo: filteredRiscosMedidas.tipo,
-    }));
+    await verify(unidadeId, setorId, processoId, RiscoId, onEdit);
 
 
-    await handleRiscoEscolhido(RiscoId, medidasTipos);
+    await handleRiscoEscolhido(RiscoId, mapRiscosMedias);
   };
 
-  const handleRiscoEscolhido = async (RiscoId, medidasTipos) => {
+  const handleRiscoEscolhido = async (RiscoId, mapRiscosMedias) => {
     try {
-      if (onEdit) {
+      if (!setorId) {
         return;
       }
-  
-      // Usar um array para acumular promessas para Promise.all, se aplicável
-      const promises = [];
-  
-      for (const { medidaId, medidaTipo } of medidasTipos) {
-        // Verificar se a combinação já existe
+
+      for (const medidaId of mapRiscosMedias) {
+        // Verifica se a medida existe na tabela global_sprm
         const verificarResponse = await fetch(
-          `${connect}/verificar_sprm?fk_setor_id=${setorId}&fk_processo_id=${processoId}&fk_risco_id=${RiscoId}&fk_medida_id=${medidaId}&tipo_medida=${medidaTipo}`,
+          `${connect}/verificar_sprm?fk_setor_id=${setorId}&fk_processo_id=${processoId}&fk_risco_id=${RiscoId}&fk_medida_id=${medidaId}`,
           {
             method: 'GET',
             headers: {
@@ -305,19 +302,18 @@ function FrmPlano({
             },
           }
         );
-  
+
         if (!verificarResponse.ok) {
           throw new Error(`Erro ao verificar a existência. Status: ${verificarResponse.status}`);
         }
-  
+
         const verificarData = await verificarResponse.json();
-  
-        // Se a combinação já existir, continue para a próxima iteração
+
         if (verificarData.existeCombinação) {
           continue;
         }
-  
-        // Adicionar a nova medida
+
+        // Caso contrário, adicione a nova medida
         const adicionarResponse = await fetch(`${connect}/global_sprm`, {
           method: 'POST',
           headers: {
@@ -328,41 +324,40 @@ function FrmPlano({
             fk_processo_id: processoId,
             fk_risco_id: RiscoId,
             fk_medida_id: medidaId,
-            tipo_medida: medidaTipo,
             status: 'Não Aplicavel',
           }),
         });
-  
+
         if (!adicionarResponse.ok) {
           throw new Error(`Erro ao adicionar medida. Status: ${adicionarResponse.status}`);
         }
-  
-        const adicionarData = await adicionarResponse.json();
 
-        promises.push(adicionarData); // Acumular promessa se for necessário
-  
-        // Atualizar global SPRM e verificar risco
-        await getGlobalSprm();
-        await verify(unidadeId, setorId, processoId, riscoId);
+        const adicionarData = await adicionarResponse.json();
+        toast.success("Medidas Adicionadas com sucesso!");
       }
-  
-      if (promises.length > 0) {
-        await Promise.all(promises);
-        toast.success("Medidas adicionadas com sucesso!");
-      }
-  
-      setLoading(true);
-      setLoading(false);
+
+      getGlobalSprm();
     } catch (error) {
       console.error("Erro ao adicionar medidas", error);
     }
   };
-  
+
+  useEffect(() => {
+    if (globalSprm) {
+      const filter = globalSprm.filter((i) => i.fk_setor_id === setorId && i.fk_risco_id === riscoId);
+      const filterApply = filter.filter((i) => i.status === 'Não Aplica');
+      const mapSprm = filterApply.map((i) => i.fk_medida_id);
+      const filterMedidas = medidas.filter((i) => mapSprm.includes(i.id_medida));
+      setFilteredMedidas(filterMedidas);
+      setFilteredGlobalSprm(filter);
+    }
+  }, [globalSprm, setorId, riscoId, showModalMedidas]);
+
   const handleClearRisco = () => {
     setRiscoId(null);
     setRiscoNome(null);
     setIsOk(false);
-    setFilterGlobalSprm([]);
+    setFilteredGlobalSprm([]);
   }
 
   const handleSubmit = async (e) => {
@@ -413,6 +408,7 @@ function FrmPlano({
         const responseData = await response.json();
 
         toast.success(responseData);
+        getPlano();
       }
     } catch (error) {
       console.log("Erro ao inserir inventário: ", error);
@@ -427,7 +423,7 @@ function FrmPlano({
     setIsOk(false);
     setData(obterDataFormatada);
     setDataConclusao(obterDataFormatada);
-    setFilterGlobalSprm([]);
+    setFilteredGlobalSprm([]);
   };
 
   const handleMedidaChange = () => {
@@ -435,19 +431,20 @@ function FrmPlano({
     closeModalMedidas();
   };
 
-  const handleFilterGlobalSprm = () => {
+  const handleFilteredGlobalSprm = () => {
     const sprm = globalSprm.filter((i) => i.fk_setor_id === setorId && i.fk_processo_id === processoId && i.fk_risco_id === riscoId);
     const filterApply = sprm.filter((c) => c.status && c.status !== "Aplica");
-    setFilterGlobalSprm(filterApply);
+    setFilteredGlobalSprm(filterApply);
   };
 
   const handleChangeData = (event) => {
     setData(event.target.value);
-    
+
   };
+
   const handleChangeDataConclusao = (event) => {
     setDataConclusao(event.target.value);
-    
+
   };
 
   const handlePrazoChange = (event, id) => {
@@ -711,7 +708,7 @@ function FrmPlano({
                 isOpen={showModalMedidas}
                 onCancel={closeModalMedidas}
                 companyName={companyName}
-                globalSprm={filterGlobalSprm}
+                globalSprm={filteredGlobalSprm}
                 medidas={medidas}
                 medidasDefine={handleMedidaChange}
                 plano={plano}
@@ -719,40 +716,40 @@ function FrmPlano({
               />
             </div>
             {onEdit ? (
-  <div className="w-full md:w-1/4 px-3">
-    <div className="flex space-x-4">
-      {/* Data */}
-      <div className="flex-1">
-        <label className="tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="data_conclusao">
-          Data:
-        </label>
-        <input
-          className="appearance-none block w-full bg-gray-100 rounded py-3 px-4 mb-3 mt-1 leading-tight focus:outline-gray-100 focus:bg-white"
-          type="date"
-          name="data_conclusao"
-          value={data_conclusao}
-          onChange={handleChangeDataConclusao}
-        />
-      </div>
-      {/* Status */}
-      <div className="flex-1">
-        <label className="tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="status">
-          Status:
-        </label>
-        <select
-          className="appearance-none bg-gray-100 rounded py-3 px-4 mb-3 mt-1 leading-tight cursor-pointer"
-          name="status"
-          value={status} // Substitua 'status' com o valor adequado do estado
-          onChange={(e) => setStatus(e.target.value)} // Função de manipulação de estado para 'status'
-        >
-          <option value="0">Selecione o Status</option>
-          <option value="Realizado">Realizado</option>
-          <option value="Não Realizado">Não Realizado</option>
-        </select>
-      </div>
-    </div>
-  </div>
-) : ''}
+              <div className="w-full md:w-1/4 px-3">
+                <div className="flex space-x-4">
+                  {/* Data */}
+                  <div className="flex-1">
+                    <label className="tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="data_conclusao">
+                      Data:
+                    </label>
+                    <input
+                      className="appearance-none block w-full bg-gray-100 rounded py-3 px-4 mb-3 mt-1 leading-tight focus:outline-gray-100 focus:bg-white"
+                      type="date"
+                      name="data_conclusao"
+                      value={data_conclusao}
+                      onChange={handleChangeDataConclusao}
+                    />
+                  </div>
+                  {/* Status */}
+                  <div className="flex-1">
+                    <label className="tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="status">
+                      Status:
+                    </label>
+                    <select
+                      className="appearance-none bg-gray-100 rounded py-3 px-4 mb-3 mt-1 leading-tight cursor-pointer"
+                      name="status"
+                      value={status} // Substitua 'status' com o valor adequado do estado
+                      onChange={(e) => setStatus(e.target.value)} // Função de manipulação de estado para 'status'
+                    >
+                      <option value="0">Selecione o Status</option>
+                      <option value="Realizado">Realizado</option>
+                      <option value="Não Realizado">Não Realizado</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            ) : ''}
 
             {/* Medidas de Controle Aplicadas*/}
             <div className="w-full md:w-2/4 px-3">
@@ -801,9 +798,8 @@ function FrmPlano({
               </div>
               <div className="px-3 pl-8">
                 <button
-                  className={`shadow mt-4 bg-green-600 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded ${isOk && !isVerify ? 'hover:bg-green-700' : 'opacity-50 cursor-not-allowed'}`}
+                  className={`shadow mt-4 bg-green-600 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded cursor-pointer ${isOk && isVerify ? 'hover:bg-green-700' : 'opacity-50 cursor-not-allowed'}`}
                   type="submit"
-                  disabled={isOk && !isVerify}
                 >
                   Adicionar
                 </button>
