@@ -3,15 +3,13 @@ import SearchInput from '../SearchInput';
 import useAuth from '../../../../../hooks/useAuth';
 
 
-const ModalSearchMedidas = ({ onCancel, isOpen,  onSelect }) => {
+const ModalSearchMedidas = ({ onCancel, isOpen, onSelect }) => {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState(0);
   const [medidas, setMedidas] = useState([]);
-  const {
-    fetchMedidas,
-    params
-  } = useAuth(null);
+  const { fetchMedidas } = useAuth(null);
+  const [filteredMedidas, setFilteredMedidas] = useState([]);
 
   useEffect(() => {
     const carregarMedidas = async (grupo) => {
@@ -24,21 +22,20 @@ const ModalSearchMedidas = ({ onCancel, isOpen,  onSelect }) => {
       }
     };
 
+    carregarMedidas();
+
   }, []);
-
-  useEffect(() => {
-    if (!isOpen) {
-      setSearchTerm('');
-    }
-  }, [isOpen]);
-
-  if (!isOpen) {
-    return null;
-  }
 
   const handleSearch = (term) => {
     setSearchTerm(term);
-  }
+  };
+
+  useEffect(() => {
+    const normalizeString = (str) => str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase();
+    const filtered = medidas.filter((mp) => normalizeString(mp.descricao_medida).includes(normalizeString(searchTerm)));
+    setFilteredMedidas(filtered);
+  }, [medidas, searchTerm]);
+
   const determinarGrupoComBaseNoIndice = (index) => {
     switch (index) {
       case 1:
@@ -55,11 +52,11 @@ const ModalSearchMedidas = ({ onCancel, isOpen,  onSelect }) => {
         return 'all';
     }
   };
-  
+
   const handleTabClick = async (index) => {
     setActiveTab(index);
     try {
-      const grupo = determinarGrupoComBaseNoIndice(index); // Implemente esta função para determinar o grupo com base no índice da aba
+      const grupo = determinarGrupoComBaseNoIndice(index);
       const medidas = await fetchMedidas(grupo);
       setMedidas(medidas);
     } catch (error) {
@@ -72,7 +69,7 @@ const ModalSearchMedidas = ({ onCancel, isOpen,  onSelect }) => {
       case 1:
         return (
           <ul className='space-y-3 py-3'>
-            {medidas
+            {filteredMedidas
               .map((item, i) => (
                 <li
                   key={i}
@@ -98,10 +95,10 @@ const ModalSearchMedidas = ({ onCancel, isOpen,  onSelect }) => {
               ))}
           </ul>
         );
-        case 2:
+      case 2:
         return (
           <ul className='space-y-3 py-3'>
-            {medidas
+            {filteredMedidas
               .map((item, i) => (
                 <li
                   key={i}
@@ -126,37 +123,31 @@ const ModalSearchMedidas = ({ onCancel, isOpen,  onSelect }) => {
                 </li>
               ))}
           </ul>
-        );      case 3:
+        );
+      case 3:
         return (
           <>
             <ul className='space-y-3 py-3'>
-              {medidas
+              {filteredMedidas
                 .map((item, i) => (
                   <li
                     key={i}
                     className="py-3 hover:bg-gray-100 hover:shadow-sm shadow-sm bg-gray-50 cursor-pointer px-4 rounded-md"
                     onClick={() => {
-                      onSelect(item.id_medida,3);
+                      onSelect(item.id_medida, 3);
                       setActiveTab(0);
                     }}
                   >
                     <div className="flex items-center text-sm font-light text-gray-500">
                       <div className="flex-1 min-w-0">
-                        <div className='flex justify-between text-lg font-bold text-gray-800'>
+                        <div className='flex justify-between font-medium text-gray-800'>
                           <p>
                             {item.descricao_medida}
                           </p>
                           <p>
-                            {item.certificado_medida}
+                            {item.id_medida}
                           </p>
                         </div>
-                        <div className='border-b border-gray-200 mb-2 mt-1'></div>
-                        <p>
-                          Fabricante: <span className='text-sm font-medium text-gray-700'>{item.fabricante_medida}</span>
-                        </p>
-                        <p className='text-sm text-gray-500 truncate'>
-                          Vencimento C.A: <span className='text-sm font-medium text-gray-700'>{item.vencimento_certificado_medida}</span>
-                        </p>
                       </div>
                     </div>
                   </li>
@@ -164,10 +155,10 @@ const ModalSearchMedidas = ({ onCancel, isOpen,  onSelect }) => {
             </ul>
           </>
         );
-        case 4:
+      case 4:
         return (
           <ul className='space-y-3 py-3'>
-            {medidas
+            {filteredMedidas
               .map((item, i) => (
                 <li
                   key={i}
@@ -193,10 +184,10 @@ const ModalSearchMedidas = ({ onCancel, isOpen,  onSelect }) => {
               ))}
           </ul>
         );
-        case 5:
+      case 5:
         return (
           <ul className='space-y-3 py-3'>
-            {medidas
+            {filteredMedidas
               .map((item, i) => (
                 <li
                   key={i}
@@ -227,6 +218,10 @@ const ModalSearchMedidas = ({ onCancel, isOpen,  onSelect }) => {
     }
   };
 
+  if (!isOpen) {
+    return null;
+  };
+
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50">
       <div className="modal-overlay absolute inset-0 backdrop-blur-[1px] bg-black bg-opacity-10" onClick={onCancel}></div>
@@ -252,26 +247,26 @@ const ModalSearchMedidas = ({ onCancel, isOpen,  onSelect }) => {
         </div>
         <div className="flex justify-center w-full mt-2 mb-4 gap-4">
           <div className="w-5/6">
-            <SearchInput onSearch={handleSearch} placeholder="Buscar Risco..." />
+            <SearchInput onSearch={handleSearch} placeholder="Buscar Medida..." />
           </div>
         </div>
         <div className='flex items-center justify-center'>
           <ul className='flex gap-4'>
-            <li className='bg-sky-600 py-2 px-4 rounded-md shadow-sm hover:bg-sky-900 font-medium text-white' onClick={() => handleTabClick(1)}>
+            <li className={`bg-sky-600 py-2 px-4 rounded-md shadow-sm hover:bg-sky-900 font-medium text-white cursor-pointer ${activeTab === 1 ? "bg-sky-900 hover:bg-sky-600" : ""}`} onClick={() => handleTabClick(1)}>
               <button>M.A</button>
             </li>
-            <li className='bg-sky-600 py-2 px-4 rounded-md shadow-sm hover:bg-sky-900 font-medium text-white' onClick={() => handleTabClick(2)}>
+            <li className={`bg-sky-600 py-2 px-4 rounded-md shadow-sm hover:bg-sky-900 font-medium text-white cursor-pointer ${activeTab === 2 ? "bg-sky-900 hover:bg-sky-600" : ""}`} onClick={() => handleTabClick(2)}>
               <button>M.C</button>
             </li>
-            <li className='bg-sky-600 py-2 px-4 rounded-md shadow-sm hover:bg-sky-900 font-medium text-white' onClick={() => handleTabClick(3)}>
+            <li className={`bg-sky-600 py-2 px-4 rounded-md shadow-sm hover:bg-sky-900 font-medium text-white cursor-pointer ${activeTab === 3 ? "bg-sky-900 hover:bg-sky-600" : ""}`} onClick={() => handleTabClick(3)}>
               <button>M.I</button>
 
             </li>
-            <li className='bg-sky-600 py-2 px-4 rounded-md shadow-sm hover:bg-sky-900 font-medium text-white' onClick={() => handleTabClick(4)}>
+            <li className={`bg-sky-600 py-2 px-4 rounded-md shadow-sm hover:bg-sky-900 font-medium text-white cursor-pointer ${activeTab === 4 ? "bg-sky-900 hover:bg-sky-600" : ""}`} onClick={() => handleTabClick(4)}>
               <button>T.R </button>
 
             </li>
-            <li className='bg-sky-600 py-2 px-4 rounded-md shadow-sm hover:bg-sky-900 font-medium text-white' onClick={() => handleTabClick(5)}>
+            <li className={`bg-sky-600 py-2 px-4 rounded-md shadow-sm hover:bg-sky-900 font-medium text-white cursor-pointer ${activeTab === 5 ? "bg-sky-900 hover:bg-sky-600" : ""}`} onClick={() => handleTabClick(5)}>
               <button>I.N</button>
 
             </li>

@@ -76,7 +76,7 @@ const ModalSearchElaborador = ({ isOpen, onCancel, children, onSelect }) => {
               <li
                 key={i}
                 className="py-3 hover:bg-gray-100 hover:shadow-sm shadow-sm bg-gray-50 cursor-pointer px-4 rounded-md"
-                onClick={() => onSelect(item.id_elaborador, item.nome_elaborador)}
+                onClick={() => onSelect(item)}
               >
                 <div className='grid grid-cols-2'>
                   <div>

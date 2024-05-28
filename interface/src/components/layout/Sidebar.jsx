@@ -93,7 +93,6 @@ function Sidebar() {
   const [showUserProfile, setShowUserProfile] = useState(false);
   const [columnThreeClicked, setColumnThreeClicked] = useState(false);
 
-
   const getCompany = async () => {
     const selectCompany = await loadSelectedCompanyFromLocalStorage();
     setCompany(selectCompany);
@@ -173,10 +172,10 @@ function Sidebar() {
   };
 
   const openSearchCompany = () => {
-    setShowProfileCompany(false);
-    setShowProfileTenant(false);
     setShowMenu(false);
     setShowUserProfile(false);
+    setShowProfileCompany(false);
+    setShowProfileTenant(false);
     setShowSearchCompany(true);
   };
 
@@ -189,14 +188,15 @@ function Sidebar() {
   }, [searchTerm, empresas]);
 
   const handleSearch = async (e) => {
+    openSearchCompany();
     const empresasCheck = await fetchEmpresas();
     setEmpresas(empresasCheck);
     const term = e.target.value;
     setSearchTerm(term);
-    openSearchCompany();
   };
 
   const onSelect = (idCompany, nameCompany) => {
+    setShowProfileCompany(false);
     closeMenu();
     setCompanyId(idCompany);
     setCompanyName(nameCompany);
@@ -220,11 +220,6 @@ function Sidebar() {
     setShowRiscosSubMenu(false);
     setShowLaudosSubMenu(false);
     setShowSistemaSubMenu(false);
-  };
-
-  const openMenu = () => {
-    setShowMenu(!showMenu);
-    closeSubMenus();
   };
 
   const [uniqueKey, setUniqueKey] = useState('');
@@ -412,7 +407,7 @@ function Sidebar() {
                   <ul className="space-y-2 font-medium cursor-pointer px-3 py-2">
 
                     {/* Home */}
-                    <Link to="/home" onClick={openMenu}>
+                    <Link to="/home" onClick={closeMenu}>
                       <li className="flex items-center p-2 hover:bg-gray-100 rounded-md">
                         <div>
                           <img src={icon_home} alt="icon_home" />
@@ -605,7 +600,6 @@ function Sidebar() {
                             </Link>
 
                             {/* Importar Dados */}
-
                             <Link to="/importar_dados" onClick={() => setShowMenu(!showMenu)}>
                               <li className="opacity-25">
                                 <div className={`flex items-center py-2 px-6`}>
@@ -624,7 +618,7 @@ function Sidebar() {
                     {companyId && (
                       <>
                         {/* Inventário de Riscos */}
-                        <Link to="/inventario" onClick={openMenu}>
+                        <Link to="/inventario" onClick={closeMenu}>
                           <li className="flex items-center p-2 hover:bg-gray-100 rounded-md">
                             <div>
                               <img src={icon_inventario} alt="icon_inventario" />
@@ -634,7 +628,7 @@ function Sidebar() {
                         </Link>
 
                         {/* Plano de Ação */}
-                        <Link to="plano" onClick={openMenu}>
+                        <Link to="plano" onClick={closeMenu}>
                           <li className="flex items-center p-2 hover:bg-gray-100 rounded-md">
                             <div>
                               <img src={icon_plano} alt="icon_plano" />

@@ -300,7 +300,11 @@ function PgrGenerate({
 
   const getFirstLetter = (item) => {
     return item.charAt(0);
-  }
+  };
+
+  const getNomeEmpresa = () => {
+    console.log(dados.empresas);
+  };
 
 
   Font.register({ family: 'OpenSansLight', src: OpenSansLight });
@@ -647,7 +651,7 @@ function PgrGenerate({
     return (
       <View style={ContainerStyles.headerContainer}>
         <Text style={TextStyles.headerText}>PGR - Programa de Gerenciamento de Riscos - NR1</Text>
-        <Text style={TextStyles.littleText}>{company.nome_empresa} - Versão: {versao ? versao : '1'}</Text>
+        <Text style={TextStyles.littleText}>{dados.empresas[0].nome_empresa || ''} - Versão: </Text>
       </View>
     );
   }
@@ -655,8 +659,8 @@ function PgrGenerate({
   const FooterPage = () => {
     return (
       <View style={ContainerStyles.footerContainer}>
-        <Text style={TextStyles.footerText}>{company.nome_empresa}</Text>
-        <Text style={TextStyles.footerAddresText}>Rua Goias, 1914 - apto 301 - Londrina/PR 86020-410</Text>
+        <Text style={TextStyles.footerText}>{dados.empresas[0].nome_empresa || '-'}</Text>
+        <Text style={TextStyles.footerAddresText}> - </Text>
       </View>
     );
   }
@@ -666,7 +670,7 @@ function PgrGenerate({
       <Page size="A4" style={PageStyles.Page}>
         <Text style={TextStyles.headerText}>Programa de Gerenciamento de Riscos - PGR</Text>
         <View style={ContainerStyles.centerContainer}>
-          <Text style={TextStyles.centerText}>{company.nome_empresa}</Text>
+          <Text style={TextStyles.centerText}>{dados.empresas[0].nome_empresa}</Text>
         </View>
         <View style={ContainerStyles.bottomContainerVigencia}>
           <Text style={TextStyles.smallTextVigencia}>Londrina, {formatData(data)} - Vigência: {setVigencia(data)}</Text>
@@ -818,24 +822,24 @@ function PgrGenerate({
         <View style={TableStyles.table}>
           <View style={TableStyles.headerCell}>
             <Text style={TextStyles.prefixTextTitle}>Empresa: </Text>
-            <Text style={TextStyles.valueTextTitle}>{company.nome_empresa || "N/A"}</Text>
+            <Text style={TextStyles.valueTextTitle}>{dados.empresas[0].nome_empresa || "N/A"}</Text>
           </View>
           <View style={TableStyles.tableRow}>
             <View style={TableStyles.twentyFiveRow}>
               <Text style={TextStyles.prefixText}>CNPJ:</Text>
-              <Text style={TextStyles.valueText}>{company.cnpj_empresa || "N/A"}</Text>
+              <Text style={TextStyles.valueText}>{dados.empresas[0].cnpj_empresa || "N/A"}</Text>
             </View>
             <View style={TableStyles.fifTeenRow}>
               <Text style={TextStyles.prefixText}>Cnae:</Text>
-              <Text style={TextStyles.valueText}>{company.cnae_empresa || "0"}</Text>
+              <Text style={TextStyles.valueText}>{dados.empresas[0].cnae_empresa || "0"}</Text>
             </View>
             <View style={TableStyles.fifTeenRow}>
               <Text style={TextStyles.prefixText}>Grau de Risco:</Text>
-              <Text style={TextStyles.valueText}>{company.grau_risco_cnae || "0"}</Text>
+              <Text style={TextStyles.valueText}>{dados.empresas[0].grau_risco_cnae || "0"}</Text>
             </View>
             <View style={TableStyles.fiftyRow}>
               <Text style={TextStyles.prefixText}>Descrição CNAE:</Text>
-              <Text style={TextStyles.valueText}>Serviços de manutenção e reparação mecânica de veículos automotores</Text>
+              <Text style={TextStyles.valueText}>{dados.empresas[0].descricao_cnae || "N/A"}</Text>
             </View>
           </View>
         </View>
@@ -864,22 +868,22 @@ function PgrGenerate({
                   {/* Nome e Registro */}
                   <View style={[TableStyles.contentColumm, { width: '100%' }]}>
                     <View style={[TableStyles.contentCell, { width: '75%' }]}>
-                      <Text style={[TextStyles.tableContentText, { fontFamily: 'OpenSansBold', fontSize: 10 }]}>{elaborador.nome_elaborador}</Text>
+                      <Text style={[TextStyles.tableContentText, { fontFamily: 'OpenSansBold', fontSize: 10 }]}>{elaborador.nome_elaborador || "N/A"}</Text>
                     </View>
                     <View style={[TableStyles.contentCell, { width: '25%' }]}>
-                      <Text style={[TextStyles.tableContentSubText, { textAlign: 'left' }]}>{findRegisterName(elaborador.cargo_elaborador)}:</Text>
-                      <Text style={[TextStyles.tableContentText, { textAlign: 'right' }]}>{elaborador.registro_elaborador}</Text>
+                      <Text style={[TextStyles.tableContentSubText, { textAlign: 'left' }]}>{findRegisterName(elaborador.cargo_elaborador) || "N/A"}:</Text>
+                      <Text style={[TextStyles.tableContentText, { textAlign: 'right' }]}>{elaborador.registro_elaborador || "N/A"}</Text>
                     </View>
                   </View>
                   {/* Email e Telefone */}
                   <View style={[TableStyles.contentColumm, { width: '100%' }]}>
                     <View style={[TableStyles.contentCell, { width: '75%' }]}>
                       <Text style={[TextStyles.tableContentSubText, { textAlign: 'left' }]}>Email:</Text>
-                      <Text style={[TextStyles.tableContentText, { textAlign: 'left' }]}>{elaborador.email_elaborador}</Text>
+                      <Text style={[TextStyles.tableContentText, { textAlign: 'left' }]}>{elaborador.email_elaborador || "N/A"}</Text>
                     </View>
                     <View style={[TableStyles.contentCell, { width: '25%' }]}>
                       <Text style={[TextStyles.tableContentSubText, { textAlign: 'left' }]}>Telefone:</Text>
-                      <Text style={[TextStyles.tableContentText, { textAlign: 'right' }]}>{elaborador.telefone_elaborador}</Text>
+                      <Text style={[TextStyles.tableContentText, { textAlign: 'right' }]}>{elaborador.telefone_elaborador || "N/A"}</Text>
                     </View>
                   </View>
 
@@ -904,18 +908,18 @@ function PgrGenerate({
                   {/* Nome e Registro */}
                   <View style={[TableStyles.contentColumm, { width: '100%' }]}>
                     <View style={[TableStyles.contentCell, { width: '75%' }]}>
-                      <Text style={[TextStyles.tableContentText, { fontFamily: 'OpenSansBold', fontSize: 10 }]}>{contatos.nome_contato}</Text>
+                      <Text style={[TextStyles.tableContentText, { fontFamily: 'OpenSansBold', fontSize: 10 }]}>{dados.contatos[0].nome_contato}</Text>
                     </View>
                     <View style={[TableStyles.contentCell, { width: '25%' }]}>
                       <Text style={[TextStyles.tableContentSubText, { textAlign: 'left' }]}>Telefone:</Text>
-                      <Text style={[TextStyles.tableContentText, { textAlign: 'right' }]}>{contatos.telefone_contato}</Text>
+                      <Text style={[TextStyles.tableContentText, { textAlign: 'right' }]}>{dados.contatos[0].telefone_contato}</Text>
                     </View>
                   </View>
                   {/* Email e Telefone */}
                   <View style={[TableStyles.contentColumm, { width: '100%' }]}>
                     <View style={[TableStyles.contentCell, { width: '100%' }]}>
                       <Text style={[TextStyles.tableContentSubText, { textAlign: 'left' }]}>Email:</Text>
-                      <Text style={[TextStyles.tableContentText, { textAlign: 'left' }]}>{contatos.email_contato}</Text>
+                      <Text style={[TextStyles.tableContentText, { textAlign: 'left' }]}>{dados.contatos[0].email_contato}</Text>
                     </View>
                   </View>
 
@@ -4025,7 +4029,7 @@ function PgrGenerate({
       <Page size="A4" orientation='landscape' style={PageStyles.LandscapePage}>
 
         {/* Cabeçalho */}
-        {/* <HeaderPage /> */}
+        <HeaderPage />
 
         {/* Sumário */}
         <Text style={TextStyles.subTitleSumary}>18. Inventário de Riscos</Text>
@@ -4216,7 +4220,7 @@ function PgrGenerate({
         </View>
 
         {/* Footer */}
-        {/* <FooterPage /> */}
+        <FooterPage />
       </Page>
     );
   };
@@ -4339,10 +4343,10 @@ function PgrGenerate({
   const MyDocument = () => {
     return (
       <Document>
-        {/* <CoverPage /> */}
+        <CoverPage />
         {/* <SumaryPage /> */}
         {/* <VersionTable /> */}
-        {/* <CompanyPage /> */}
+        <CompanyPage />
         {/* <IntroductionPage /> */}
         {/* <AbrangencePage /> */}
         {/* <DefinePage /> */}

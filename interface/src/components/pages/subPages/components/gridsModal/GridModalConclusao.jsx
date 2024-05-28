@@ -11,8 +11,8 @@ function GridModalConclusao({ childId, conclusoes, setOnEdit, onSelect, invent }
         return 'Laudo Técnico das Condições do Ambiente de Trabalho'
       case 'lip':
         return 'Laudo de Insalubridade e Periculosidade'
-      case 'Ambos':
-        return 'Laudo Técnico das Condições do Ambiente de Trabalho - Laudo de Insalubridade e Periculosidade'
+      case 'ambos':
+        return 'Ambos'
       default:
         return 'N/A'
     }

@@ -11,7 +11,7 @@ import ModalSearchElaborador from "../components/Modal/ModalSearchElaborador";
 import icon_sair from '../../../media/icon_sair.svg'
 import icon_lupa from '../../../media/icon_lupa.svg'
 import { PDFDownloadLink, PDFViewer } from "@react-pdf/renderer";
-import { connect } from "../../../../services/api";
+import { auth, connect } from "../../../../services/api";
 import GridLaudo from "./Grids/GridLaudo";
 import { FaDownload } from "react-icons/fa6";
 import Back from '../../../layout/Back'
@@ -88,9 +88,6 @@ function LaudoPgr() {
     getProcessosRiscos();
     getInventario();
     getRiscosMedidas();
-    getMedidasAdm();
-    getMedidasEpi();
-    getMedidasEpc();
     getPlano();
     getUsuarios();
     getContatos();
@@ -301,6 +298,10 @@ function LaudoPgr() {
   };
 
   const handleGerarRelatorio = async () => {
+    
+    if (!filteredElaborador) {
+      return toast.warn("Selecione um elaborador!");
+    }
 
     const res = await fetch(`${connect}/relatorio_pgr`, {
       method: 'POST',
@@ -318,7 +319,7 @@ function LaudoPgr() {
   };
 
   const pgrGenerate = async (data) => {
-    return <PgrGenerate inventario={inventario} dados={data} />
+    return <PgrGenerate inventario={inventario} dados={data} elaborador={filteredElaborador} />
   }
 
   const handleClear = () => {
@@ -410,12 +411,10 @@ function LaudoPgr() {
     setSetorNome(null);
   };
 
-  const handleElaboradorSelect = (authorsId, authorsName) => {
-    setElaboradorId(authorsId);
-    setElaboradorNome(authorsName);
-
-    const filter = elaboradores.find((i) => i.id_elaborador === authorsId);
-    setFilteredElaborador(filter);
+  const handleElaboradorSelect = (authors) => {
+    setElaboradorId(authors.id_elaborador);
+    setElaboradorNome(authors.nome_elaborador);
+    setFilteredElaborador(authors);
     closeModalElaborador();
   };
 

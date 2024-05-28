@@ -26,15 +26,13 @@ function CadastroRisco({ onEdit, setOnEdit, getRiscos, riscos }) {
 
   const ref = useRef(null);
 
-  
+
 
   useEffect(() => {
     if (onEdit) {
       const user = ref.current;
       const {
         nome_risco,
-        avaliacao,
-        codigo_esocial_risco,
         meio_propagacao_risco,
         unidade_medida_risco,
         classificacao_risco,
@@ -91,21 +89,21 @@ function CadastroRisco({ onEdit, setOnEdit, getRiscos, riscos }) {
     const userData = JSON.parse(localStorage.getItem("user"));
     const tenant = userData.tenant_code;
     const nome = userData.nome_usuario;
-    const queryParams = new URLSearchParams({ tenant_code: tenant, nome_usuario:nome}).toString();
+    const queryParams = new URLSearchParams({ tenant_code: tenant, nome_usuario: nome }).toString();
     const user = ref.current;
-  
+
     if (!user.nome_risco.value ||
-       !user.grupo_risco.value ||
-       !user.danos_saude_risco.value ||
-       !user.severidade_risco.value ||
-       !user.classificacao_risco.value ||
-       !user.meio_propagacao_risco.value ||
-       !user.nivel_acao_risco.value ||
-       !user.limite_tolerancia_risco.value ||
-       !user.metodologia_risco.value) {
+      !user.grupo_risco.value ||
+      !user.danos_saude_risco.value ||
+      !user.severidade_risco.value ||
+      !user.classificacao_risco.value ||
+      !user.meio_propagacao_risco.value ||
+      !user.nivel_acao_risco.value ||
+      !user.limite_tolerancia_risco.value ||
+      !user.metodologia_risco.value) {
       return toast.warn("Preencha todos os campos!");
     }
-  
+
     try {
       const riscoData = {
         nome_risco: user.nome_risco.value,
@@ -122,15 +120,15 @@ function CadastroRisco({ onEdit, setOnEdit, getRiscos, riscos }) {
         pgr_risco: pgr,
         ltcat_risco: ltcat,
         lip_risco: lip,
-        tenant_code : tenant
+        tenant_code: tenant
       };
-  
+
       const url = onEdit
-       ? `${connect}/riscos/${onEdit.id_risco}?${queryParams}`
+        ? `${connect}/riscos/${onEdit.id_risco}?${queryParams}`
         : `${connect}/riscos?${queryParams}`
-  
-      const method = onEdit? 'PUT' : 'POST';
-  
+
+      const method = onEdit ? 'PUT' : 'POST';
+
       const response = await fetch(url, {
         method,
         headers: {
@@ -138,7 +136,7 @@ function CadastroRisco({ onEdit, setOnEdit, getRiscos, riscos }) {
         },
         body: JSON.stringify(riscoData),
       });
-  
+
       if (!response.ok) {
         toast.error("Erro ao cadastrar/editar risco!")
         throw new Error(`Erro ao cadastrar/editar risco. Status: ${response.status}`)
@@ -167,19 +165,22 @@ function CadastroRisco({ onEdit, setOnEdit, getRiscos, riscos }) {
     user.severidade_risco.value = "0";
     setAvaliacao("0");
 
+    if (ltcat || lip) {
+      window.scrollTo({ top: 500, behavior: 'smooth' });
+    }
+
     setPgr(false);
     setLtcat(false);
     setLip(false);
-    
+
     setOnEdit(null);
     setEsocial('');
     setRiscoId('');
-    setInespecific(false);  
-    window.scrollTo({ top: 500, behavior: 'smooth' });
-  
+    setInespecific(false);
+
     getRiscos();
   };
-  
+
   const handleClear = () => {
 
     const user = ref.current;
@@ -564,6 +565,7 @@ function CadastroRisco({ onEdit, setOnEdit, getRiscos, riscos }) {
 
         </div>
 
+        {/* Botões */}
         <div className="w-full flex justify-end mb-6 gap-3">
           <div>
             <button onClick={handleClear} className="shadow mt-4 bg-red-600 hover:bg-red-700 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-5 rounded" type="button">

@@ -3,7 +3,6 @@ import { connect } from "../../../../services/api";
 import { toast } from "react-toastify";
 import { IoInformationCircleSharp } from "react-icons/io5";
 
-import LoadingScreen from "../components/LoadingScreen";
 import ModalSearchUnidade from "../components/Modal/ModalSearchUnidade";
 import ModalSearchSetor from "../components/Modal/ModalSearchSetor";
 import ModalSearchProcesso from '../components/Modal/ModalSearchProcesso';
@@ -11,7 +10,6 @@ import ModalSearchRisco from '../components/Modal/ModalSearchRisco';
 import ModalMedidasDefine from "../components/Modal/ModalMedidasDefine";
 import ModalSearchAparelhos from '../components/Modal/ModalSearchAparelhos';
 import ModalSearchConclusao from '../components/Modal/ModalSearchConclusao';
-import Back from '../../../layout/Back'
 
 import icon_sair from '../../../media/icon_sair.svg';
 import icon_lupa from '../../../media/icon_lupa.svg';
@@ -186,14 +184,10 @@ function FrmInventario({
 
 
   const handleClearUnidade = () => {
-    // Limpa as variáveis de estado relacionadas à unidade selecionada
     setUnidadeId(null);
     setNomeUnidade(null);
-    handleClearProcesso();
-    handleClearRisco();
     handleClearSetor();
-    setFilteredSetores([]); // Limpa os setores filtrados
-    setData('');
+    setIsVerify(false)
   };
 
   // Função para lidar com a seleção de um setor
@@ -247,8 +241,8 @@ function FrmInventario({
     setSetorId(null);
     setSetorNome(null);
     setPessoasExpostas('');
-    handleClearProcesso();
     handleClearRisco();
+    handleClearProcesso();
     setFilteredProcessos([]);
   };
 
@@ -318,21 +312,15 @@ function FrmInventario({
     }
   };
 
-  useEffect(() => {
-    if (riscoId && riscosMedidas.length > 0) {
-      const filteresRiscosMedidas = riscosMedidas.filter((i) => i.fk_risco_id === riscoId);
-      const mapFilter = filteresRiscosMedidas.map((i) => i.fk_medida_id);
-      setMapRiscosMedidas(mapFilter);
-    }
-  }, [riscoId, riscosMedidas]);
-
   // Função para atualizar o Risco
   const handleRiscoSelect = async (RiscoId, RiscoNome) => {
     closeModalRisco();
     setRiscoId(RiscoId);
     setRiscoNome(RiscoNome);
     setData(obterDataFormatada(onEdit ? onEdit.data_inventario : null));
-    getRiscosMedidas();
+    const res = await getRiscosMedidas();
+    const filterRiscosMedidas = res.filter((i) => i.fk_risco_id === RiscoId);
+    const mapRiscosMedias = filterRiscosMedidas.map((i) => i.fk_medida_id);
 
     const riscoSelecionado = riscos.find((i) => i.id_risco === RiscoId);
 
@@ -362,17 +350,17 @@ function FrmInventario({
 
     getMedidas();
 
-    await handleRiscoEscolhido(RiscoId);
+    await handleRiscoEscolhido(RiscoId, mapRiscosMedias);
     await verify(RiscoId);
   };
 
-  const handleRiscoEscolhido = async (RiscoId) => {
+  const handleRiscoEscolhido = async (RiscoId, mapRiscosMedias) => {
     try {
       if (!setorId) {
         return;
       }
 
-      for (const medidaId of mapRiscosMedidas) {
+      for (const medidaId of mapRiscosMedias) {
         // Verifica se a medida existe na tabela global_sprm
         const verificarResponse = await fetch(
           `${connect}/verificar_sprm?fk_setor_id=${setorId}&fk_processo_id=${processoId}&fk_risco_id=${RiscoId}&fk_medida_id=${medidaId}`,
@@ -424,11 +412,29 @@ function FrmInventario({
   };
 
   const handleClearRisco = () => {
-    setLoading(true);
     setRiscoId('');
     setRiscoNome('');
-    setRiscosInput('');
+    setData('');
+    setConsequencia('');
+    setAvaliacao('');
+    setLimiteTolerancia('');
+    setMetodologia('');
+    setMedicao('');
+    setFrequencia('');
+    setProbabilidade('');
+    setSeveridade('');
+    setNivel('');
     setDescricao('');
+    setComentarios('');
+    setConclusaoLi('');
+    setConclusaoLiNome('');
+    setConclusaoLp('');
+    setConclusaoLpNome('');
+    setConclusaoLtcat('');
+    setConclusaoLtcatNome('');
+    handleClearAparelhos();
+    setLtcat(false);
+    setLip(false);
     setCheckMedicao(false);
     setIsVerify(false);
   };
@@ -506,7 +512,6 @@ function FrmInventario({
       }
     }
   };
-
 
   const handleMedicaoCheck = () => {
     setCheckMedicao(!checkMedicao);
@@ -650,27 +655,7 @@ function FrmInventario({
       console.log("Erro ao inserir inventário: ", error)
     }
 
-    handleClear();
-  };
-
-  const handleClear = () => {
-    handleClearRisco();
-    handleClearAparelhos();
-    setConsequencia('');
-    setComentarios('');
-    setMedicao('');
-    setCheckMedicao(false);
-    setProbabilidade('');
-    setNivel('');
-    setDescricao('');
-    setOnEdit(null);
-    setIsMedidasSet(false);
-    setFrequencia('');
-    setIsVerify(false);
-    setData('');
-    handleClearConclusaoLtcat();
-    handleClearConclusaoLi();
-    handleClearConclusaoLp();
+    handleClearUnidade();
   };
 
   const handleDescricaoFontesChange = (event) => {
@@ -1523,7 +1508,7 @@ function FrmInventario({
             {/* Botões */}
             <div className="w-full px-3 pl-8 flex justify-end mt-10">
               <div className="px-3 pl-8">
-                <button onClick={() => handleClear()} className="w-full shadow mt-4 bg-red-600 hover:bg-red-700 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded" type="button">
+                <button onClick={() => handleClearRisco()} className="w-full shadow mt-4 bg-red-600 hover:bg-red-700 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded" type="button">
                   Limpar
                 </button>
               </div>

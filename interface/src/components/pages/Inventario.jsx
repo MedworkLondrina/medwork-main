@@ -114,7 +114,6 @@ function Inventario() {
     setOnEdit(item);
   }
 
-
   useEffect(() => {
     getUnidades();
     fetchInventario();
@@ -148,7 +147,7 @@ function Inventario() {
         handleEdit = {handleEdit}
         setOnEdit={setOnEdit}
         riscosMedidas={riscosMedidas}
-        getRiscosMedidas={fetchRiscosMedidas}
+        getRiscosMedidas={getRiscosMedidas}
         medidasAdm={medidasAdm}
         medidasEpi={medidasEpi}
         medidasEpc={medidasEpc}

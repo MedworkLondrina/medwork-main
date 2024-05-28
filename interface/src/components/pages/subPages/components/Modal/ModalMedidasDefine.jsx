@@ -71,6 +71,8 @@ const ModalMedidasDefine = ({ onCancel, isOpen, companyName, globalSprm, medidas
         ...prevState,
         [itemId]: status,
       }));
+
+      getGlobalSprm();
     } catch (error) {
       console.error("Erro ao mudar status da medida!", error);
       toast.error("Erro ao mudar status da medida.");
@@ -84,11 +86,6 @@ const ModalMedidasDefine = ({ onCancel, isOpen, companyName, globalSprm, medidas
     setGlobalId(filter.id_global_sprm);
     setGlobalData(filter);
     openModalEpi();
-  };
-
-  const findStatus = (itemId) => {
-    const find = globalSprm.find((i) => i.fk_medida_id === itemId);
-    return find ? find.status : 'N/A';
   };
 
   // Funções do Modal
@@ -139,9 +136,11 @@ const ModalMedidasDefine = ({ onCancel, isOpen, companyName, globalSprm, medidas
                 <th scope="col" className="px-4 py-3 text-center">
                   Status
                 </th>
-                <th scope="col" className="px-4 py-3 text-center">
-                  Dados do EPI
-                </th>
+                {!plano && (
+                  <th scope="col" className="px-4 py-3 text-center">
+                    Dados do EPI
+                  </th>
+                )}
               </tr>
             </thead>
             <tbody>
@@ -167,25 +166,29 @@ const ModalMedidasDefine = ({ onCancel, isOpen, companyName, globalSprm, medidas
                       value={selectedStatus[item.id_medida] || "0"}
                     >
                       <option value="0">Selecione uma aplicação</option>
-                      <option value="Aplica" disabled={plano}>Aplica</option>
+                      {!plano ? <option value="Aplica">Aplica</option> : null}
                       <option value="Não Aplica">Não Aplica</option>
                       <option value="Não Aplicavel">Não Aplicavel</option>
                     </select>
                   </td>
                   <td className="text-center">
-                    {item.grupo_medida === 'MI' && !plano ? (
-                      <div className='w-full' onClick={() => handleEditEpi(item.id_medida)}>
-                        <div className='inline-flex py-2 px-4 rounded bg-sky-600 text-white font-bold text-xs cursor-pointer hover:bg-sky-700'>
-                          Adicionar dados
-                        </div>
-                      </div>
-                    ) : (
+                    {!plano && (
                       <>
-                        <div className='w-full'>
-                          <div className='inline-flex py-2 px-4 rounded bg-gray-100 text-gray-500 font-medium text-xs cursor-not-allowed'>
-                            Adicionar dados
+                        {item.grupo_medida === 'MI' ? (
+                          <div className='w-full' onClick={() => handleEditEpi(item.id_medida)}>
+                            <div className='inline-flex py-2 px-4 rounded bg-sky-600 text-white font-bold text-xs cursor-pointer hover:bg-sky-700'>
+                              Adicionar dados
+                            </div>
                           </div>
-                        </div>
+                        ) : (
+                          <>
+                            <div className='w-full'>
+                              <div className='inline-flex py-2 px-4 rounded bg-gray-100 text-gray-500 font-medium text-xs cursor-not-allowed'>
+                                Adicionar dados
+                              </div>
+                            </div>
+                          </>
+                        )}
                       </>
                     )}
                   </td>
