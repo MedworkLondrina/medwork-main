@@ -87,8 +87,8 @@ function GridLaudo({ children, companyId, empresas, handleGenerate, pdf }) {
                 </th>
                 <th className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap text-center">
                   <div
-                    className="flex justify-center items-center text-blue-600 hover:text-blue-800 cursor-pointer"
-                    onClick={() => handleGeneratePdf(item.data, item.fk_empresa_id, item.comentario, item.versao, i)}
+                    className="flex justify-center items-center text-gray-400 cursor-not-allowed"
+                    // onClick={() => handleGeneratePdf(item.data, item.fk_empresa_id, item.comentario, item.versao, i)}
                   >
                     {pdf && pdfComponents[i] ? (
                       pdf
