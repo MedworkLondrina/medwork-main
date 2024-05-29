@@ -34,8 +34,8 @@ function LaudoPgr() {
     getProcessosRiscos, setProcessosRiscos, processosRiscos,
     getRiscosMedidas, setRiscosMedidas, riscosMedidas,
     getInventario, inventario,
-    getGlobalSprm, setGlobalSprm, globalSprm, getGlobalSprmByRiscoId,
-    getPlano, setPlano, plano,
+    getGlobalSprm,
+    getPlano, plano,
     getUsuarios, usuarios,
     getContatos, contatos,
     checkSignIn, user,
@@ -69,6 +69,7 @@ function LaudoPgr() {
   const [data, setData] = useState('');
   const [comentario, setComentario] = useState('');
   const [versao, setVersao] = useState('');
+  const [globalSprm, setGlobalSprm] = useState([]);
 
   const [generatedPdf, setGeneratedPdf] = useState(null);
   const [pdfComponent, setPdfComponent] = useState(null);
@@ -78,6 +79,8 @@ function LaudoPgr() {
   }, []);
 
   const handleGet = async () => {
+    getInventario();
+    getPlano();
     setNameCompany(selectedCompany ? selectedCompany.nome_empresa : '');
     getUnidades();
     getSetores();
@@ -86,14 +89,14 @@ function LaudoPgr() {
     getRiscos();
     getSetoresProcessos();
     getProcessosRiscos();
-    getInventario();
     getRiscosMedidas();
-    getPlano();
     getUsuarios();
     getContatos();
     getEmpresas();
     getAparelhos();
     getLaudoVersion();
+    const sprm = await getGlobalSprm();
+    setGlobalSprm(sprm);
     const authors = await getTable('elaboradores');
     setElaboradores(authors);
   };
@@ -298,7 +301,7 @@ function LaudoPgr() {
   };
 
   const handleGerarRelatorio = async () => {
-    
+
     if (!filteredElaborador) {
       return toast.warn("Selecione um elaborador!");
     }
@@ -312,14 +315,26 @@ function LaudoPgr() {
     });
 
     const data = await res.json();
-    console.log(data);
+    const setoresMap = data.setores.map((i) => i.id_setor);
+    const filterSprm = globalSprm.filter((i) => setoresMap.includes(i.fk_setor_id));
 
-    const resRelatorio = await pgrGenerate(data);
+    if (!data || !filterSprm || !filteredElaborador || !filteredInventario || !filteredPlano) {
+      return toast.error("Erro ao gerar relatório!");
+    }
+
+    const resRelatorio = await pgrGenerate(data, filterSprm);
     setGeneratedPdf(resRelatorio);
   };
 
-  const pgrGenerate = async (data) => {
-    return <PgrGenerate inventario={inventario} dados={data} elaborador={filteredElaborador} />
+  const pgrGenerate = async (dados, sprm) => {
+    return <PgrGenerate
+      inventario={filteredInventario}
+      plano={filteredPlano}
+      data={data}
+      dados={dados}
+      elaborador={filteredElaborador}
+      sprm={sprm}
+    />
   }
 
   const handleClear = () => {
