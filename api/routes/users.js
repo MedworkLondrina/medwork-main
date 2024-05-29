@@ -56,15 +56,18 @@ router.get("/empresas", (req, res) => {
 //Add rows in table
 router.post("/empresas", (req, res) => {
   const { empresa_data, contato_data } = req.body;
-  console.log('teste')
-  console.log(empresa_data)
+  console.log('teste') 
   const nomeUsuario = req.query.nome_usuario;
   const tenant = empresa_data.fk_tenant_code;
-
+  console.log(tenant)
   const qEmpresa = "INSERT INTO empresas SET ?";
   const qContato = "INSERT INTO contatos SET ?";
   const qUpdate = `UPDATE empresas SET fk_contato_id = ? WHERE id_empresa = ?`;
 
+  if (!empresa_data) {
+    return res.status(400).json({ error: 'Dados da empresa não fornecidos na requisição' });
+  }
+  
   pool.getConnection((err, con) => {
     if (err) return next(err);
 
@@ -131,8 +134,8 @@ router.post("/empresas", (req, res) => {
             };
             const bodyString_empresa = formatBody(empresa_data)
             const bodyString_contato = formatBody(contato_data)
-            registrarLog('empresas', 'create', `Cadastrou Empresa`, `${nomeUsuario}`, tenant, new Date(), bodyString_empresa);
-            registrarLog('contatos', 'create', `Cadastrou Contato`, `${nomeUsuario}`, tenant, new Date(), bodyString_contato);
+            // registrarLog('empresas', 'create', `Cadastrou Empresa`, `${nomeUsuario}`, tenant, new Date(), bodyString_empresa);
+            // registrarLog('contatos', 'create', `Cadastrou Contato`, `${nomeUsuario}`, tenant, new Date(), bodyString_contato);
 
             return res.status(200).json(`Empresa e Contato cadastrados com sucesso!`);
           });
@@ -264,8 +267,8 @@ router.put("/empresas/:id_empresa", (req, res, next) => {
               const bodyString_empresa = formatBody(empresa_data)
               const bodyString_contato = formatBody(contato_data)
 
-              registrarLog('empresas', 'put', `Alterou Empresa`, `${nomeUsuario}`, tenant, new Date(), bodyString_empresa);
-              registrarLog('contato', 'put', `Alterou Contato`, `${nomeUsuario}`, tenant, new Date(), bodyString_contato);
+              // registrarLog('empresas', 'put', `Alterou Empresa`, `${nomeUsuario}`, tenant, new Date(), bodyString_empresa);
+              // registrarLog('contato', 'put', `Alterou Contato`, `${nomeUsuario}`, tenant, new Date(), bodyString_contato);
 
               res.status(200).json("Empresa e contato atualizados com sucesso!");
             });
