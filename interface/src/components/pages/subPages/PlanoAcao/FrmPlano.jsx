@@ -8,9 +8,11 @@ import ModalSearchSetor from "../components/Modal/ModalSearchSetor";
 import ModalSearchProcesso from '../components/Modal/ModalSearchProcesso';
 import ModalSearchRisco from '../components/Modal/ModalSearchRisco';
 import ModalMedidasDefine from "../components/Modal/ModalMedidasDefine";
-
+import icon_warn from "../../../media/icon_warn.svg";
 import icon_sair from '../../../media/icon_sair.svg'
 import icon_lupa from '../../../media/icon_lupa.svg'
+import { BsFillPencilFill } from "react-icons/bs";
+
 
 function FrmPlano({
   unidades,
@@ -66,7 +68,6 @@ function FrmPlano({
   const [data_conclusao, setDataConclusao] = useState('');
   const [status, setStatus] = useState('');
   const [selectedPrazos, setSelectedPrazos] = useState({});
-  const [existingPrazos, setExistingPrazos] = useState({});
 
   //Função para abrir o Modal
   const openModalUnidade = () => setShowModalUnidade(true);
@@ -258,10 +259,9 @@ function FrmPlano({
       const data = await response.json();
 
       if (data.existeCombinação) {
-        setIsVerify(false);
-        toast.error("Esta combinação de unidade, setor, processo e risco já está cadastrada.");
-      } else {
         setIsVerify(true);
+      } else {
+        setIsVerify(false);
       }
 
     } catch (error) {
@@ -468,6 +468,29 @@ function FrmPlano({
 
   return (
     <>
+      {(isVerify && !onEdit) && (
+        <>
+          {/* Alert */}
+          <div className="block m-2">
+            <div className={`bg-orange-50 text-gray-600 rounded-lg px-6 py-2 ${isVerify ? 'block' : 'hidden'}`}>
+              <div className="flex items-center gap-6">
+                <div className="">
+                  <img src={icon_warn} alt="" />
+                </div>
+                <div>
+                  <h2 className="font-medium">Risco já Cadastrado</h2>
+                  <div className="flex">
+                    <p className="font-normal text-gray-700">Risco: {riscoNome} - Processo: {processoNome} - Setor: {setorNome}- Unidade: {nomeUnidade}.</p>
+                    <div className="col-span-1 text-sky-500 hover:text-sky-600 m-1 px-2 text-sm cursor-pointer" onClick={() => setOnEdit(filteredPlanoRisco)} >
+                      <BsFillPencilFill />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
       {loading && <LoadingScreen />}
       <div className="flex justify-center">
         <form className="w-full max-w-7xl" ref={user} onSubmit={handleSubmit}>
@@ -798,7 +821,7 @@ function FrmPlano({
               </div>
               <div className="px-3 pl-8">
                 <button
-                  className={`shadow mt-4 bg-green-600 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded cursor-pointer ${isOk && isVerify ? 'hover:bg-green-700' : 'opacity-50 cursor-not-allowed'}`}
+                  className={`shadow mt-4 bg-green-600 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded cursor-pointer ${isOk && !isVerify ? 'hover:bg-green-700' : 'opacity-50 cursor-not-allowed'}`}
                   type="submit"
                 >
                   Adicionar
