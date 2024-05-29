@@ -809,7 +809,7 @@ function FrmInventario({
       </div>
 
       {/* Cabeçalho */}
-      <div className="grid grid-cols-3 mb-10 mt-10">
+      <div className={`grid grid-cols-3 mb-10 ${isVerify ? '':'mt-10'}`}>
         {/* Botão para voltar */}
         <div className="">
         </div>

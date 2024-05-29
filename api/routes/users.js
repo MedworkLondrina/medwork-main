@@ -3068,9 +3068,10 @@ router.post("/relatorio_pgr", (req, res, next) => {
         p.*,
         r.*,
         m.*,
-        ct.*
+        ct.*,
+        a.*
       FROM empresas e
-      LEFT JOIN contatos ct ON e.fk_contato_id = ct.id_contato
+      LEFT JOIN contatos ct ON e.id_empresa = ct.fk_empresa_id
       LEFT JOIN unidades u ON e.id_empresa = u.fk_empresa_id
       LEFT JOIN setores s ON u.id_unidade = s.fk_unidade_id
       LEFT JOIN cargos c ON s.id_setor = c.fk_setor_id
@@ -3080,6 +3081,7 @@ router.post("/relatorio_pgr", (req, res, next) => {
       LEFT JOIN riscos r ON pr.fk_risco_id = r.id_risco
       LEFT JOIN riscos_medidas rm ON r.id_risco = rm.fk_risco_id
       LEFT  JOIN medidas m ON rm.fk_medida_id = m.id_medida
+      LEFT JOIN aparelhos a ON e.fk_tenant_code = a.fk_tenant_code
       WHERE e.id_empresa IN (${companyId})
     `;
 
@@ -3098,6 +3100,7 @@ router.post("/relatorio_pgr", (req, res, next) => {
       const riscosMap = {};
       const medidasMap = {};
       const contactMap = {};
+      const aparelhosMap = {};
 
       results.forEach(row => {
         const idEmpresa = row.id_empresa;
@@ -3113,21 +3116,23 @@ router.post("/relatorio_pgr", (req, res, next) => {
             cnae_empresa: row.cnae_empresa,
             grau_risco_cnae: row.grau_risco_cnae,
             descricao_cnae: row.descricao_cnae,
-            fk_contato_id: row.fk_contato_id
+            fk_contato_id: row.fk_contato_id,
+            fk_tenant_code: row.fk_tenant_code
           };
         }
 
         const idContato = row.id_contato;
 
-        if (!contactMap[row.fk_contato_id]) {
-          contactMap[row.fk_contato_id] = {
+        if (!contactMap[idContato]) {
+          contactMap[idContato] = {
             id_contato: idContato,
             nome_contato: row.nome_contato,
             telefone_contato: row.telefone_contato,
             email_contato: row.email_contato,
-            email_secundario_contato: row.email_secundario_contato
+            email_secundario_contato: row.email_secundario_contato,
+            ativo: row.ativo,
+            fk_empresa_id: row.fk_empresa_id
           };
-
         }
 
         const unidadeId = row.id_unidade;
@@ -3218,6 +3223,21 @@ router.post("/relatorio_pgr", (req, res, next) => {
           medidasMap[medidaId] = {
             id_medida: medidaId,
             descricao_medida: row.descricao_medida,
+            grupo_medida: row.grupo_medida
+          };
+        }
+
+        const aparelhoId = row.id_aparelho;
+
+        if (!aparelhosMap[aparelhoId]) {
+          aparelhosMap[aparelhoId] = {
+            id_aparelho: aparelhoId,
+            nome_aparelho: row.nome_aparelho,
+            marca_aparelho: row.marca_aparelho,
+            modelo_aparelho: row.modelo_aparelho,
+            data_calibracao_aparelho: row.data_calibracao_aparelho,
+            ativo: row.ativo,
+            fk_tenant_code: row.fk_tenant_code
           };
         }
       });
@@ -3231,6 +3251,7 @@ router.post("/relatorio_pgr", (req, res, next) => {
         processos: Object.values(processosMap),
         riscos: Object.values(riscosMap),
         medidas: Object.values(medidasMap),
+        aparelhos: Object.values(aparelhosMap),
       }
 
       res.status(200).json(result);

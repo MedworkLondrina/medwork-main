@@ -12,33 +12,33 @@ import { FaAddressCard } from "react-icons/fa";
 
 
 function PgrGenerate({
-  inventario, plano,
+  inventario, plano, sprm, elaborador, dados, data,
   company, unidades, setores, cargos, contatos,
   processos, riscos, medidasAdm, medidasEpi, medidasEpc,
-  user, aparelhos, data, versao, pdfVersion, elaborador, dados,
+  user, aparelhos, versao, pdfVersion,
 }) {
 
   const findSetor = (item) => {
-    const findSetor = setores.find((i) => i.id_setor === item);
+    const findSetor = dados.setores.find((i) => i.id_setor === item);
     return findSetor ? findSetor.nome_setor : "N/A";
   };
 
   const getTotalFuncMasc = () => {
-    return cargos.reduce((total, cargo) => total + cargo.func_masc, 0);
+    return dados.cargos.reduce((total, cargo) => total + cargo.func_masc, 0);
   };
 
   const getTotalFuncFem = () => {
-    return cargos.reduce((total, cargo) => total + cargo.func_fem, 0);
+    return dados.cargos.reduce((total, cargo) => total + cargo.func_fem, 0);
   };
 
   const getTotalFuncMenor = () => {
-    return cargos.reduce((total, cargo) => total + cargo.func_menor, 0);
+    return dados.cargos.reduce((total, cargo) => total + cargo.func_menor, 0);
   };
 
   const getTotalFunc = () => {
-    const funcMasc = cargos.reduce((total, cargo) => total + cargo.func_masc, 0);
-    const funcFem = cargos.reduce((total, cargo) => total + cargo.func_fem, 0);
-    const funcMenor = cargos.reduce((total, cargo) => total + cargo.func_menor, 0);
+    const funcMasc = dados.cargos.reduce((total, cargo) => total + cargo.func_masc, 0);
+    const funcFem = dados.cargos.reduce((total, cargo) => total + cargo.func_fem, 0);
+    const funcMenor = dados.cargos.reduce((total, cargo) => total + cargo.func_menor, 0);
 
     return funcMasc + funcFem + funcMenor;
   };
@@ -63,13 +63,14 @@ function PgrGenerate({
           return processoEncontrado ? processoEncontrado.nome_processo : 'N/A';
 
         case 'nome_aparelho':
-          const aparelhosEncontrado = aparelhos.find((c) => c.id_aparelho === item);
-          const aparelho = `${aparelhosEncontrado.nome_aparelho} - ${aparelhosEncontrado.marca_aparelho} (${formatData(aparelhosEncontrado.data_calibracao_aparelho)})`
+          const aparelhosEncontrado = dados.aparelhos.find((c) => c.id_aparelho === item);
+          const aparelho = `${aparelhosEncontrado.nome_aparelho || "N/A"} - ${aparelhosEncontrado.marca_aparelho || "N/A"} (${formatData(aparelhosEncontrado.data_calibracao_aparelho) || "N/A"})`;
           return aparelho;
 
         case 'nome_medida':
           const medidaEncontrada = dados.medidas.find((c) => c.id_medida === item);
-          return medidaEncontrada ? medidaEncontrada.descricao_medida : 'N/A';
+          const medida = `${medidaEncontrada.grupo_medida || "N/A"} - ${medidaEncontrada.descricao_medida || "N/A"}`;
+          return medida;
 
         case 'nome_risco':
         case 'grupo_risco':
@@ -111,15 +112,6 @@ function PgrGenerate({
     }
   };
 
-  const findUnidade = (fkUnidadeId) => {
-    try {
-      const unidadeEncontrada = dados.find((c) => c.id_unidade === fkUnidadeId);
-      return unidadeEncontrada ? unidadeEncontrada.nome_unidade : 'N/A';
-    } catch (error) {
-      console.error("Erro ao filtrar unidades. ", error)
-    }
-  }
-
   const formatData = (item) => {
     try {
       const data_formatada = new Date(item).toLocaleDateString('pr-BR');
@@ -129,10 +121,20 @@ function PgrGenerate({
     }
   };
 
-  const convertMedidas = (item) => {
+  const convertMedidas = (medidas, setorId, processoId, riscoId) => {
     try {
-      const medidasArray = JSON.parse(item);
-      return medidasArray.map(({ nome, tipo }) => `${tipo}: ${nome}`).join('\n');
+      const medidasArray = JSON.parse(medidas);
+      return medidasArray.map(({ descricao_medida, grupo_medida, id_medida }) => {
+        const sprmItem = sprm.find(s =>
+          s.fk_setor_id === setorId &&
+          s.fk_processo_id === processoId &&
+          s.fk_risco_id === riscoId &&
+          s.fk_medida_id === id_medida
+        );
+
+        const certificadoEpi = sprmItem ? sprmItem.certificado_epi : 'N/A';
+        return `${grupo_medida}: ${descricao_medida} - \n ${certificadoEpi != null ? `C.A: ${certificadoEpi}` : ''}`;
+      }).join('\n');
     } catch (error) {
       console.error("Erro ao converter medidas:", error);
       return 'N/A';
@@ -178,41 +180,12 @@ function PgrGenerate({
     }
   };
 
-  const findMedidas = (medida, tipo) => {
+  const findMedidas = (medida) => {
     try {
-      switch (tipo) {
-        case 1:
-          const filterMedidaAdm = medidasAdm.find((i) => i.id_medida_adm === medida);
-          return filterMedidaAdm.descricao_medida_adm;
-        case 2:
-          const filterMedidaEpi = medidasEpi.find((i) => i.id_medida === medida);
-          const medidaEpi = `${filterMedidaEpi.nome_medida} - ${filterMedidaEpi.certificado_medida} (${filterMedidaEpi.vencimento_certificado_medida})`
-          return medidaEpi;
-        case 3:
-          const filterMedidaEpc = medidasEpc.find((i) => i.id_medida === medida);
-          return filterMedidaEpc.descricao_medida;
-        default:
-          break;
-      }
+      const find = dados.medidas.find((c) => c.id_medida === medida);
+      return `${find.grupo_medida || "N/A"} - ${find.descricao_medida || "N/A"}`
     } catch (error) {
       console.error("Erro ao buscar medida!", error)
-    }
-  };
-
-  const findTipo = (tipo) => {
-    try {
-      switch (tipo) {
-        case 1:
-          return "Adm"
-        case 2:
-          return "Epi"
-        case 3:
-          return "Epc"
-        default:
-          break;
-      }
-    } catch (error) {
-      console.error("Erro ao filtrar tipo de medida", error)
     }
   };
 
@@ -904,26 +877,29 @@ function PgrGenerate({
                   <Text style={TextStyles.tableContentSubText}>Assinatura:</Text>
                   <View style={CompanyStyles.signatureLine}></View>
                 </View>
-                <View style={[TableStyles.contentCell, { width: '100%' }]}>
-                  {/* Nome e Registro */}
-                  <View style={[TableStyles.contentColumm, { width: '100%' }]}>
-                    <View style={[TableStyles.contentCell, { width: '75%' }]}>
-                      <Text style={[TextStyles.tableContentText, { fontFamily: 'OpenSansBold', fontSize: 10 }]}>{dados.contatos[0].nome_contato}</Text>
-                    </View>
-                    <View style={[TableStyles.contentCell, { width: '25%' }]}>
-                      <Text style={[TextStyles.tableContentSubText, { textAlign: 'left' }]}>Telefone:</Text>
-                      <Text style={[TextStyles.tableContentText, { textAlign: 'right' }]}>{dados.contatos[0].telefone_contato}</Text>
-                    </View>
-                  </View>
-                  {/* Email e Telefone */}
-                  <View style={[TableStyles.contentColumm, { width: '100%' }]}>
-                    <View style={[TableStyles.contentCell, { width: '100%' }]}>
-                      <Text style={[TextStyles.tableContentSubText, { textAlign: 'left' }]}>Email:</Text>
-                      <Text style={[TextStyles.tableContentText, { textAlign: 'left' }]}>{dados.contatos[0].email_contato}</Text>
-                    </View>
-                  </View>
+                {dados && dados.contatos.filter(contact => contact.id_contato === dados.empresas[0].fk_contato_id)
+                  .map((contact, index) => (
+                    <View key={index} style={[TableStyles.contentCell, { width: '100%' }]}>
+                      {/* Nome e Registro */}
+                      <View style={[TableStyles.contentColumm, { width: '100%' }]}>
+                        <View style={[TableStyles.contentCell, { width: '100%' }]}>
+                          <Text style={[TextStyles.tableContentText, { fontFamily: 'OpenSansBold', fontSize: 10 }]}>{contact.nome_contato || "N/A"}</Text>
+                        </View>
+                      </View>
+                      {/* Email e Telefone */}
+                      <View style={[TableStyles.contentColumm, { width: '100%' }]}>
+                        <View style={[TableStyles.contentCell, { width: '75%' }]}>
+                          <Text style={[TextStyles.tableContentSubText, { textAlign: 'left' }]}>Email:</Text>
+                          <Text style={[TextStyles.tableContentText, { textAlign: 'left' }]}>{contact.email_contato || "N/A"}</Text>
+                        </View>
+                        <View style={[TableStyles.contentCell, { width: '25%' }]}>
+                          <Text style={[TextStyles.tableContentSubText, { textAlign: 'left' }]}>Telefone:</Text>
+                          <Text style={[TextStyles.tableContentText, { textAlign: 'right' }]}>{contact.telefone_contato || "N/A"}</Text>
+                        </View>
+                      </View>
 
-                </View>
+                    </View>
+                  ))}
               </View>
             </View>
           </View>
@@ -3743,8 +3719,8 @@ function PgrGenerate({
         <Text style={TextStyles.subTitleSumary}>16. Unidades da empresa</Text>
 
         {/* Unidades */}
-        {unidades.map((item, i) => (
-          <View key={i} style={TableStyles.table}>
+        {dados.unidades.map((item, i) => (
+          <View key={i} style={TableStyles.table} wrap={false}>
             <View style={TableStyles.headerCell}>
               <Text style={TextStyles.prefixTextTitle}>Unidade: </Text>
               <Text style={TextStyles.valueTextTitle}>{item.nome_unidade}</Text>
@@ -3887,24 +3863,25 @@ function PgrGenerate({
               <Text style={TextStyles.valueTextSignatureTitle}>Nº Funcionários</Text>
             </View>
           </View>
-          {cargos.map((item, i) => (
-            <View key={i} style={PostStyles.tableRow}>
-              <View style={PostStyles.postRow}>
-                <Text style={PostStyles.postText}>{findSetor(item.fk_setor_id)}</Text>
+          {dados.cargos.filter((item) => item.id_cargo)
+            .map((item, i) => (
+              <View key={i} style={PostStyles.tableRow} wrap={false}>
+                <View style={PostStyles.postRow}>
+                  <Text style={PostStyles.postText}>{findSetor(item.fk_setor_id)}</Text>
+                </View>
+                <View style={PostStyles.postRow}>
+                  <Text style={PostStyles.postText}>{item.nome_cargo}</Text>
+                </View>
+                <View style={PostStyles.postRowDesc}>
+                  <Text style={PostStyles.postText}>{item.descricao}</Text>
+                </View>
+                <View style={PostStyles.postRowFunc}>
+                  <Text style={PostStyles.postText}>Masc: {item.func_masc}</Text>
+                  <Text style={PostStyles.postText}>Fem: {item.func_fem}</Text>
+                  <Text style={PostStyles.postText}>Menor: {item.func_menor}</Text>
+                </View>
               </View>
-              <View style={PostStyles.postRow}>
-                <Text style={PostStyles.postText}>{item.nome_cargo}</Text>
-              </View>
-              <View style={PostStyles.postRowDesc}>
-                <Text style={PostStyles.postText}>{item.descricao}</Text>
-              </View>
-              <View style={PostStyles.postRowFunc}>
-                <Text style={PostStyles.postText}>Masc: {item.func_masc}</Text>
-                <Text style={PostStyles.postText}>Fem: {item.func_fem}</Text>
-                <Text style={PostStyles.postText}>Menor: {item.func_menor}</Text>
-              </View>
-            </View>
-          ))}
+            ))}
         </View>
 
         {/* Tabela Funcionários Total */}
@@ -3914,7 +3891,7 @@ function PgrGenerate({
           <Text style={PostStyles.subTitleSumary}>Total de Funcionários</Text>
 
           {/* Tabela */}
-          <View style={TableStyles.table}>
+          <View style={TableStyles.table} wrap={false}>
             <View style={PostStyles.headerPostContentCell}>
               <View style={PostStyles.coluun}>
                 <Text style={TextStyles.valueTextSignatureTitle}>Masculino</Text>
@@ -4164,8 +4141,7 @@ function PgrGenerate({
               </View>
               <View style={[TableStyles.contentRiskCell, { width: '10%' }]}>
                 <Text style={[RiskInventoryStyles.contentText, { textAlign: 'left', }]}>
-                  {/* {find(item.fk_aparelho_id, 'nome_aparelho') || 'N/A'} */}
-                  {item.fk_aparelho_id}
+                  {find(item.fk_aparelho_id, 'nome_aparelho') || 'N/A'}
                 </Text>
               </View>
               <View style={[TableStyles.contentRiskCell, { width: '5%' }]}>
@@ -4180,8 +4156,7 @@ function PgrGenerate({
               </View>
               <View style={[TableStyles.contentRiskCell, { width: '10%' }]}>
                 <Text style={[RiskInventoryStyles.contentText, { textAlign: 'left', }]}>
-                  {/* {convertMedidas(item.medidas) || 'N/A'} */}
-                  {item.medidas}
+                  {convertMedidas(item.medidas, item.fk_setor_id, item.fk_processo_id, item.fk_risco_id) || 'N/A'}
                 </Text>
               </View>
               <View style={[TableStyles.contentRiskCell, { width: '5%' }]}>
@@ -4307,7 +4282,6 @@ function PgrGenerate({
             <Text style={PlanStyles.headerCell}>Responsável</Text>
             <Text style={PlanStyles.headerCell}>Processo</Text>
             <Text style={PlanStyles.headerCell}>Risco</Text>
-            <Text style={PlanStyles.headerCellCenter}>Tipo</Text>
             <Text style={PlanStyles.headerCell}>Medida</Text>
             <Text style={PlanStyles.headerCellCenter}>Prazo</Text>
             <Text style={PlanStyles.headerCellCenter}>Data de Conclusão</Text>
@@ -4315,7 +4289,7 @@ function PgrGenerate({
           </View>
           {/* Body */}
           {plano.map((item, i) => (
-            <View key={i} style={PlanStyles.dataRow}>
+            <View key={i} style={PlanStyles.dataRow} wrap={false}>
               <Text style={PlanStyles.dataCellCenter}>{item.id_plano}</Text>
               <Text style={PlanStyles.dataCellCenter}>{formatData(item.data) || ""}</Text>
               <Text style={PlanStyles.dataCell}>{find(item.fk_unidade_id, 'nome_unidade')}</Text>
@@ -4323,8 +4297,7 @@ function PgrGenerate({
               <Text style={PlanStyles.dataCell}>{item.responsavel || 'N/A'}</Text>
               <Text style={PlanStyles.dataCell}>{find(item.fk_processo_id, 'nome_processo')}</Text>
               <Text style={PlanStyles.dataCell}>{find(item.fk_risco_id, 'nome_risco') || 'N/A'}</Text>
-              <Text style={PlanStyles.dataCellCenter}>{findTipo(item.tipo_medida) || 'N/A'}</Text>
-              <Text style={PlanStyles.dataCell}>{findMedidas(item.fk_medida_id, item.tipo_medida) || 'N/A'}</Text>
+              <Text style={PlanStyles.dataCell}>{findMedidas(item.fk_medida_id) || 'N/A'}</Text>
               <Text style={PlanStyles.dataCellCenter}>{item.prazo}</Text>
               <Text style={PlanStyles.dataCellCenter}></Text>
               <View style={{ ...PlanStyles.dataCellColor, backgroundColor: getColorStatus(item.status) }}>
@@ -4347,24 +4320,24 @@ function PgrGenerate({
         {/* <SumaryPage /> */}
         {/* <VersionTable /> */}
         <CompanyPage />
-        {/* <IntroductionPage /> */}
-        {/* <AbrangencePage /> */}
-        {/* <DefinePage /> */}
-        {/* <StrategyPage /> */}
-        {/* <RiskIdentificationPage /> */}
-        {/* <AssessmentPage /> */}
-        {/* <AssessmentTable /> */}
-        {/* <AssessmentFrame /> */}
-        {/* <AssessmentText /> */}
-        {/* <AssessmentFrameSeverity /> */}
-        {/* <AssessmentFrameText /> */}
-        {/* <AssessmentFrameSeven /> */}
-        {/* <FrequencyPage /> */}
-        {/* <GROPage /> */}
-        {/* <UnidadesPage /> */}
-        {/* <PostPage /> */}
+        <IntroductionPage />
+        <AbrangencePage />
+        <DefinePage />
+        <StrategyPage />
+        <RiskIdentificationPage />
+        <AssessmentPage />
+        <AssessmentTable />
+        <AssessmentFrame />
+        <AssessmentText />
+        <AssessmentFrameSeverity />
+        <AssessmentFrameText />
+        <AssessmentFrameSeven />
+        <FrequencyPage />
+        <GROPage />
+        <UnidadesPage />
+        <PostPage />
         <RiskInventoryPage />
-        {/* <PlanPage /> */}
+        <PlanPage />
       </Document>
     );
   };
