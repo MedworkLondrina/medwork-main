@@ -12,10 +12,7 @@ import { FaAddressCard } from "react-icons/fa";
 
 
 function PgrGenerate({
-  inventario, plano, sprm, elaborador, dados, data,
-  company, unidades, setores, cargos, contatos,
-  processos, riscos, medidasAdm, medidasEpi, medidasEpc,
-  user, aparelhos, versao, pdfVersion,
+  inventario, plano, sprm, elaborador, dados, data, pdfVersion,
 }) {
 
   const findSetor = (item) => {
