@@ -84,9 +84,7 @@ function Plano() {
 
   return (
     <>
-      <div className="flex justify-center items-center mt-12 mb-10">
-        <h1 className="text-3xl font-extrabold text-sky-700">Plano de Ação</h1>
-      </div>
+    
 
       <FrmPlano
         unidades={unidades}
