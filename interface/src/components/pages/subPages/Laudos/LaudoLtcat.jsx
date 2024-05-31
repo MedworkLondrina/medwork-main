@@ -9,6 +9,7 @@ import LtcatGenerate from "../components/LaudoGenerate/LtcatGenerate";
 import ModalSearchSetor from "../../subPages/components/Modal/ModalSearchSetor";
 import ModalSearchUnidade from "../../subPages/components/Modal/ModalSearchUnidade"
 import GridLaudo from "./Grids/GridLaudo";
+import ModalSearchElaborador from "../components/Modal/ModalSearchElaborador";
 
 import Back from '../../../layout/Back';
 import { IoInformationCircleSharp } from "react-icons/io5";
@@ -46,7 +47,11 @@ function LaudoPgr() {
   const [setorId, setSetorId] = useState('');
   const [setorNome, setSetorNome] = useState('')
   
- 
+  const [showModalElaborador, setShowModalElaborador] = useState(false);
+  const [elaboradores, setElaboradores] = useState([]);
+  const [filteredElaborador, setFilteredElaborador] = useState([]);
+  const [elaboradorId, setElaboradorId] = useState('');
+  const [elaboradorNome, setElaboradorNome] = useState('');
 
   const [globalSprm, setGlobalSprm] = useState([]);
 
@@ -87,6 +92,8 @@ function LaudoPgr() {
     const sprm = await getGlobalSprm();
     setGlobalSprm(sprm);
 
+    const authors = await getTable('elaboradores');
+    setElaboradores(authors);
   };
 
   useEffect(() => {
@@ -119,9 +126,12 @@ function LaudoPgr() {
   //Função para abrir o Modal
   const openModalUnidade = () => setShowModalUnidade(true);
   const openModalSetor = () => setShowModalSetor(true);
+  const openModalElaborador = () => setShowModalElaborador(true);
+
   //Função para fechar o Modal
   const closeModalUnidade = () => setShowModalUnidade(false);
   const closeModalSetor = () => setShowModalSetor(false);
+  const closeModalElaborador = () => setShowModalElaborador(false);
 
   // Função para atualizar a Unidade
   // Função para atualizar a Unidade
@@ -149,7 +159,9 @@ function LaudoPgr() {
   }, [showModalSetor, unidadeId, setores]);
 
   const handleGerarRelatorio = async () => {
-
+    if (!elaboradorId) {
+      return toast.warn("Selecione um elaborador!");
+    }
 
     setLoading(true);
     const res = await fetch(`${connect}/relatorio_pgr`, {
@@ -183,6 +195,7 @@ function LaudoPgr() {
         data={data}
         dados={dados}
         sprm={sprm}
+        elaborador={filteredElaborador}
         user={user}
       />
     );
@@ -215,6 +228,8 @@ function LaudoPgr() {
     setPdfComponent(null);
     setPdfGrid(null);
     window.location.reload();
+    handleClearElaborador();
+
   };
 
   const openPdfInNewTab = (pdfComponent) => {
@@ -277,6 +292,7 @@ function LaudoPgr() {
     setNomeUnidade(null);
     handleClearSetor();
     setFilteredSetores([]);
+    
   };
 
   const handleSetorSelect = (SetorId, SetorName) => {
@@ -297,7 +313,17 @@ function LaudoPgr() {
     setSetorNome(null);
   };
 
+  const handleElaboradorSelect = (authors) => {
+    setElaboradorId(authors.id_elaborador);
+    setElaboradorNome(authors.nome_elaborador);
+    setFilteredElaborador(authors);
+    closeModalElaborador();
+  };
 
+  const handleClearElaborador = () => {
+    setElaboradorId('');
+    setElaboradorNome('');
+  };
 
   return (
     <>
@@ -456,7 +482,54 @@ function LaudoPgr() {
                 onContactSelect={handleSetorSelect}
               />
             </div>
+  {/* ELaborador */}
+  <div className="w-full md:w-4/12 px-3">
+              <label className="tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="elaborador">
+                Elaborador:
+              </label>
+              <div className="flex items-center w-full" id="elaborador">
+                {elaboradorId ? (
+                  <>
+                    <button
+                      className="flex w-full appearance-none hover:shadow-sm text-sky-600 bg-gray-100 border-gray-200 justify-center mt-1 py-3 px-4 rounded leading-tight focus:outline-none with-text"
+                      type="button"
+                      onClick={openModalElaborador}
+                    >
+                      <p className="font-bold w-full">
+                        {elaboradorNome}
+                      </p>
+                    </button>
+                    <button className="ml-4 cursor-pointer" onClick={handleClearElaborador} type="button">
+                      <img src={icon_sair} alt="" className="h-9" />
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    className="flex w-full appearance-none text-gray-400 bg-gray-100 border-gray-200 justify-center mt-1 py-3 px-4 rounded leading-tight focus:outline-none with-text"
+                    type="button"
+                    onClick={openModalElaborador}
+                  >
+                    <p className="px-2 text-sm font-medium w-full">
+                      Nenhum Elaborador Selecionado
+                    </p>
+                  </button>
+                )}
 
+                <button
+                  type="button"
+                  onClick={openModalElaborador}
+                  className={`flex cursor-pointer ml-4`}
+                >
+                  <img src={icon_lupa} className="h-9 cursor-pointer" alt="Icone adicionar elaborador"></img>
+                </button>
+              </div>
+              <ModalSearchElaborador
+                isOpen={showModalElaborador}
+                onCancel={closeModalElaborador}
+                children={elaboradores}
+                onSelect={handleElaboradorSelect}
+              />
+            </div>
             {/* Versão */}
             <div className="w-full md:w-1/12 px-3">
               <label className="tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="versao">
