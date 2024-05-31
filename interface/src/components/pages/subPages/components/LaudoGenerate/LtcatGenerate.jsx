@@ -7,76 +7,76 @@ import OpenSansSemiBold from '../../../../media/fonts/OpenSans-SemiBold.ttf';
 import OpenSansBold from '../../../../media/fonts/OpenSans-Bold.ttf';
 import OpenSansExtraBold from '../../../../media/fonts/OpenSans-ExtraBold.ttf';
 
-function LtcatGenerate({ inventario, plano,
-  company, unidades, setores, cargos, contatos,
-  processos, riscos, user, aparelhos, data, }) {
+function LtcatGenerate({ inventario, dados, data, user}) {
 
-  const find = (item, tipo) => {
-    try {
-      if (!item) {
+    const find = (item, tipo) => {
+      try {
+        if (!item) {
+          return 'N/A';
+        }
+  
+        switch (tipo) {
+          case 'nome_unidade':
+            const unidadeEncontrada = dados.unidades.find((c) => c.id_unidade === item);
+            return unidadeEncontrada ? unidadeEncontrada.nome_unidade : 'N/A';
+  
+          case 'nome_setor':
+            const setorEncontrado = dados.setores.find((c) => c.id_setor === item);
+            return setorEncontrado ? setorEncontrado.nome_setor : 'N/A';
+  
+          case 'nome_processo':
+            const processoEncontrado = dados.processos.find((c) => c.id_processo === item);
+            return processoEncontrado ? processoEncontrado.nome_processo : 'N/A';
+  
+          case 'nome_aparelho':
+            const aparelhosEncontrado = dados.aparelhos.find((c) => c.id_aparelho === item);
+            const aparelho = `${aparelhosEncontrado.nome_aparelho || "N/A"} - ${aparelhosEncontrado.marca_aparelho || "N/A"} (${formatData(aparelhosEncontrado.data_calibracao_aparelho) || "N/A"})`;
+            return aparelho;
+  
+          case 'nome_medida':
+            const medidaEncontrada = dados.medidas.find((c) => c.id_medida === item);
+            const medida = `${medidaEncontrada.grupo_medida || "N/A"} - ${medidaEncontrada.descricao_medida || "N/A"}`;
+            return medida;
+  
+          case 'nome_risco':
+          case 'grupo_risco':
+          case 'consequencia':
+          case 'avaliacao':
+          case 'limite_tolerancia':
+          case 'metodologia':
+          case 'severidade':
+          case 'unidade_medida':
+            const riscoEncontrado = dados.riscos.find((c) => c.id_risco === item);
+            if (riscoEncontrado) {
+              switch (tipo) {
+                case 'nome_risco':
+                  return riscoEncontrado.nome_risco || "N/A";
+                case 'grupo_risco':
+                  return riscoEncontrado.grupo_risco || "N/A";
+                case 'consequencia':
+                  return riscoEncontrado.danos_saude_risco || "N/A";
+                case 'avaliacao':
+                  return riscoEncontrado.classificacao_risco || "N/A";
+                case 'limite_tolerancia':
+                  return riscoEncontrado.limite_tolerancia_risco || "0";
+                case 'metodologia':
+                  return riscoEncontrado.metodologia_risco || "N/A";
+                case 'severidade':
+                  return riscoEncontrado.severidade_risco || "N/A";
+                case 'unidade_medida':
+                  return riscoEncontrado.unidade_medida_risco;
+              }
+            } else {
+              return 'N/A';
+            }
+          default:
+            return 'N/A';
+        }
+      } catch (error) {
+        console.log("Erro ao buscar Dados!", error);
         return 'N/A';
       }
-
-      switch (tipo) {
-        case 'nome_unidade':
-          const unidadeEncontrada = unidades.find((c) => c.id_unidade === item);
-          return unidadeEncontrada ? unidadeEncontrada.nome_unidade : 'N/A';
-
-        case 'nome_setor':
-          const setorEncontrado = setores.find((c) => c.id_setor === item);
-          return setorEncontrado ? setorEncontrado.nome_setor : 'N/A';
-
-        case 'nome_processo':
-          const processoEncontrado = processos.find((c) => c.id_processo === item);
-          return processoEncontrado ? processoEncontrado.nome_processo : 'N/A';
-
-        case 'nome_aparelho':
-          const aparelhosEncontrado = aparelhos.find((c) => c.id_aparelho === item);
-          const aparelho = `${aparelhosEncontrado.nome_aparelho} - ${aparelhosEncontrado.marca_aparelho} (${formatData(aparelhosEncontrado.data_calibracao_aparelho)})`;
-          return aparelho;
-
-        case 'nome_risco':
-        case 'grupo_risco':
-        case 'consequencia':
-        case 'avaliacao':
-        case 'limite_tolerancia':
-        case 'metodologia':
-        case 'severidade':
-        case 'unidade_medida':
-        case 'esocial':
-          const riscoEncontrado = riscos.find((c) => c.id_risco === item);
-          if (riscoEncontrado) {
-            switch (tipo) {
-              case 'nome_risco':
-                return riscoEncontrado.nome_risco || "N/A";
-              case 'grupo_risco':
-                return riscoEncontrado.grupo_risco || "N/A";
-              case 'consequencia':
-                return riscoEncontrado.danos_saude_risco || "N/A";
-              case 'avaliacao':
-                return riscoEncontrado.classificacao_risco || "N/A";
-              case 'limite_tolerancia':
-                return riscoEncontrado.limite_tolerancia_risco || "0";
-              case 'metodologia':
-                return riscoEncontrado.metodologia_risco || "N/A";
-              case 'severidade':
-                return riscoEncontrado.severidade_risco || "N/A";
-              case 'unidade_medida':
-                return riscoEncontrado.unidade_medida_risco;
-              case 'esocial':
-                return riscoEncontrado.codigo_esocial_risco;
-            }
-          } else {
-            return 'N/A';
-          }
-        default:
-          return 'N/A';
-      }
-    } catch (error) {
-      console.log("Erro ao buscar Dados!", error);
-      return 'N/A';
-    }
-  };
+    };
 
   const formatData = (item) => {
     try {
@@ -96,28 +96,30 @@ function LtcatGenerate({ inventario, plano,
       return 'N/A';
     }
   };
-
   const findSetor = (item) => {
-    const findSetor = setores.find((i) => i.id_setor === item);
+    const findSetor = dados.setores.find((i) => i.id_setor === item);
     return findSetor ? findSetor.nome_setor : "N/A";
+  };
+  const getFirstLetter = (item) => {
+    return item.charAt(0);
   };
 
   const getTotalFuncMasc = () => {
-    return cargos.reduce((total, cargo) => total + cargo.func_masc, 0);
+    return dados.cargos.reduce((total, cargo) => total + cargo.func_masc, 0);
   };
 
   const getTotalFuncFem = () => {
-    return cargos.reduce((total, cargo) => total + cargo.func_fem, 0);
+    return dados.cargos.reduce((total, cargo) => total + cargo.func_fem, 0);
   };
 
   const getTotalFuncMenor = () => {
-    return cargos.reduce((total, cargo) => total + cargo.func_menor, 0);
+    return dados.cargos.reduce((total, cargo) => total + cargo.func_menor, 0);
   };
 
   const getTotalFunc = () => {
-    const funcMasc = cargos.reduce((total, cargo) => total + cargo.func_masc, 0);
-    const funcFem = cargos.reduce((total, cargo) => total + cargo.func_fem, 0);
-    const funcMenor = cargos.reduce((total, cargo) => total + cargo.func_menor, 0);
+    const funcMasc = dados.cargos.reduce((total, cargo) => total + cargo.func_masc, 0);
+    const funcFem = dados.cargos.reduce((total, cargo) => total + cargo.func_fem, 0);
+    const funcMenor = dados.cargos.reduce((total, cargo) => total + cargo.func_menor, 0);
 
     return funcMasc + funcFem + funcMenor;
   };
@@ -132,6 +134,7 @@ function LtcatGenerate({ inventario, plano,
       console.log("Erro ao calcular data", error)
     }
   };
+
 
   Font.register({ family: 'OpenSansLight', src: OpenSansLight });
   Font.register({ family: 'OpenSansRegular', src: OpenSansRegular });
@@ -548,7 +551,7 @@ function LtcatGenerate({ inventario, plano,
     return (
       <View style={ContainerStyles.headerContainer}>
         <Text style={TextStyles.headerText}>PGR - Programa de Gerenciamento de Riscos - NR1</Text>
-        <Text style={TextStyles.littleText}>Nome da Empresa - Versão</Text>
+        <Text style={TextStyles.littleText}>{dados.empresas[0].nome_empresa || ''} - Versão: </Text>
       </View>
     );
   }
@@ -556,8 +559,8 @@ function LtcatGenerate({ inventario, plano,
   const FooterPage = () => {
     return (
       <View style={ContainerStyles.footerContainer}>
-        <Text style={TextStyles.footerText}>Nome da Empresa</Text>
-        <Text style={TextStyles.footerAddresText}>Rua Goias, 1914 - apto 301 - Londrina/PR 86020-410</Text>
+        <Text style={TextStyles.footerText}>{dados.empresas[0].nome_empresa || '-'}a</Text>
+        <Text style={TextStyles.footerAddresText}>-</Text>
       </View>
     );
   }
@@ -567,7 +570,7 @@ function LtcatGenerate({ inventario, plano,
       <Page size="A4" style={PageStyles.Page}>
         <Text style={TextStyles.headerText}>Laudo Técnico das Condições do Ambiente de Trabalho - LTCAT</Text>
         <View style={ContainerStyles.centerContainer}>
-          <Text style={TextStyles.centerText}>{company.nome_empresa}</Text>
+          <Text style={TextStyles.centerText}>{dados.empresas[0].nome_empresa || '-'}</Text>
         </View>
         <View style={ContainerStyles.bottomContainerVigencia}>
           <Text style={TextStyles.smallTextVigencia}>Londrina, {formatData(data)} - Vigência: {setVigencia(formatData(data))}</Text>
@@ -980,24 +983,24 @@ function LtcatGenerate({ inventario, plano,
         <View style={TableStyles.table}>
           <View style={TableStyles.headerCell}>
             <Text style={TextStyles.prefixTextTitle}>Empresa: </Text>
-            <Text style={TextStyles.valueTextTitle}>{company.nome_empresa || "N/A"}</Text>
+            <Text style={TextStyles.valueTextTitle}>{dados.empresas[0].nome_empresa || "N/A"}</Text>
           </View>
           <View style={TableStyles.tableRow}>
             <View style={TableStyles.twentyFiveRow}>
               <Text style={TextStyles.prefixText}>CNPJ:</Text>
-              <Text style={TextStyles.valueText}>{company.cnpj_empresa || "N/A"}</Text>
+              <Text style={TextStyles.valueText}>{dados.empresas[0].cnpj_empresa || "N/A"}</Text>
             </View>
             <View style={TableStyles.fifTeenRow}>
               <Text style={TextStyles.prefixText}>Cnae:</Text>
-              <Text style={TextStyles.valueText}>{company.cnae_empresa || "0"}</Text>
+              <Text style={TextStyles.valueText}>{dados.empresas[0].cnae_empresa || "N/A"}</Text>
             </View>
             <View style={TableStyles.fifTeenRow}>
               <Text style={TextStyles.prefixText}>Grau de Risco:</Text>
-              <Text style={TextStyles.valueText}>{company.grau_risco_cnae || "0"}</Text>
+              <Text style={TextStyles.valueText}>{dados.empresas[0].grau_risco_cnae || "N/A"}</Text>
             </View>
             <View style={TableStyles.fiftyRow}>
               <Text style={TextStyles.prefixText}>Descrição CNAE:</Text>
-              <Text style={TextStyles.valueText}>Serviços de manutenção e reparação mecânica de veículos automotores</Text>
+              <Text style={TextStyles.valueText}>{dados.empresas[0].descricao_cnae || "N/A"}</Text>
             </View>
           </View>
         </View>
@@ -1038,8 +1041,8 @@ function LtcatGenerate({ inventario, plano,
             </View>
             <View style={TableStyles.tableRow}>
               <View style={TableStyles.officeFiftyRow}>
-                <Text style={TextStyles.officeText}>{contatos.nome_contato}</Text>
-                <Text style={TextStyles.officeSmallText}>{contatos.email_contato}</Text>
+                <Text style={TextStyles.officeText}>{dados.contatos.nome_contato}</Text>
+                <Text style={TextStyles.officeSmallText}>{dados.contatos.email_contato}</Text>
               </View>
               <View style={TableStyles.fiftyRow}>
                 <View style={TableStyles.signatureLine}></View>
@@ -1066,7 +1069,7 @@ function LtcatGenerate({ inventario, plano,
         <Text style={TextStyles.subTitleSumary}>16. Unidades da empresa</Text>
 
         {/* Unidades */}
-        {unidades.map((item, i) => (
+        {dados.unidades.map((item, i) => (
           <View key={i} style={TableStyles.table}>
             <View style={TableStyles.headerCell}>
               <Text style={TextStyles.prefixTextTitle}>Unidade: </Text>
@@ -1117,7 +1120,7 @@ function LtcatGenerate({ inventario, plano,
               <Text style={TextStyles.tableTitle}>Funcionários</Text>
             </View>
           </View>
-          {cargos.map((item, i) => (
+          {dados.cargos.map((item, i) => (
             <View key={i} style={TableStyles.contentTable}>
               <View style={[TableStyles.contentCell, { width: '20%' }]}>
                 <Text style={TextStyles.contentTableText}>{findSetor(item.fk_setor_id)}</Text>
@@ -1259,95 +1262,105 @@ function LtcatGenerate({ inventario, plano,
           </View>
           {/* Body */}
           {inventario.map((item, i) => (
-            <View key={i} style={TableStyles.contentTable} wrap={false}>
-              <View style={[TableStyles.contentCell, { width: '5%' }]}>
-                <Text style={[RiskInventoryStyles.contentText, { textAlign: 'center', }]}>
-                  {item.id_inventario || ''}
-                </Text>
-              </View>
-              <View style={[TableStyles.contentCell, { width: '8%' }]}>
+            <View key={i} style={TableStyles.contentRiskTable} wrap={false}>
+              <View style={[TableStyles.contentRiskCell, { width: '8%' }]}>
                 <Text style={[RiskInventoryStyles.contentText, { textAlign: 'center', }]}>
                   {formatData(item.data_inventario) || 'N/A'}
                 </Text>
               </View>
-              <View style={[TableStyles.contentCell, { width: '8%' }]}>
+              <View style={[TableStyles.contentRiskCell, { width: '8%' }]}>
                 <Text style={[RiskInventoryStyles.contentText, { textAlign: 'left', }]}>
-                  {find(item.fk_unidade_id, 'nome_unidade')}
+                  {find(item.fk_unidade_id, 'nome_unidade') || 'N/A'}
                 </Text>
               </View>
-              <View style={[TableStyles.contentCell, { width: '10%' }]}>
+              <View style={[TableStyles.contentRiskCell, { width: '10%' }]}>
                 <Text style={[RiskInventoryStyles.contentText, { textAlign: 'left', }]}>
                   {find(item.fk_setor_id, 'nome_setor')}
                 </Text>
               </View>
-              <View style={[TableStyles.contentCell, { width: '10%' }]}>
+              <View style={[TableStyles.contentRiskCell, { width: '10%' }]}>
                 <Text style={[RiskInventoryStyles.contentText, { textAlign: 'left', }]}>
                   {find(item.fk_processo_id, 'nome_processo')}
                 </Text>
               </View>
-              <View style={[TableStyles.contentCell, { width: '10%' }]}>
+              <View style={[TableStyles.contentRiskCell, { width: '10%' }]}>
                 <Text style={[RiskInventoryStyles.contentText, { textAlign: 'left', }]}>
                   {find(item.fk_risco_id, 'nome_risco') || 'N/A'}
                 </Text>
               </View>
-              <View style={[TableStyles.contentCell, { width: '5%' }]}>
+              <View style={[TableStyles.contentRiskCell, { width: '5%' }]}>
                 <Text style={[RiskInventoryStyles.contentText, { textAlign: 'center', }]}>
-                  {find(item.fk_risco_id, 'grupo_risco') || 'N/A'}
+                  {getFirstLetter(find(item.fk_risco_id, 'grupo_risco')) || 'N/A'}
                 </Text>
               </View>
-              <View style={[TableStyles.contentCell, { width: '12%' }]}>
+              <View style={[TableStyles.contentRiskCell, { width: '12%' }]}>
                 <Text style={[RiskInventoryStyles.contentText, { textAlign: 'left', }]}>
                   {find(item.fk_risco_id, 'consequencia') || 'N/A'}
                 </Text>
               </View>
-              <View style={[TableStyles.contentCell, { width: '10%' }]}>
+              <View style={[TableStyles.contentRiskCell, { width: '10%' }]}>
                 <Text style={[RiskInventoryStyles.contentText, { textAlign: 'left', }]}>
                   {item.fontes || 'N/A'}
                 </Text>
               </View>
-              <View style={[TableStyles.contentCell, { width: '5%' }]}>
+              <View style={[TableStyles.contentRiskCell, { width: '5%' }]}>
                 <Text style={[RiskInventoryStyles.contentText, { textAlign: 'center', }]}>
                   {item.pessoas_expostas || 'N/A'}
                 </Text>
               </View>
-              <View style={[TableStyles.contentCell, { width: '10%' }]}>
+              <View style={[TableStyles.contentRiskCell, { width: '10%' }]}>
                 <Text style={[RiskInventoryStyles.contentText, { textAlign: 'center', }]}>
                   {find(item.fk_risco_id, 'avaliacao') || 'N/A'}
                 </Text>
               </View>
-              <View style={[TableStyles.contentCell, { width: '5%' }]}>
+              <View style={[TableStyles.contentRiskCell, { width: '5%' }]}>
                 <Text style={[RiskInventoryStyles.contentText, { textAlign: 'left', }]}>
                   {item.frequencia || '0'}
                 </Text>
               </View>
-              <View style={[TableStyles.contentCell, { width: '10%' }]}>
+              <View style={[TableStyles.contentRiskCell, { width: '10%' }]}>
                 <Text style={[RiskInventoryStyles.contentText, { textAlign: 'center', }]}>
                   {item.medicao + " " + find(item.fk_risco_id, 'unidade_medida') || '0'}
                 </Text>
               </View>
-              <View style={[TableStyles.contentCell, { width: '10%' }]}>
+              <View style={[TableStyles.contentRiskCell, { width: '10%' }]}>
                 <Text style={[RiskInventoryStyles.contentText, { textAlign: 'left', }]}>
                   {find(item.fk_aparelho_id, 'nome_aparelho') || 'N/A'}
                 </Text>
               </View>
-              <View style={[TableStyles.contentCell, { width: '5%' }]}>
+              <View style={[TableStyles.contentRiskCell, { width: '5%' }]}>
                 <Text style={[RiskInventoryStyles.contentText, { textAlign: 'center', }]}>
                   {find(item.fk_risco_id, 'limite_tolerancia') + " " + find(item.fk_risco_id, 'unidade_medida') || '0'}
                 </Text>
               </View>
-              <View style={[TableStyles.contentCell, { width: '10%' }]}>
+              <View style={[TableStyles.contentRiskCell, { width: '10%' }]}>
                 <Text style={[RiskInventoryStyles.contentText, { textAlign: 'left', }]}>
                   {find(item.fk_risco_id, 'metodologia') || 'N/A'}
                 </Text>
               </View>
-              <View style={[TableStyles.contentCell, { width: '10%' }]}>
+              <View style={[TableStyles.contentRiskCell, { width: '10%' }]}>
                 <Text style={[RiskInventoryStyles.contentText, { textAlign: 'left', }]}>
-                  {convertMedidas(item.medidas) || 'N/A'}
+                  {convertMedidas(item.medidas, item.fk_setor_id, item.fk_processo_id, item.fk_risco_id) || 'N/A'}
                 </Text>
               </View>
-              <View style={[TableStyles.contentCell, { width: '10%' }]}>
+              <View style={[TableStyles.contentRiskCell, { width: '5%' }]}>
                 <Text style={[RiskInventoryStyles.contentText, { textAlign: 'left', }]}>
-                  {item.conclusao_ltcat || '-'}
+                  {item.probabilidade || '-'}
+                </Text>
+              </View>
+              <View style={[TableStyles.contentRiskCell, { width: '5%' }]}>
+                <Text style={[RiskInventoryStyles.contentText, { textAlign: 'left', }]}>
+                  {find(item.fk_risco_id, 'severidade') || '-'}
+                </Text>
+              </View>
+              <View style={[TableStyles.contentRiskCell, { width: '5%' }]}>
+                <Text style={[RiskInventoryStyles.contentText, { textAlign: 'left', }]}>
+                  {item.nivel || '-'}
+                </Text>
+              </View>
+              <View style={[TableStyles.contentRiskCell, { width: '10%' }]}>
+                <Text style={[RiskInventoryStyles.contentText, { textAlign: 'left', }]}>
+                  {item.comentarios || '-'}
                 </Text>
               </View>
             </View>
