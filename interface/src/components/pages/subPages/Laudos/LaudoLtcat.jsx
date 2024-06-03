@@ -185,7 +185,7 @@ function LaudoPgr() {
     setGeneratedPdf(resRelatorio);
     handleDownloadLtcat(resRelatorio);
     setLoading(false);
-  };
+  }
   
   const generatePdf = async ( dados, sprm) => {
     return (

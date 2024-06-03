@@ -11,6 +11,7 @@ import PericulosidadeGenerate from "../components/LaudoGenerate/PericulosidadeGe
 import ModalSearchSetor from "../../subPages/components/Modal/ModalSearchSetor";
 import ModalSearchUnidade from "../../subPages/components/Modal/ModalSearchUnidade"
 import GridLaudo from "./Grids/GridLaudo";
+import ModalSearchElaborador from "../components/Modal/ModalSearchElaborador";
 
 import Back from '../../../layout/Back';
 import { IoInformationCircleSharp } from "react-icons/io5";
@@ -21,106 +22,87 @@ import { connect } from "../../../../services/api";
 function LaudoPgr() {
 
   const {
-    loadSelectedCompanyFromLocalStorage, companyId, selectedCompany,
+    loadSelectedCompanyFromLocalStorage,
+    getInventario, inventario,
     fetchUnidades,
     fetchSetores,
-    fetchEmpresas,
-    getCargos, cargos,
-    getProcessos,
-    getRiscos, riscos,
-    fetchMedidas,
-    getSetoresProcessos, setSetoresProcessos, setoresProcessos,
-    getProcessosRiscos, setProcessosRiscos, processosRiscos,
-    getRiscosMedidas, setRiscosMedidas, riscosMedidas,
-    getInventario, inventario,
-    getGlobalSprm, setGlobalSprm, globalSprm, getGlobalSprmByRiscoId,
-    getPlano, setPlano, plano,
-    getUsuarios, usuarios,
-    fetchContatos,
-    checkSignIn, user,
-    getAparelhos, aparelhos,
-    getLaudoVersion, laudoVersion,
+    getGlobalSprm,
+    getPlano, plano,
+    getTable,user
   } = useAuth(null);
 
 
-  const [nameCompany, setNameCompany] = useState(null);
+ 
+  const [companyId, setCompanyId] = useState(null);
+  const [nameCompany, setNameCompany] = useState('');
   const [filteredInventario, setFilteredInventario] = useState([]);
-  const [filteredSetores, setFilteredSetores] = useState([]);
+  const [filteredPlano, setFilteredPlano] = useState([]);
 
-  // Inputs Form
-  const [unidadeId, setUnidadeId] = useState('');
-  const [setorId, setSetorId] = useState('');
-  const [nomeUnidade, setNomeUnidade] = useState('');
-  const [setorNome, setSetorNome] = useState('');
-  const [data, setData] = useState('');
-  const [comentario, setComentario] = useState('');
-  const [versao, setVersao] = useState('');
-
-  // Laudo
-  const [pdfComponent, setPdfComponent] = useState(null);
-  const [generatedPdf, setGeneratedPdf] = useState(null);
-  const [pdfGrid, setPdfGrid] = useState(false);
-  const [laudos, setLaudos] = useState([]);
-  const [laudo, setLaudo] = useState('');
-  const [exists, setExists] = useState(false);
-
-  // Popover
-  const [visible, setVisible] = useState(false);
-
-  // Modal
   const [showModalUnidade, setShowModalUnidade] = useState(false);
+  const [unidades, setUnidades] = useState([]);
+  const [filteredUnidade, setFilteredUnidades] = useState([]);
+  const [unidadeId, setUnidadeId] = useState('');
+  const [nomeUnidade, setNomeUnidade] = useState('');
+
   const [showModalSetor, setShowModalSetor] = useState(false);
-
   const [setores, setSetores] = useState([]);
-  const [unidades,setUnidades] = useState([]);
-  const [processos, setProcessos] = useState([]);
-  const [contatos,setContatos] = useState([]);
-  const [medidas, setMedidas] = useState([]);
-  const [empresas, setEmpresas] = useState([]);
+  const [filteredSetores, setFilteredSetores] = useState([]);
+  const [setorId, setSetorId] = useState('');
+  const [setorNome, setSetorNome] = useState('')
+  
+  const [showModalElaborador, setShowModalElaborador] = useState(false);
+  const [elaboradores, setElaboradores] = useState([]);
+  const [filteredElaborador, setFilteredElaborador] = useState([]);
+  const [elaboradorId, setElaboradorId] = useState('');
+  const [elaboradorNome, setElaboradorNome] = useState('');
 
-  const get = async () => {
-		const sectors = await fetchSetores();
-		setSetores(sectors);
-		const units = await fetchUnidades();
-		setUnidades(units);
-    const proc = await getProcessos();
-    setProcessos(proc);
-    const data = await fetchContatos(companyId);
-    setContatos(data);
-    const response = await fetchMedidas('all');
-    setMedidas(response);  
-    const companys = await fetchEmpresas();
-    setEmpresas(companys)
-  	}
+  const [globalSprm, setGlobalSprm] = useState([]);
 
-	useEffect(() => {
-		get();
-	}, [companyId]);
+  const [pdfGrid, setPdfGrid] = useState(false);
+
+  const [visible, setVisible] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  // Form
+  const [data, setData] = useState('');
+  const [versao, setVersao] = useState('');
+  const [comentario, setComentario] = useState('');
+
+  const [generatedPdf, setGeneratedPdf] = useState(null);
+  const [pdfComponent, setPdfComponent] = useState(null);
+  const [laudo, setLaudo] = useState('0'); // Initialize with the default value
+
+  const getCompany = async () => {
+    const selectCompany = await loadSelectedCompanyFromLocalStorage();
+    setCompanyId(selectCompany.id_empresa);
+    setNameCompany(selectCompany.nome_empresa);
+  };
 
   useEffect(() => {
-    loadSelectedCompanyFromLocalStorage();
+    getCompany();
   }, []);
 
-    
   const handleGet = async () => {
-    setNameCompany(selectedCompany ? selectedCompany.nome_empresa : '');
-    getCargos();
-    getProcessos();
-    getRiscos();
-    getSetoresProcessos();
-    getProcessosRiscos();
     getInventario();
-    getRiscosMedidas();
     getPlano();
-    getUsuarios();
-    fetchEmpresas();
-    getAparelhos();
-    getLaudoVersion();
+
+    const unit = await fetchUnidades();
+    setUnidades(unit);
+
+    const setors = await fetchSetores();
+    setSetores(setors);
+
+    const sprm = await getGlobalSprm();
+    setGlobalSprm(sprm);
+
+    const authors = await getTable('elaboradores');
+    setElaboradores(authors);
   };
 
   useEffect(() => {
     handleGet();
   }, [companyId]);
+
 
   useEffect(() => {
     if (showModalSetor && unidadeId) {
@@ -129,28 +111,31 @@ function LaudoPgr() {
     }
   }, [showModalSetor, unidadeId, setores]);
 
-  useEffect(() => {
-    if (laudoVersion) {
-      const pdfExists = laudoVersion.filter((i) => i.fk_empresa_id === companyId && i.laudo === 'lip');
-      setLaudos(pdfExists);
-      if (pdfExists) {
-        setVersao(pdfExists.length + 1);
-        setExists(true);
-      } else {
-        setVersao(1);
-        setExists(false);
-      }
-    }
-  }, [laudoVersion]);
+  // useEffect(() => {
+  //   if (laudoVersion) {
+  //     const pdfExists = laudoVersion.filter((i) => i.fk_empresa_id === companyId && i.laudo === 'lip');
+  //     setLaudos(pdfExists);
+  //     if (pdfExists) {
+  //       setVersao(pdfExists.length + 1);
+  //       setExists(true);
+  //     } else {
+  //       setVersao(1);
+  //       setExists(false);
+  //     }
+  //   }
+  // }, [laudoVersion]);
 
 
   //Funções do Modal
   //Função para abrir o Modal
   const openModalUnidade = () => setShowModalUnidade(true);
   const openModalSetor = () => setShowModalSetor(true);
+  const openModalElaborador = () => setShowModalElaborador(true);
+
   //Função para fechar o Modal
   const closeModalUnidade = () => setShowModalUnidade(false);
   const closeModalSetor = () => setShowModalSetor(false);
+  const closeModalElaborador = () => setShowModalElaborador(false);
 
   // Função para atualizar a Unidade
   // Função para atualizar a Unidade
@@ -159,6 +144,13 @@ function LaudoPgr() {
     setUnidadeId(unidadeId)
     setNomeUnidade(nomeUnidade)
     handleClearSetor();
+    const inventarioFilter = inventario.filter((i) => i.fk_unidade_id === unidadeId);
+    console.log(inventarioFilter)
+    setFilteredInventario(inventarioFilter);
+    const planoFilter = plano.filter((i) => i.fk_unidade_id === unidadeId);
+    setFilteredPlano(planoFilter);
+    const unidadesFilter = unidades.filter((i) => i.id_unidade === unidadeId);
+    setFilteredUnidades(unidadesFilter);
   };
 
   const handleClearUnidade = () => {
@@ -166,6 +158,7 @@ function LaudoPgr() {
     setNomeUnidade(null);
     handleClearSetor();
     setFilteredSetores([]);
+    
   };
 
   const handleSetorSelect = (SetorId, SetorName) => {
@@ -173,6 +166,10 @@ function LaudoPgr() {
     setSetorId(SetorId);
     setSetorNome(SetorName);
 
+    const inventarioFilter = inventario.filter((i) => i.fk_setor_id === setorId);
+    setFilteredInventario(inventarioFilter);
+    const planoFilter = plano.filter((i) => i.fk_setor_id === setorId);
+    setFilteredPlano(planoFilter);
     const setorFilter = setores.filter((i) => i.id_setor === SetorId);
     setFilteredSetores(setorFilter);
   };
@@ -182,220 +179,87 @@ function LaudoPgr() {
     setSetorNome(null);
   };
 
-  const handleSubmit = async () => {
-    await getLaudoVersion();
-
-    if (!comentario) {
-      return toast.warn("Campo comentário em branco!")
-    }
-
-    try {
-      const pdfVersionData = {
-        data: data,
-        fk_empresa_id: companyId,
-        laudo: 'lip',
-        versao: versao,
-        comentario: comentario,
-      }
-
-      const response = await fetch(`${connect}/laudo_version`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(pdfVersionData),
-      });
-
-
-      if (!response.ok) {
-        throw new Error(`Erro ao gerar versão do PGR`);
-      };
-
-      toast.success(`PGR Gerado com sucesso, Versão: ${versao}`);
-      getLaudoVersion();
-      setNomeUnidade('');
-      setUnidadeId('');
-      setSetorNome('');
-      setSetorId('');
-      setComentario('');
-    } catch (error) {
-      console.error("Erro ao adicionar versão do pdf!", error)
-    }
+  const handleElaboradorSelect = (authors) => {
+    setElaboradorId(authors.id_elaborador);
+    setElaboradorNome(authors.nome_elaborador);
+    setFilteredElaborador(authors);
+    closeModalElaborador();
   };
 
-  const handleGenerate = async () => {
-    await handleGet();
-    try {
-      const filterRisco = riscos.filter((i) => i.lip_risco === 1);
-      const mapRisk = filterRisco.map((i) => i.id_risco);
-  
-      let filterUnidades;
-      let filterSetor;
-      let mapUnidades;
-      let mapSetor;
-      let filterInventario;
-  
-      if (unidadeId) {
-        filterUnidades = unidades.filter((i) => i.id_unidade === unidadeId);
-        mapUnidades = filterUnidades.map((i) => i.id_unidade);
-        filterSetor = setores.filter((i) => i.fk_unidade_id === unidadeId);
-        mapSetor = filterSetor.map((i) => i.id_setor);
-  
-        if (setorId) {
-          filterSetor = setores.filter((i) => i.id_setor === setorId);
-          mapSetor = filterSetor.map((i) => i.id_setor);
-        }
-      } else {
-        filterUnidades = unidades;
-        mapUnidades = filterUnidades.map((i) => i.id_unidade);
-        filterSetor = setores.filter((i) => mapUnidades.includes(i.fk_unidade_id));
-        mapSetor = filterSetor.map((i) => i.id_setor);
-      }
-  
-      filterInventario = inventario.filter(
-        (i) =>
-          mapRisk.includes(i.fk_risco_id) &&
-          i.fk_empresa_id === companyId &&
-          mapUnidades.includes(i.fk_unidade_id) &&
-          mapSetor.includes(i.fk_setor_id)
-      );
-  
-      if (filterInventario.length === 0) {
-        return toast.warn("Selecione outro setor ou outra unidade!");
-      }
-  
-      // Verificar se companyId está definido corretamente
-      console.log('companyId:', companyId); // Adicione este log
-  
-      // Verificar se empresas está carregado corretamente
-      console.log('empresas:', empresas); // Adicione este log
-  
-      const filterCompany = empresas.find((i) => i.id_empresa === companyId);
-      console.log('filterCompany:', filterCompany); // Adicione este log
-  
-      if (!filterCompany) {
-        console.error('Empresa não encontrada!');
-        return toast.error('Empresa não encontrada!');
-      }
-  
-      // Verificar se fk_contato_id está presente em filterCompany
-      console.log('filterCompany.fk_contato_id:', filterCompany.fk_contato_id); // Adicione este log
-  
-      if (!filterCompany.fk_contato_id) {
-        console.error('Contato da empresa não encontrado!');
-        return toast.error('Contato da empresa não encontrado!');
-      }
-  
-      const filterContato = contatos.find((i) => i.id_contato === filterCompany.fk_contato_id);
-      await checkSignIn();
-      const filterCargo = cargos.filter((i) => mapSetor.includes(i.fk_setor_id));
-  
-      if (laudo === "LP") {
-        const res = await generateLP(
-          filterInventario,
-          filterCompany,
-          filterContato,
-          filterSetor,
-          filterCargo,
-          filterUnidades,
-          user,
-          data
-        );
-        handleDownloadLtcat(res);
-        setGeneratedPdf(res);
-      } else if (laudo === "LI") {
-        const res = await generateLI(
-          filterInventario,
-          filterCompany,
-          filterContato,
-          filterSetor,
-          filterCargo,
-          filterUnidades,
-          user,
-          data
-        );
-        handleDownloadLtcat(res);
-        setGeneratedPdf(res);
-      } else {
-        const res = await generatePdf(
-          filterInventario,
-          filterCompany,
-          filterContato,
-          filterSetor,
-          filterCargo,
-          filterUnidades,
-          user,
-          data
-        );
-        handleDownloadLtcat(res);
-        setGeneratedPdf(res);
-      }
-  
-      handleSubmit();
-    } catch (error) {
-      console.log("Erro ao filtrar dados!", error);
-    }
-  
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+  const handleClearElaborador = () => {
+    setElaboradorId('');
+    setElaboradorNome('');
   };
+
+
   
+  const handleGerarRelatorio = async () => {
+    if (!elaboradorId) {
+      return toast.warn("Selecione um elaborador!");
+    }
+
+    setLoading(true);
+    const res = await fetch(`${connect}/relatorio_pgr`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ companyId: companyId }),
+    });
+
+    const data = await res.json();
+    const setoresMap = data.setores.map((i) => i.id_setor);
+    const filterSprm = globalSprm.filter((i) => setoresMap.includes(i.fk_setor_id));
+
+    // if (!data || !filterSprm || !filteredInventario.length > 0 || !filteredPlano.length > 0) {
+    //   setLoading(false);
+    //   return toast.error("Erro ao gerar relatório!");
+    // }
+
+    const resRelatorio = await generatePdf(data, filterSprm);
+    setGeneratedPdf(resRelatorio);
+    handleDownloadLip(resRelatorio);
+    setLoading(false);
+  }
   
 
-  const generatePdf = async (filterInventario, filterCompany, filterContato, filterSetor, filterCargo, filterUnidades, user, data) => {
+  const generatePdf = async (dados, sprm) => {
     return (
       <LipGenerate
-        inventario={filterInventario}
-        unidades={filterUnidades}
-        setores={filterSetor}
-        processos={processos}
-        riscos={riscos}
-        aparelhos={aparelhos}
-        company={filterCompany}
-        user={user}
+       inventario={filteredInventario}
+        plano={filteredPlano}
         data={data}
-        contatos={filterContato}
-        cargos={filterCargo}
+        dados={dados}
+        sprm = {sprm}
+        elaborador={filteredElaborador}
+        user={user}
       />
     );
   };
 
-  const generateLI = async (filterInventario, filterCompany, filterContato, filterSetor, filterCargo, filterUnidades, user, data) => {
+  const generateLI = async (filterInventario, dados, user, data) => {
     return (
       <InsalubridadeGenerate
-        inventario={filterInventario}
-        unidades={filterUnidades}
-        setores={filterSetor}
-        processos={processos}
-        riscos={riscos}
-        aparelhos={aparelhos}
-        company={filterCompany}
+       inventario={filterInventario}
+        dados={dados}
         user={user}
         data={data}
-        contatos={filterContato}
-        cargos={filterCargo}
       />
     );
   };
 
-  const generateLP = async (filterInventario, filterCompany, filterContato, filterSetor, filterCargo, filterUnidades, user, data) => {
+  const generateLP = async (filterInventario, dados, user, data) => {
     return (
       <PericulosidadeGenerate
         inventario={filterInventario}
-        unidades={filterUnidades}
-        setores={filterSetor}
-        processos={processos}
-        riscos={riscos}
-        aparelhos={aparelhos}
-        company={filterCompany}
+        dados={dados}
         user={user}
         data={data}
-        contatos={filterContato}
-        cargos={filterCargo}
       />
     );
   };
 
-  const handleDownloadLtcat = async (pgr) => {
+  const handleDownloadLip = async (pgr) => {
     const { blob } = await new Promise((resolve, reject) => {
       const pdfGenerated = (
         <PDFDownloadLink
@@ -437,6 +301,9 @@ function LaudoPgr() {
   };
 
 
+  const handleChangeLaudo = (event) => {
+    setLaudo(event.target.value);
+  };
   // Data
   const handleChangeData = async (event) => {
     const date = new Date(event.target.value);
@@ -461,9 +328,7 @@ function LaudoPgr() {
     });
   }, []);
 
-  const handleChangeLaudo = (item) => {
-    setLaudo(item.target.value);
-  };
+
 
   const handleComentarioChange = (e) => {
     setComentario(e.target.value);
@@ -529,23 +394,23 @@ function LaudoPgr() {
 
             {/* Laudo */}
             <div className="w-full md:w-1/4 px-3">
-              <label className="tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="select_laudo">
-                Laudo:
-              </label>
-              <select
-                className={`appearence-none block w-full bg-gray-100 rounded py-3 px-4 mb-3 mt-1 leading-tight focus:outline-gray-100 `}
-                type="date"
-                name="select_laudo"
-                id="select_laudo"
-                value={laudo}
-                onChange={handleChangeLaudo}
-              >
-                <option value="0">Selecione um Laudo</option>
-                <option value="LI">Laudo de Insalubridade</option>
-                <option value="LP">Laudo de Periculosidade</option>
-                <option value="LIP">LIP - Ambos</option>
-              </select>
-            </div>
+  <label className="tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="select_laudo">
+    Laudo:
+  </label>
+  <select
+    className="appearance-none block w-full bg-gray-100 rounded py-3 px-4 mb-3 mt-1 leading-tight focus:outline-gray-100"
+    name="select_laudo"
+    id="select_laudo"
+    value={laudo}
+    onChange={handleChangeLaudo}
+  >
+    <option value="0">Selecione um Laudo</option>
+    <option value="LI">Laudo de Insalubridade</option>
+    <option value="LP">Laudo de Periculosidade</option>
+    <option value="LIP">LIP - Ambos</option>
+  </select>
+</div>
+
 
             {/* Unidade */}
             <div className="w-full md:w-1/4 px-3">
@@ -643,7 +508,54 @@ function LaudoPgr() {
                 onContactSelect={handleSetorSelect}
               />
             </div>
+  {/* ELaborador */}
+  <div className="w-full md:w-4/12 px-3">
+              <label className="tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="elaborador">
+                Elaborador:
+              </label>
+              <div className="flex items-center w-full" id="elaborador">
+                {elaboradorId ? (
+                  <>
+                    <button
+                      className="flex w-full appearance-none hover:shadow-sm text-sky-600 bg-gray-100 border-gray-200 justify-center mt-1 py-3 px-4 rounded leading-tight focus:outline-none with-text"
+                      type="button"
+                      onClick={openModalElaborador}
+                    >
+                      <p className="font-bold w-full">
+                        {elaboradorNome}
+                      </p>
+                    </button>
+                    <button className="ml-4 cursor-pointer" onClick={handleClearElaborador} type="button">
+                      <img src={icon_sair} alt="" className="h-9" />
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    className="flex w-full appearance-none text-gray-400 bg-gray-100 border-gray-200 justify-center mt-1 py-3 px-4 rounded leading-tight focus:outline-none with-text"
+                    type="button"
+                    onClick={openModalElaborador}
+                  >
+                    <p className="px-2 text-sm font-medium w-full">
+                      Nenhum Elaborador Selecionado
+                    </p>
+                  </button>
+                )}
 
+                <button
+                  type="button"
+                  onClick={openModalElaborador}
+                  className={`flex cursor-pointer ml-4`}
+                >
+                  <img src={icon_lupa} className="h-9 cursor-pointer" alt="Icone adicionar elaborador"></img>
+                </button>
+              </div>
+              <ModalSearchElaborador
+                isOpen={showModalElaborador}
+                onCancel={closeModalElaborador}
+                children={elaboradores}
+                onSelect={handleElaboradorSelect}
+              />
+            </div>
             {/* Versão */}
             <div className="w-full md:w-1/12 px-3 cursor-not-allowed">
               <label className="tracking-wide text-gray-700 cursor-not-allowed text-xs font-bold mb-2" htmlFor="versao">
@@ -654,7 +566,7 @@ function LaudoPgr() {
                 type="text"
                 id="versao"
                 name="versao"
-                value={versao}
+                value={1}
                 placeholder="Versão do Laudo"
                 disabled
               />
@@ -686,7 +598,7 @@ function LaudoPgr() {
             {pdfComponent ? (
               pdfComponent
             ) : (
-              <button type="button" className="bg-green-600 py-2 px-8 font-bold text-lg text-white rounded cursor-pointer hover:bg-green-700" onClick={handleGenerate}>
+              <button type="button" className="bg-green-600 py-2 px-8 font-bold text-lg text-white rounded cursor-pointer hover:bg-green-700" onClick={handleGerarRelatorio}>
                 Gerar PDF
               </button>
             )}
@@ -710,13 +622,13 @@ function LaudoPgr() {
       )}
 
       {/* Grid */}
-      <GridLaudo
-        children={laudos}
-        empresas={empresas}
+      {/* <GridLaudo
+        children={laudo}
+        dados={dados}
         handleGenerate={handleGenerate}
         pdf={pdfGrid}
         companyId={companyId}
-      />
+      /> */}
 
     </>
   )

@@ -7,7 +7,7 @@ import OpenSansSemiBold from '../../../../media/fonts/OpenSans-SemiBold.ttf';
 import OpenSansBold from '../../../../media/fonts/OpenSans-Bold.ttf';
 import OpenSansExtraBold from '../../../../media/fonts/OpenSans-ExtraBold.ttf';
 
-function LtcatGenerate({ inventario, dados, data, user, elaborador}) {
+function LtcatGenerate({ inventario, dados, data, user, elaborador, sprm}) {
 
     const find = (item, tipo) => {
       try {
@@ -87,15 +87,26 @@ function LtcatGenerate({ inventario, dados, data, user, elaborador}) {
     }
   };
 
-  const convertMedidas = (item) => {
+  const convertMedidas = (medidas, setorId, processoId, riscoId) => {
     try {
-      const medidasArray = JSON.parse(item);
-      return medidasArray.map(({ nome, tipo }) => `${tipo}: ${nome}`).join('\n');
+      const medidasArray = JSON.parse(medidas);
+      return medidasArray.map(({ descricao_medida, grupo_medida, id_medida }) => {
+        const sprmItem = sprm.find(s =>
+          s.fk_setor_id === setorId &&
+          s.fk_processo_id === processoId &&
+          s.fk_risco_id === riscoId &&
+          s.fk_medida_id === id_medida
+        );
+
+        const certificadoEpi = sprmItem ? sprmItem.certificado_epi : 'N/A';
+        return `${grupo_medida}: ${descricao_medida} - \n ${certificadoEpi != null ? `C.A: ${certificadoEpi}` : ''}`;
+      }).join('\n');
     } catch (error) {
       console.error("Erro ao converter medidas:", error);
       return 'N/A';
     }
   };
+  
   const findSetor = (item) => {
     const findSetor = dados.setores.find((i) => i.id_setor === item);
     return findSetor ? findSetor.nome_setor : "N/A";
@@ -148,7 +159,7 @@ function LtcatGenerate({ inventario, dados, data, user, elaborador}) {
     } catch (error) {
       console.log("Erro ao calcular data", error)
     }
-  };
+  }; 
 
 
   Font.register({ family: 'OpenSansLight', src: OpenSansLight });
@@ -282,8 +293,7 @@ function LtcatGenerate({ inventario, dados, data, user, elaborador}) {
     },
 
     valueText: {
-      fontSize: 12,
-      color: '#495057',
+      fontSize: 10,
       fontFamily: 'OpenSansRegular',
     },
 
@@ -427,22 +437,17 @@ function LtcatGenerate({ inventario, dados, data, user, elaborador}) {
   });
 
   const TableStyles = StyleSheet.create({
-    Column: {
-      flexDirection: 'row',
-      justifyContent: 'center',
-      alignItems: 'center',
-      borderBottom: '1 solida #495057',
-    },
-
     table: {
       marginTop: 10,
       width: '100%',
     },
+
     headerCell: {
       padding: 5,
       backgroundColor: '#0077b6',
       width: '100%',
     },
+
     headerTable: {
       padding: 2,
       backgroundColor: '#0077b6',
@@ -451,9 +456,10 @@ function LtcatGenerate({ inventario, dados, data, user, elaborador}) {
     },
 
     headerCellTable: {
-      width: '33%',
       justifyContent: 'center',
       alignItems: 'center',
+      width: '33%',
+      flexDirection: 'row',
     },
 
     tableRow: {
@@ -499,35 +505,68 @@ function LtcatGenerate({ inventario, dados, data, user, elaborador}) {
       width: '15%',
     },
 
-    contentTable: {
+    headerSignatureContentCell: {
+      paddingHorizontal: 10,
+      paddingVertical: 10,
+      backgroundColor: '#0077b6',
+      width: '100%',
       flexDirection: 'row',
     },
 
+    headerSignatureCell: {
+      width: '100%',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+
+    signatureLine: {
+      paddingTop: 50,
+      borderBottom: '1 solid #343a40'
+    },
+
+    officeFiftyRow: {
+      paddingHorizontal: 10,
+      paddingVertical: 20,
+      width: '50%',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+
+    contentTable: {
+      flexDirection: 'row',
+    },
+    contentTable2: {
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: 2,
+    },
     contentCell: {
       border: '0.3 solid #333333',
       height: '100%',
+      width : '100%', 
       justifyContent: 'center',
       paddingHorizontal: 5,
       paddingVertical: 2,
     },
-
+    contentCell2: {
+      width: '100%',
+      justifyContent: 'center',
+      paddingHorizontal: 5,
+      paddingVertical: 2,
+    },
     contentColumm: {
       justifyContent: 'center',
       alignItems: 'center',
       flexDirection: 'row',
     },
 
-    contentRiskTable: {
+    Column: {
       flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+      borderBottom: '1 solida #495057',
     },
 
-    contentRiskCell: {
-      border: '0.3 solid #333333',
-      height: '100%',
-      justifyContent: 'center',
-      paddingHorizontal: 5,
-      paddingVertical: 2,
-    },
     headerColumn: {
       flex: 1,
       width: '30%',
@@ -540,6 +579,7 @@ function LtcatGenerate({ inventario, dados, data, user, elaborador}) {
       alignItems: 'center',
       fontFamily: 'OpenSansBold',
     },
+
     contentColumn: {
       width: '70%',
       flex: 2,
@@ -549,7 +589,17 @@ function LtcatGenerate({ inventario, dados, data, user, elaborador}) {
       justifyContent: 'center',
       fontFamily: 'OpenSansRegular',
     },
-  });
+    contentRiskTable: {
+      flexDirection: 'row',
+    },
+
+    contentRiskCell: {
+      border: '0.3 solid #333333',
+      height: '100%',
+      justifyContent: 'center',
+      paddingHorizontal: 5,
+      paddingVertical: 2,
+    },});
 
   const HeaderPage = () => {
     return (
@@ -563,7 +613,7 @@ function LtcatGenerate({ inventario, dados, data, user, elaborador}) {
   const FooterPage = () => {
     return (
       <View style={ContainerStyles.footerContainer}>
-        <Text style={TextStyles.footerText}>{dados.empresas[0].nome_empresa || '-'}a</Text>
+        <Text style={TextStyles.footerText}>{dados.empresas[0].nome_empresa || '-'}</Text>
         <Text style={TextStyles.footerAddresText}>-</Text>
       </View>
     );
@@ -1012,118 +1062,120 @@ function LtcatGenerate({ inventario, dados, data, user, elaborador}) {
         {/* Sumário */}
         <Text style={TextStyles.subTitleSumary}>1. Identificação da Empresa</Text>
 
-        {/* Company Table */}
-        <View style={TableStyles.table}>
-          <View style={TableStyles.headerCell}>
-            <Text style={TextStyles.prefixTextTitle}>Empresa: </Text>
-            <Text style={TextStyles.valueTextTitle}>{dados.empresas[0].nome_empresa || "N/A"}</Text>
-          </View>
-          <View style={TableStyles.tableRow}>
-            <View style={TableStyles.twentyFiveRow}>
-              <Text style={TextStyles.prefixText}>CNPJ:</Text>
-              <Text style={TextStyles.valueText}>{dados.empresas[0].cnpj_empresa || "N/A"}</Text>
-            </View>
-            <View style={TableStyles.fifTeenRow}>
-              <Text style={TextStyles.prefixText}>Cnae:</Text>
-              <Text style={TextStyles.valueText}>{dados.empresas[0].cnae_empresa || "N/A"}</Text>
-            </View>
-            <View style={TableStyles.fifTeenRow}>
-              <Text style={TextStyles.prefixText}>Grau de Risco:</Text>
-              <Text style={TextStyles.valueText}>{dados.empresas[0].grau_risco_cnae || "N/A"}</Text>
-            </View>
-            <View style={TableStyles.fiftyRow}>
-              <Text style={TextStyles.prefixText}>Descrição CNAE:</Text>
-              <Text style={TextStyles.valueText}>{dados.empresas[0].descricao_cnae || "N/A"}</Text>
-            </View>
-          </View>
+<View style={TableStyles.table}>
+  <View style={TableStyles.headerCell}>
+    <Text style={TextStyles.prefixTextTitle}>Empresa: </Text>
+    <Text style={TextStyles.valueTextTitle}>{dados.empresas[0].nome_empresa || "N/A"}</Text>
+  </View>
+  <View style={TableStyles.tableRow}>
+    <View style={TableStyles.twentyFiveRow}>
+      <Text style={TextStyles.prefixText}>CNPJ:</Text>
+      <Text style={TextStyles.valueText}>{dados.empresas[0].cnpj_empresa || "N/A"}</Text>
+    </View>
+    <View style={TableStyles.fifTeenRow}>
+      <Text style={TextStyles.prefixText}>Cnae:</Text>
+      <Text style={TextStyles.valueText}>{dados.empresas[0].cnae_empresa || "0"}</Text>
+    </View>
+    <View style={TableStyles.fifTeenRow}>
+      <Text style={TextStyles.prefixText}>Grau de Risco:</Text>
+      <Text style={TextStyles.valueText}>{dados.empresas[0].grau_risco_cnae || "0"}</Text>
+    </View>
+    <View style={TableStyles.fiftyRow}>
+      <Text style={TextStyles.prefixText}>Descrição CNAE:</Text>
+      <Text style={TextStyles.valueText}>{dados.empresas[0].descricao_cnae || "N/A"}</Text>
+    </View>
+  </View>
+</View>
+
+{/* Signature Table */}
+<View style={ContainerStyles.signatureContainer}>
+  <Text style={[TextStyles.subTitleSumary, { textAlign: 'center' }]}>Assinaturas</Text>
+  <Text style={TextStyles.SignatureDate}>Londrina, {formatData(data)}</Text>
+
+  {/* Assinatura do Técnico */}
+  <View style={{ width: '100%', flexDirection: 'row' }}>
+    {/* Elaborador */}
+    <View style={[TableStyles.table, { width: '50%', justifyContent: 'center', alignItems: 'center', paddingRight: 10 }]}>
+      <View style={CompanyStyles.headerSignatureContentCell}>
+        <View style={CompanyStyles.headerSignatureCell}>
+          <Text style={[TextStyles.valueTextSignatureTitle, { textAlign: 'center' }]}>Elaborador</Text>
         </View>
-        <View style={ContainerStyles.signatureContainer}>
-          <Text style={[TextStyles.subTitleSumary, { textAlign: 'center' }]}>Assinaturas</Text>
-          <Text style={TextStyles.SignatureDate}>Londrina, {formatData(data)}</Text>
-
-          {/* Assinatura do Técnico */}
-          <View style={{ width: '100%', flexDirection: 'row' }}>
-            {/* Elaborador */}
-            <View style={[TableStyles.table, { width: '50%', justifyContent: 'center', alignItems: 'center', paddingRight: 10 }]}>
-              <View style={CompanyStyles.headerSignatureContentCell}>
-                <View style={CompanyStyles.headerSignatureCell}>
-                  <Text style={[TextStyles.valueTextSignatureTitle, { textAlign: 'center' }]}>Elaborador</Text>
-                </View>
-              </View>
-              <View style={[TableStyles.contentTable, { width: '100%' }]}>
-                {/* Linha de Assinatura */}
-                <View style={[TableStyles.contentCell, { width: '100%' }]}>
-                  <Text style={TextStyles.tableContentSubText}>Assinatura:</Text>
-                  <View style={CompanyStyles.signatureLine}></View>
-                </View>
-                <View style={[TableStyles.contentCell, { width: '100%' }]}>
-                  {/* Nome e Registro */}
-                  <View style={[TableStyles.contentColumm, { width: '100%' }]}>
-                    <View style={[TableStyles.contentCell, { width: '75%' }]}>
-                      <Text style={[TextStyles.tableContentText, { fontFamily: 'OpenSansBold', fontSize: 10 }]}>{elaborador.nome_elaborador || "N/A"}</Text>
-                    </View>
-                    <View style={[TableStyles.contentCell, { width: '25%' }]}>
-                      <Text style={[TextStyles.tableContentSubText, { textAlign: 'left' }]}>{findRegisterName(elaborador.cargo_elaborador) || "N/A"}:</Text>
-                      <Text style={[TextStyles.tableContentText, { textAlign: 'right' }]}>{elaborador.registro_elaborador || "N/A"}</Text>
-                    </View>
-                  </View>
-                  {/* Email e Telefone */}
-                  <View style={[TableStyles.contentColumm, { width: '100%' }]}>
-                    <View style={[TableStyles.contentCell, { width: '75%' }]}>
-                      <Text style={[TextStyles.tableContentSubText, { textAlign: 'left' }]}>Email:</Text>
-                      <Text style={[TextStyles.tableContentText, { textAlign: 'left' }]}>{elaborador.email_elaborador || "N/A"}</Text>
-                    </View>
-                    <View style={[TableStyles.contentCell, { width: '25%' }]}>
-                      <Text style={[TextStyles.tableContentSubText, { textAlign: 'left' }]}>Telefone:</Text>
-                      <Text style={[TextStyles.tableContentText, { textAlign: 'right' }]}>{elaborador.telefone_elaborador || "N/A"}</Text>
-                    </View>
-                  </View>
-
-                </View>
-              </View>
+      </View>
+      <View style={[TableStyles.contentTable2, { width: '100%' }]}>
+        {/* Linha de Assinatura */}
+        <View style={[TableStyles.contentCell2, { width: '100%' }]}>
+          <Text style={TextStyles.tableContentSubText}>Assinatura:</Text>
+          <View style={CompanyStyles.signatureLine}></View>
+        </View>
+        <View style={[TableStyles.contentCell2, { width: '100%' }]}>
+          {/* Nome e Registro */}
+          <View style={[TableStyles.contentColumm, { width: '100%' }]}>
+            <View style={[TableStyles.contentCell2, { width: '75%' }]}>
+              <Text style={[TextStyles.tableContentText, { fontFamily: 'OpenSansBold', fontSize: 10 }]}>{elaborador.nome_elaborador || "N/A"}</Text>
             </View>
-
-            {/* Responsável */}
-            <View style={[TableStyles.table, { width: '50%', justifyContent: 'center', alignItems: 'center', paddingLeft: 10 }]}>
-              <View style={CompanyStyles.headerSignatureContentCell}>
-                <View style={CompanyStyles.headerSignatureCell}>
-                  <Text style={[TextStyles.valueTextSignatureTitle, { textAlign: 'center' }]}>Responsável</Text>
-                </View>
-              </View>
-              <View style={[TableStyles.contentTable, { width: '100%' }]}>
-                {/* Linha de Assinatura */}
-                <View style={[TableStyles.contentCell, { width: '100%' }]}>
-                  <Text style={TextStyles.tableContentSubText}>Assinatura:</Text>
-                  <View style={CompanyStyles.signatureLine}></View>
-                </View>
-                {dados && dados.contatos.filter(contact => contact.id_contato === dados.empresas[0].fk_contato_id)
-                  .map((contact, index) => (
-                    <View key={index} style={[TableStyles.contentCell, { width: '100%' }]}>
-                      {/* Nome e Registro */}
-                      <View style={[TableStyles.contentColumm, { width: '100%' }]}>
-                        <View style={[TableStyles.contentCell, { width: '100%' }]}>
-                          <Text style={[TextStyles.tableContentText, { fontFamily: 'OpenSansBold', fontSize: 10 }]}>{contact.nome_contato || "N/A"}</Text>
-                        </View>
-                      </View>
-                      {/* Email e Telefone */}
-                      <View style={[TableStyles.contentColumm, { width: '100%' }]}>
-                        <View style={[TableStyles.contentCell, { width: '75%' }]}>
-                          <Text style={[TextStyles.tableContentSubText, { textAlign: 'left' }]}>Email:</Text>
-                          <Text style={[TextStyles.tableContentText, { textAlign: 'left' }]}>{contact.email_contato || "N/A"}</Text>
-                        </View>
-                        <View style={[TableStyles.contentCell, { width: '25%' }]}>
-                          <Text style={[TextStyles.tableContentSubText, { textAlign: 'left' }]}>Telefone:</Text>
-                          <Text style={[TextStyles.tableContentText, { textAlign: 'right' }]}>{contact.telefone_contato || "N/A"}</Text>
-                        </View>
-                      </View>
-
-                    </View>
-                  ))}
-              </View>
+            <View style={[TableStyles.contentCell2, { width: '25%' }]}>
+              <Text style={[TextStyles.tableContentSubText, { textAlign: 'left' }]}>{findRegisterName(elaborador.cargo_elaborador) || "N/A"}:</Text>
+              <Text style={[TextStyles.tableContentText, { textAlign: 'right' }]}>{elaborador.registro_elaborador || "N/A"}</Text>
+            </View>
+          </View>
+          {/* Email e Telefone */}
+          <View style={[TableStyles.contentColumm, { width: '100%' }]}>
+            <View style={[TableStyles.contentCell2, { width: '75%' }]}>
+              <Text style={[TextStyles.tableContentSubText, { textAlign: 'left' }]}>Email:</Text>
+              <Text style={[TextStyles.tableContentText, { textAlign: 'left' }]}>{elaborador.email_elaborador || "N/A"}</Text>
+            </View>
+            <View style={[TableStyles.contentCell2, { width: '25%' }]}>
+              <Text style={[TextStyles.tableContentSubText, { textAlign: 'left' }]}>Telefone:</Text>
+              <Text style={[TextStyles.tableContentText, { textAlign: 'right' }]}>{elaborador.telefone_elaborador || "N/A"}</Text>
             </View>
           </View>
 
         </View>
+      </View>
+    </View>
+
+    {/* Responsável */}
+    <View style={[TableStyles.table, { width: '50%', justifyContent: 'center', alignItems: 'center', paddingLeft: 10 }]}>
+      <View style={CompanyStyles.headerSignatureContentCell}>
+        <View style={CompanyStyles.headerSignatureCell}>
+          <Text style={[TextStyles.valueTextSignatureTitle, { textAlign: 'center' }]}>Responsável</Text>
+        </View>
+      </View>
+      <View style={[TableStyles.contentTable2, { width: '100%' }]}>
+        {/* Linha de Assinatura */}
+        <View style={[TableStyles.contentCell2, { width: '100%' }]}>
+          <Text style={TextStyles.tableContentSubText}>Assinatura:</Text>
+          <View style={CompanyStyles.signatureLine}></View>
+        </View>
+        {dados && dados.contatos.filter(contact => contact.id_contato === dados.empresas[0].fk_contato_id)
+          .map((contact, index) => (
+            <View key={index} style={[TableStyles.contentCell2, { width: '100%' }]}>
+              {/* Nome e Registro */}
+              <View style={[TableStyles.contentColumm, { width: '100%' }]}>
+                <View style={[TableStyles.contentCell2, { width: '100%' }]}>
+                  <Text style={[TextStyles.tableContentText, { fontFamily: 'OpenSansBold', fontSize: 10 }]}>{contact.nome_contato || "N/A"}</Text>
+                </View>
+              </View>
+              {/* Email e Telefone */}
+              <View style={[TableStyles.contentColumm, { width: '100%' }]}>
+                <View style={[TableStyles.contentCell2, { width: '75%' }]}>
+                  <Text style={[TextStyles.tableContentSubText, { textAlign: 'left' }]}>Email:</Text>
+                  <Text style={[TextStyles.tableContentText, { textAlign: 'left' }]}>{contact.email_contato || "N/A"}</Text>
+                </View>
+                <View style={[TableStyles.contentCell2, { width: '25%' }]}>
+                  <Text style={[TextStyles.tableContentSubText, { textAlign: 'left' }]}>Telefone:</Text>
+                  <Text style={[TextStyles.tableContentText, { textAlign: 'right' }]}>{contact.telefone_contato || "N/A"}</Text>
+                </View>
+              </View>
+
+            </View>
+          ))}
+      </View>
+    </View>
+  </View>
+
+</View>
+
 
         {/* Footer */}
         <FooterPage />
@@ -1278,9 +1330,6 @@ function LtcatGenerate({ inventario, dados, data, user, elaborador}) {
         <View style={TableStyles.table}>
           {/* Header */}
           <View style={[TableStyles.headerTable, { justifyContent: 'center', alignItems: 'center', }]} fixed>
-            <View style={[TableStyles.headerCell, { width: ' 5%', }]}>
-              <Text style={[{ fontFamily: 'OpenSansBold', fontSize: 6, color: '#ffffff', textAlign: 'center' }]}>ID</Text>
-            </View>
             <View style={[TableStyles.headerCell, { width: ' 8%' }]}>
               <Text style={[{ fontFamily: 'OpenSansBold', fontSize: 6, color: '#ffffff', textAlign: 'center' }]}>Data</Text>
             </View>
@@ -1329,8 +1378,17 @@ function LtcatGenerate({ inventario, dados, data, user, elaborador}) {
             <View style={[TableStyles.headerCell, { width: ' 10%' }]}>
               <Text style={[{ fontFamily: 'OpenSansBold', fontSize: 6, color: '#ffffff', textAlign: 'center' }]}>Medidas</Text>
             </View>
+            <View style={[TableStyles.headerCell, { width: ' 5%' }]}>
+              <Text style={[{ fontFamily: 'OpenSansBold', fontSize: 6, color: '#ffffff', textAlign: 'center' }]}>P</Text>
+            </View>
+            <View style={[TableStyles.headerCell, { width: ' 5%' }]}>
+              <Text style={[{ fontFamily: 'OpenSansBold', fontSize: 6, color: '#ffffff', textAlign: 'center' }]}>S</Text>
+            </View>
+            <View style={[TableStyles.headerCell, { width: ' 5%' }]}>
+              <Text style={[{ fontFamily: 'OpenSansBold', fontSize: 6, color: '#ffffff', textAlign: 'center' }]}>N</Text>
+            </View>
             <View style={[TableStyles.headerCell, { width: ' 10%' }]}>
-              <Text style={[{ fontFamily: 'OpenSansBold', fontSize: 6, color: '#ffffff', textAlign: 'center' }]}>Conclusão</Text>
+              <Text style={[{ fontFamily: 'OpenSansBold', fontSize: 6, color: '#ffffff', textAlign: 'center' }]}>Comentários</Text>
             </View>
           </View>
           {/* Body */}
@@ -1438,6 +1496,17 @@ function LtcatGenerate({ inventario, dados, data, user, elaborador}) {
               </View>
             </View>
           ))}
+        </View>
+        {/* Legenda */}
+        <View style={{ textAlign: 'right', paddingRight: 5 }}>
+          <Text style={TextStyles.legend}>
+            <Text style={TextStyles.legendBold}>PE:</Text> Pessoas Expostas -
+            <Text style={TextStyles.legendBold}> Freq:</Text> Frequência -
+            <Text style={TextStyles.legendBold}> LT</Text> Limite de Tolerância -
+            <Text style={TextStyles.legendBold}> P:</Text> Probabilidade -
+            <Text style={TextStyles.legendBold}> S:</Text> Severidade -
+            <Text style={TextStyles.legendBold}> N:</Text> Nível
+          </Text>
         </View>
 
         {/* Footer */}
