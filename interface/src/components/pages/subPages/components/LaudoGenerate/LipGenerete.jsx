@@ -12,9 +12,7 @@ import formula_pt from '../../../../media/laudos/lip/formula_pt.png'
 import formula_pr from '../../../../media/laudos/lip/formula_pr.png'
 import formula_silica from '../../../../media/laudos/lip/formula_silica.png'
 
-function LipGenerate({ inventario, plano,
-  company, unidades, setores, cargos, contatos,
-  processos, riscos, user, aparelhos, data, }) {
+function LipGenerate({inventario, dados, data, user, elaborador, sprm }) {
 
   const find = (item, tipo) => {
     try {
@@ -24,21 +22,26 @@ function LipGenerate({ inventario, plano,
 
       switch (tipo) {
         case 'nome_unidade':
-          const unidadeEncontrada = unidades.find((c) => c.id_unidade === item);
+          const unidadeEncontrada = dados.unidades.find((c) => c.id_unidade === item);
           return unidadeEncontrada ? unidadeEncontrada.nome_unidade : 'N/A';
 
         case 'nome_setor':
-          const setorEncontrado = setores.find((c) => c.id_setor === item);
+          const setorEncontrado = dados.setores.find((c) => c.id_setor === item);
           return setorEncontrado ? setorEncontrado.nome_setor : 'N/A';
 
         case 'nome_processo':
-          const processoEncontrado = processos.find((c) => c.id_processo === item);
+          const processoEncontrado = dados.processos.find((c) => c.id_processo === item);
           return processoEncontrado ? processoEncontrado.nome_processo : 'N/A';
 
         case 'nome_aparelho':
-          const aparelhosEncontrado = aparelhos.find((c) => c.id_aparelho === item);
-          const aparelho = `${aparelhosEncontrado.nome_aparelho} - ${aparelhosEncontrado.marca_aparelho} (${formatData(aparelhosEncontrado.data_calibracao_aparelho)})`
+          const aparelhosEncontrado = dados.aparelhos.find((c) => c.id_aparelho === item);
+          const aparelho = `${aparelhosEncontrado.nome_aparelho || "N/A"} - ${aparelhosEncontrado.marca_aparelho || "N/A"} (${formatData(aparelhosEncontrado.data_calibracao_aparelho) || "N/A"})`;
           return aparelho;
+
+        case 'nome_medida':
+          const medidaEncontrada = dados.medidas.find((c) => c.id_medida === item);
+          const medida = `${medidaEncontrada.grupo_medida || "N/A"} - ${medidaEncontrada.descricao_medida || "N/A"}`;
+          return medida;
 
         case 'nome_risco':
         case 'grupo_risco':
@@ -48,8 +51,7 @@ function LipGenerate({ inventario, plano,
         case 'metodologia':
         case 'severidade':
         case 'unidade_medida':
-        case 'esocial':
-          const riscoEncontrado = riscos.find((c) => c.id_risco === item);
+          const riscoEncontrado = dados.riscos.find((c) => c.id_risco === item);
           if (riscoEncontrado) {
             switch (tipo) {
               case 'nome_risco':
@@ -68,8 +70,6 @@ function LipGenerate({ inventario, plano,
                 return riscoEncontrado.severidade_risco || "N/A";
               case 'unidade_medida':
                 return riscoEncontrado.unidade_medida_risco;
-              case 'esocial':
-                return riscoEncontrado.codigo_esocial_risco;
             }
           } else {
             return 'N/A';
@@ -82,7 +82,6 @@ function LipGenerate({ inventario, plano,
       return 'N/A';
     }
   };
-
   const formatData = (item) => {
     try {
       const data_formatada = new Date(item).toLocaleDateString('pr-BR');
@@ -91,11 +90,20 @@ function LipGenerate({ inventario, plano,
       console.log("Erro ao formatar data!", error);
     }
   };
-
-  const convertMedidas = (item) => {
+  const convertMedidas = (medidas, setorId, processoId, riscoId) => {
     try {
-      const medidasArray = JSON.parse(item);
-      return medidasArray.map(({ nome, tipo }) => `${tipo}: ${nome}`).join('\n');
+      const medidasArray = JSON.parse(medidas);
+      return medidasArray.map(({ descricao_medida, grupo_medida, id_medida }) => {
+        const sprmItem = sprm.find(s =>
+          s.fk_setor_id === setorId &&
+          s.fk_processo_id === processoId &&
+          s.fk_risco_id === riscoId &&
+          s.fk_medida_id === id_medida
+        );
+
+        const certificadoEpi = sprmItem ? sprmItem.certificado_epi : 'N/A';
+        return `${grupo_medida}: ${descricao_medida} - \n ${certificadoEpi != null ? `C.A: ${certificadoEpi}` : ''}`;
+      }).join('\n');
     } catch (error) {
       console.error("Erro ao converter medidas:", error);
       return 'N/A';
@@ -103,26 +111,44 @@ function LipGenerate({ inventario, plano,
   };
 
   const findSetor = (item) => {
-    const findSetor = setores.find((i) => i.id_setor === item);
+    const findSetor = dados.setores.find((i) => i.id_setor === item);
     return findSetor ? findSetor.nome_setor : "N/A";
   };
-
+  const getFirstLetter = (item) => {
+    return item.charAt(0);
+  };
+  const findRegisterName = (item) => {
+    try {
+      switch (item) {
+        case 'Engenheiro':
+          return 'CREA'
+        case 'Médico':
+          return 'CRM'
+        case 'Técnico':
+          return 'Registro'
+        default:
+          break;
+      }
+    } catch (error) {
+      console.error(`Erro ao filtrar registro ${error}`)
+    }
+  };
   const getTotalFuncMasc = () => {
-    return cargos.reduce((total, cargo) => total + cargo.func_masc, 0);
+    return dados.cargos.reduce((total, cargo) => total + cargo.func_masc, 0);
   };
 
   const getTotalFuncFem = () => {
-    return cargos.reduce((total, cargo) => total + cargo.func_fem, 0);
+    return dados.cargos.reduce((total, cargo) => total + cargo.func_fem, 0);
   };
 
   const getTotalFuncMenor = () => {
-    return cargos.reduce((total, cargo) => total + cargo.func_menor, 0);
+    return dados.cargos.reduce((total, cargo) => total + cargo.func_menor, 0);
   };
 
   const getTotalFunc = () => {
-    const funcMasc = cargos.reduce((total, cargo) => total + cargo.func_masc, 0);
-    const funcFem = cargos.reduce((total, cargo) => total + cargo.func_fem, 0);
-    const funcMenor = cargos.reduce((total, cargo) => total + cargo.func_menor, 0);
+    const funcMasc = dados.cargos.reduce((total, cargo) => total + cargo.func_masc, 0);
+    const funcFem = dados.cargos.reduce((total, cargo) => total + cargo.func_fem, 0);
+    const funcMenor = dados.cargos.reduce((total, cargo) => total + cargo.func_menor, 0);
 
     return funcMasc + funcFem + funcMenor;
   };
@@ -245,8 +271,9 @@ function LipGenerate({ inventario, plano,
       fontSize: 12,
       justifyContent: 'flex-start',
       alignItems: 'flex-start',
-      fontFamily: 'OpenSansBold'
-    },
+      marginLeft: 10,
+      marginTop: 10,
+    },  
 
     prefixText: {
       fontSize: 8,
@@ -321,9 +348,15 @@ function LipGenerate({ inventario, plano,
       textAlign: 'center',
     },
 
-    contentTableText: {
+    tableContentText: {
+      flexWrap: 'wrap',
       fontFamily: 'OpenSansRegular',
       fontSize: 8,
+    },
+    tableContentSubText: {
+      fontFamily: 'OpenSansLight',
+      fontSize: 6,
+      color: '#6c757d',
     },
 
     listItem: {
@@ -336,6 +369,15 @@ function LipGenerate({ inventario, plano,
       marginBottom: 5,
       fontSize: 10,
       fontFamily: 'OpenSansBold',
+    },
+    legend: {
+      fontFamily: 'OpenSansLight',
+      fontSize: 7,
+    },
+
+    legendBold: {
+      fontFamily: 'OpenSansMedium',
+      fontSize: 7,
     },
   });
 
@@ -413,7 +455,6 @@ function LipGenerate({ inventario, plano,
     table: {
       marginTop: 10,
       width: '100%',
-      marginBottom: 10,
     },
 
     headerCell: {
@@ -425,12 +466,14 @@ function LipGenerate({ inventario, plano,
     headerTable: {
       padding: 2,
       backgroundColor: '#0077b6',
+      width: '100%',
       flexDirection: 'row',
     },
 
     headerCellTable: {
       justifyContent: 'center',
       alignItems: 'center',
+      width: '33%',
       flexDirection: 'row',
     },
 
@@ -486,14 +529,14 @@ function LipGenerate({ inventario, plano,
     },
 
     headerSignatureCell: {
-      width: '50%',
+      width: '100%',
       justifyContent: 'center',
       alignItems: 'center',
     },
 
     signatureLine: {
-      height: '20%',
-      borderBottom: '1 solida #343a40'
+      paddingTop: 50,
+      borderBottom: '1 solid #343a40'
     },
 
     officeFiftyRow: {
@@ -507,13 +550,29 @@ function LipGenerate({ inventario, plano,
     contentTable: {
       flexDirection: 'row',
     },
-
+    contentTable2: {
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: 2,
+    },
     contentCell: {
       border: '0.3 solid #333333',
       height: '100%',
+      width : '100%', 
       justifyContent: 'center',
       paddingHorizontal: 5,
       paddingVertical: 2,
+    },
+    contentCell2: {
+      width: '100%',
+      justifyContent: 'center',
+      paddingHorizontal: 5,
+      paddingVertical: 2,
+    },
+    contentColumm: {
+      justifyContent: 'center',
+      alignItems: 'center',
+      flexDirection: 'row',
     },
 
     Column: {
@@ -545,14 +604,22 @@ function LipGenerate({ inventario, plano,
       justifyContent: 'center',
       fontFamily: 'OpenSansRegular',
     },
+    contentRiskTable: {
+      flexDirection: 'row',
+    },
 
-  });
-
+    contentRiskCell: {
+      border: '0.3 solid #333333',
+      height: '100%',
+      justifyContent: 'center',
+      paddingHorizontal: 5,
+      paddingVertical: 2,
+    },});
   const HeaderPage = () => {
     return (
       <View style={ContainerStyles.headerContainer}>
         <Text style={TextStyles.headerText}>Laudo de Insalubridade e Periculosidade - LIP</Text>
-        <Text style={TextStyles.littleText}>{company.nome_empresa}</Text>
+        <Text style={TextStyles.littleText}>{dados.empresas[0].nome_empresa || '-'} - Versão: </Text>
       </View>
     );
   }
@@ -571,7 +638,7 @@ function LipGenerate({ inventario, plano,
       <Page size="A4" style={PageStyles.Page}>
         <Text style={TextStyles.headerText}>Laudo de Insalubridade e Periculosidade - LIP</Text>
         <View style={ContainerStyles.centerContainer}>
-          <Text style={TextStyles.centerText}>{company.nome_empresa}</Text>
+          <Text style={TextStyles.centerText}>{dados.empresas[0].nome_empresa || 'N/A'}</Text>
         </View>
         <View style={ContainerStyles.bottomContainerVigencia}>
           <Text style={TextStyles.smallTextVigencia}>Londrina, {formatData(data)} - Vigência: {setVigencia(data)}</Text>
@@ -626,156 +693,156 @@ function LipGenerate({ inventario, plano,
           </View>
           <View style={TableStyles.contentTable}>
             <View style={[TableStyles.contentCell, { width: '25%' }]}>
-              <Text style={[TextStyles.contentTableText, { textAlign: 'center', fontSize: 10 }]}>1</Text>
+              <Text style={[TextStyles.tableContentText, { textAlign: 'center', fontSize: 10 }]}>1</Text>
             </View>
             <View style={[TableStyles.contentCell, { width: '50%' }]}>
-              <Text style={[TextStyles.contentTableText, { fontSize: 10 }]}>Ruído contínuo ou intermitente</Text>
+              <Text style={[TextStyles.tableContentText, { fontSize: 10 }]}>Ruído contínuo ou intermitente</Text>
             </View>
             <View style={[TableStyles.contentCell, { width: '25%' }]}>
-              <Text style={[TextStyles.contentTableText, { textAlign: 'center', fontSize: 10 }]}>20%</Text>
+              <Text style={[TextStyles.tableContentText, { textAlign: 'center', fontSize: 10 }]}>20%</Text>
             </View>
           </View>
           <View style={TableStyles.contentTable}>
             <View style={[TableStyles.contentCell, { width: '25%' }]}>
-              <Text style={[TextStyles.contentTableText, { textAlign: 'center', fontSize: 10 }]}>2</Text>
+              <Text style={[TextStyles.tableContentText, { textAlign: 'center', fontSize: 10 }]}>2</Text>
             </View>
             <View style={[TableStyles.contentCell, { width: '50%' }]}>
-              <Text style={[TextStyles.contentTableText, { fontSize: 10 }]}>Ruído de Impacto</Text>
+              <Text style={[TextStyles.tableContentText, { fontSize: 10 }]}>Ruído de Impacto</Text>
             </View>
             <View style={[TableStyles.contentCell, { width: '25%' }]}>
-              <Text style={[TextStyles.contentTableText, { textAlign: 'center', fontSize: 10 }]}>20%</Text>
+              <Text style={[TextStyles.tableContentText, { textAlign: 'center', fontSize: 10 }]}>20%</Text>
             </View>
           </View>
           <View style={TableStyles.contentTable}>
             <View style={[TableStyles.contentCell, { width: '25%' }]}>
-              <Text style={[TextStyles.contentTableText, { textAlign: 'center', fontSize: 10 }]}>3</Text>
+              <Text style={[TextStyles.tableContentText, { textAlign: 'center', fontSize: 10 }]}>3</Text>
             </View>
             <View style={[TableStyles.contentCell, { width: '50%' }]}>
-              <Text style={[TextStyles.contentTableText, { fontSize: 10 }]}>Calor</Text>
+              <Text style={[TextStyles.tableContentText, { fontSize: 10 }]}>Calor</Text>
             </View>
             <View style={[TableStyles.contentCell, { width: '25%' }]}>
-              <Text style={[TextStyles.contentTableText, { textAlign: 'center', fontSize: 10 }]}>20%</Text>
+              <Text style={[TextStyles.tableContentText, { textAlign: 'center', fontSize: 10 }]}>20%</Text>
             </View>
           </View>
           <View style={TableStyles.contentTable}>
             <View style={[TableStyles.contentCell, { width: '25%' }]}>
-              <Text style={[TextStyles.contentTableText, { textAlign: 'center', fontSize: 10 }]}>4</Text>
+              <Text style={[TextStyles.tableContentText, { textAlign: 'center', fontSize: 10 }]}>4</Text>
             </View>
             <View style={[TableStyles.contentCell, { width: '50%' }]}>
-              <Text style={[TextStyles.contentTableText, { fontSize: 10 }]}>Revogado pela portaria 3751 de 23-11-90</Text>
+              <Text style={[TextStyles.tableContentText, { fontSize: 10 }]}>Revogado pela portaria 3751 de 23-11-90</Text>
             </View>
             <View style={[TableStyles.contentCell, { width: '25%' }]}>
-              <Text style={[TextStyles.contentTableText, { textAlign: 'center', fontSize: 10 }]}>-</Text>
+              <Text style={[TextStyles.tableContentText, { textAlign: 'center', fontSize: 10 }]}>-</Text>
             </View>
           </View>
           <View style={TableStyles.contentTable}>
             <View style={[TableStyles.contentCell, { width: '25%' }]}>
-              <Text style={[TextStyles.contentTableText, { textAlign: 'center', fontSize: 10 }]}>5</Text>
+              <Text style={[TextStyles.tableContentText, { textAlign: 'center', fontSize: 10 }]}>5</Text>
             </View>
             <View style={[TableStyles.contentCell, { width: '50%' }]}>
-              <Text style={[TextStyles.contentTableText, { fontSize: 10 }]}>Radiações Ionizantes</Text>
+              <Text style={[TextStyles.tableContentText, { fontSize: 10 }]}>Radiações Ionizantes</Text>
             </View>
             <View style={[TableStyles.contentCell, { width: '25%' }]}>
-              <Text style={[TextStyles.contentTableText, { textAlign: 'center', fontSize: 10 }]}>40%</Text>
+              <Text style={[TextStyles.tableContentText, { textAlign: 'center', fontSize: 10 }]}>40%</Text>
             </View>
           </View>
           <View style={TableStyles.contentTable}>
             <View style={[TableStyles.contentCell, { width: '25%' }]}>
-              <Text style={[TextStyles.contentTableText, { textAlign: 'center', fontSize: 10 }]}>6</Text>
+              <Text style={[TextStyles.tableContentText, { textAlign: 'center', fontSize: 10 }]}>6</Text>
             </View>
             <View style={[TableStyles.contentCell, { width: '50%' }]}>
-              <Text style={[TextStyles.contentTableText, { fontSize: 10 }]}>Condições Hiperbáricas</Text>
+              <Text style={[TextStyles.tableContentText, { fontSize: 10 }]}>Condições Hiperbáricas</Text>
             </View>
             <View style={[TableStyles.contentCell, { width: '25%' }]}>
-              <Text style={[TextStyles.contentTableText, { textAlign: 'center', fontSize: 10 }]}>40%</Text>
+              <Text style={[TextStyles.tableContentText, { textAlign: 'center', fontSize: 10 }]}>40%</Text>
             </View>
           </View>
           <View style={TableStyles.contentTable}>
             <View style={[TableStyles.contentCell, { width: '25%' }]}>
-              <Text style={[TextStyles.contentTableText, { textAlign: 'center', fontSize: 10 }]}>7</Text>
+              <Text style={[TextStyles.tableContentText, { textAlign: 'center', fontSize: 10 }]}>7</Text>
             </View>
             <View style={[TableStyles.contentCell, { width: '50%' }]}>
-              <Text style={[TextStyles.contentTableText, { fontSize: 10 }]}>Radiações não ionizantes</Text>
+              <Text style={[TextStyles.tableContentText, { fontSize: 10 }]}>Radiações não ionizantes</Text>
             </View>
             <View style={[TableStyles.contentCell, { width: '25%' }]}>
-              <Text style={[TextStyles.contentTableText, { textAlign: 'center', fontSize: 10 }]}>20%</Text>
+              <Text style={[TextStyles.tableContentText, { textAlign: 'center', fontSize: 10 }]}>20%</Text>
             </View>
           </View>
           <View style={TableStyles.contentTable}>
             <View style={[TableStyles.contentCell, { width: '25%' }]}>
-              <Text style={[TextStyles.contentTableText, { textAlign: 'center', fontSize: 10 }]}>8</Text>
+              <Text style={[TextStyles.tableContentText, { textAlign: 'center', fontSize: 10 }]}>8</Text>
             </View>
             <View style={[TableStyles.contentCell, { width: '50%' }]}>
-              <Text style={[TextStyles.contentTableText, { fontSize: 10 }]}>Vibrações</Text>
+              <Text style={[TextStyles.tableContentText, { fontSize: 10 }]}>Vibrações</Text>
             </View>
             <View style={[TableStyles.contentCell, { width: '25%' }]}>
-              <Text style={[TextStyles.contentTableText, { textAlign: 'center', fontSize: 10 }]}>20%</Text>
+              <Text style={[TextStyles.tableContentText, { textAlign: 'center', fontSize: 10 }]}>20%</Text>
             </View>
           </View>
           <View style={TableStyles.contentTable}>
             <View style={[TableStyles.contentCell, { width: '25%' }]}>
-              <Text style={[TextStyles.contentTableText, { textAlign: 'center', fontSize: 10 }]}>9</Text>
+              <Text style={[TextStyles.tableContentText, { textAlign: 'center', fontSize: 10 }]}>9</Text>
             </View>
             <View style={[TableStyles.contentCell, { width: '50%' }]}>
-              <Text style={[TextStyles.contentTableText, { fontSize: 10 }]}>Frio</Text>
+              <Text style={[TextStyles.tableContentText, { fontSize: 10 }]}>Frio</Text>
             </View>
             <View style={[TableStyles.contentCell, { width: '25%' }]}>
-              <Text style={[TextStyles.contentTableText, { textAlign: 'center', fontSize: 10 }]}>20%</Text>
+              <Text style={[TextStyles.tableContentText, { textAlign: 'center', fontSize: 10 }]}>20%</Text>
             </View>
           </View>
           <View style={TableStyles.contentTable}>
             <View style={[TableStyles.contentCell, { width: '25%' }]}>
-              <Text style={[TextStyles.contentTableText, { textAlign: 'center', fontSize: 10 }]}>10</Text>
+              <Text style={[TextStyles.tableContentText, { textAlign: 'center', fontSize: 10 }]}>10</Text>
             </View>
             <View style={[TableStyles.contentCell, { width: '50%' }]}>
-              <Text style={[TextStyles.contentTableText, { fontSize: 10 }]}>Umidade</Text>
+              <Text style={[TextStyles.tableContentText, { fontSize: 10 }]}>Umidade</Text>
             </View>
             <View style={[TableStyles.contentCell, { width: '25%' }]}>
-              <Text style={[TextStyles.contentTableText, { textAlign: 'center', fontSize: 10 }]}>20%</Text>
+              <Text style={[TextStyles.tableContentText, { textAlign: 'center', fontSize: 10 }]}>20%</Text>
             </View>
           </View>
           <View style={TableStyles.contentTable}>
             <View style={[TableStyles.contentCell, { width: '25%' }]}>
-              <Text style={[TextStyles.contentTableText, { textAlign: 'center', fontSize: 10 }]}>11</Text>
+              <Text style={[TextStyles.tableContentText, { textAlign: 'center', fontSize: 10 }]}>11</Text>
             </View>
             <View style={[TableStyles.contentCell, { width: '50%' }]}>
-              <Text style={[TextStyles.contentTableText, { fontSize: 10 }]}>Agentes químicos acima do limite de tolerância</Text>
+              <Text style={[TextStyles.tableContentText, { fontSize: 10 }]}>Agentes químicos acima do limite de tolerância</Text>
             </View>
             <View style={[TableStyles.contentCell, { width: '25%' }]}>
-              <Text style={[TextStyles.contentTableText, { textAlign: 'center', fontSize: 10 }]}>10%, 20% e 40%</Text>
+              <Text style={[TextStyles.tableContentText, { textAlign: 'center', fontSize: 10 }]}>10%, 20% e 40%</Text>
             </View>
           </View>
           <View style={TableStyles.contentTable}>
             <View style={[TableStyles.contentCell, { width: '25%' }]}>
-              <Text style={[TextStyles.contentTableText, { textAlign: 'center', fontSize: 10 }]}>12</Text>
+              <Text style={[TextStyles.tableContentText, { textAlign: 'center', fontSize: 10 }]}>12</Text>
             </View>
             <View style={[TableStyles.contentCell, { width: '50%' }]}>
-              <Text style={[TextStyles.contentTableText, { fontSize: 10 }]}>Poeiras Minerais</Text>
+              <Text style={[TextStyles.tableContentText, { fontSize: 10 }]}>Poeiras Minerais</Text>
             </View>
             <View style={[TableStyles.contentCell, { width: '25%' }]}>
-              <Text style={[TextStyles.contentTableText, { textAlign: 'center', fontSize: 10 }]}>40%</Text>
+              <Text style={[TextStyles.tableContentText, { textAlign: 'center', fontSize: 10 }]}>40%</Text>
             </View>
           </View>
           <View style={TableStyles.contentTable}>
             <View style={[TableStyles.contentCell, { width: '25%' }]}>
-              <Text style={[TextStyles.contentTableText, { textAlign: 'center', fontSize: 10 }]}>13</Text>
+              <Text style={[TextStyles.tableContentText, { textAlign: 'center', fontSize: 10 }]}>13</Text>
             </View>
             <View style={[TableStyles.contentCell, { width: '50%' }]}>
-              <Text style={[TextStyles.contentTableText, { fontSize: 10 }]}>Agentes químicos com inspeção no local de trabalho</Text>
+              <Text style={[TextStyles.tableContentText, { fontSize: 10 }]}>Agentes químicos com inspeção no local de trabalho</Text>
             </View>
             <View style={[TableStyles.contentCell, { width: '25%' }]}>
-              <Text style={[TextStyles.contentTableText, { textAlign: 'center', fontSize: 10 }]}>20%</Text>
+              <Text style={[TextStyles.tableContentText, { textAlign: 'center', fontSize: 10 }]}>20%</Text>
             </View>
           </View>
           <View style={TableStyles.contentTable}>
             <View style={[TableStyles.contentCell, { width: '25%' }]}>
-              <Text style={[TextStyles.contentTableText, { textAlign: 'center', fontSize: 10 }]}>14</Text>
+              <Text style={[TextStyles.tableContentText, { textAlign: 'center', fontSize: 10 }]}>14</Text>
             </View>
             <View style={[TableStyles.contentCell, { width: '50%' }]}>
-              <Text style={[TextStyles.contentTableText, { fontSize: 10 }]}>Agentes Biológicos</Text>
+              <Text style={[TextStyles.tableContentText, { fontSize: 10 }]}>Agentes Biológicos</Text>
             </View>
             <View style={[TableStyles.contentCell, { width: '25%' }]}>
-              <Text style={[TextStyles.contentTableText, { textAlign: 'center', fontSize: 10 }]}>20% e 40%</Text>
+              <Text style={[TextStyles.tableContentText, { textAlign: 'center', fontSize: 10 }]}>20% e 40%</Text>
             </View>
           </View>
         </View>
@@ -809,68 +876,68 @@ function LipGenerate({ inventario, plano,
           </View>
           <View style={TableStyles.contentTable}>
             <View style={[TableStyles.contentCell, { width: '20%' }]}>
-              <Text style={[TextStyles.contentTableText, { textAlign: 'center', fontSize: 10 }]}>1</Text>
+              <Text style={[TextStyles.tableContentText, { textAlign: 'center', fontSize: 10 }]}>1</Text>
             </View>
             <View style={[TableStyles.contentCell, { width: '60%' }]}>
-              <Text style={[TextStyles.contentTableText, { fontSize: 10 }]}>Atividades e operações perigosas com explosivos.</Text>
+              <Text style={[TextStyles.tableContentText, { fontSize: 10 }]}>Atividades e operações perigosas com explosivos.</Text>
             </View>
             <View style={[TableStyles.contentCell, { width: '20%' }]}>
-              <Text style={[TextStyles.contentTableText, { textAlign: 'center', fontSize: 10 }]}>30%</Text>
+              <Text style={[TextStyles.tableContentText, { textAlign: 'center', fontSize: 10 }]}>30%</Text>
             </View>
           </View>
           <View style={TableStyles.contentTable}>
             <View style={[TableStyles.contentCell, { width: '20%' }]}>
-              <Text style={[TextStyles.contentTableText, { textAlign: 'center', fontSize: 10 }]}>2</Text>
+              <Text style={[TextStyles.tableContentText, { textAlign: 'center', fontSize: 10 }]}>2</Text>
             </View>
             <View style={[TableStyles.contentCell, { width: '60%' }]}>
-              <Text style={[TextStyles.contentTableText, { fontSize: 10 }]}>Atividades e operações perigosas com inflamáveis.</Text>
+              <Text style={[TextStyles.tableContentText, { fontSize: 10 }]}>Atividades e operações perigosas com inflamáveis.</Text>
             </View>
             <View style={[TableStyles.contentCell, { width: '20%' }]}>
-              <Text style={[TextStyles.contentTableText, { textAlign: 'center', fontSize: 10 }]}>30%</Text>
+              <Text style={[TextStyles.tableContentText, { textAlign: 'center', fontSize: 10 }]}>30%</Text>
             </View>
           </View>
           <View style={TableStyles.contentTable}>
             <View style={[TableStyles.contentCell, { width: '20%' }]}>
-              <Text style={[TextStyles.contentTableText, { textAlign: 'center', fontSize: 10 }]}>3</Text>
+              <Text style={[TextStyles.tableContentText, { textAlign: 'center', fontSize: 10 }]}>3</Text>
             </View>
             <View style={[TableStyles.contentCell, { width: '60%' }]}>
-              <Text style={[TextStyles.contentTableText, { fontSize: 10 }]}>Atividades e operações perigosas com exposição a roubos ou outras espécies de violência física nas atividades profissionais de segurança pessoal ou patrimonial</Text>
+              <Text style={[TextStyles.tableContentText, { fontSize: 10 }]}>Atividades e operações perigosas com exposição a roubos ou outras espécies de violência física nas atividades profissionais de segurança pessoal ou patrimonial</Text>
             </View>
             <View style={[TableStyles.contentCell, { width: '20%' }]}>
-              <Text style={[TextStyles.contentTableText, { textAlign: 'center', fontSize: 10 }]}>30%</Text>
+              <Text style={[TextStyles.tableContentText, { textAlign: 'center', fontSize: 10 }]}>30%</Text>
             </View>
           </View>
           <View style={TableStyles.contentTable}>
             <View style={[TableStyles.contentCell, { width: '20%' }]}>
-              <Text style={[TextStyles.contentTableText, { textAlign: 'center', fontSize: 10 }]}>4</Text>
+              <Text style={[TextStyles.tableContentText, { textAlign: 'center', fontSize: 10 }]}>4</Text>
             </View>
             <View style={[TableStyles.contentCell, { width: '60%' }]}>
-              <Text style={[TextStyles.contentTableText, { fontSize: 10 }]}>Atividades e operações perigosas com energia elétrica.</Text>
+              <Text style={[TextStyles.tableContentText, { fontSize: 10 }]}>Atividades e operações perigosas com energia elétrica.</Text>
             </View>
             <View style={[TableStyles.contentCell, { width: '20%' }]}>
-              <Text style={[TextStyles.contentTableText, { textAlign: 'center', fontSize: 10 }]}>30%</Text>
+              <Text style={[TextStyles.tableContentText, { textAlign: 'center', fontSize: 10 }]}>30%</Text>
             </View>
           </View>
           <View style={TableStyles.contentTable}>
             <View style={[TableStyles.contentCell, { width: '20%' }]}>
-              <Text style={[TextStyles.contentTableText, { textAlign: 'center', fontSize: 10 }]}>5</Text>
+              <Text style={[TextStyles.tableContentText, { textAlign: 'center', fontSize: 10 }]}>5</Text>
             </View>
             <View style={[TableStyles.contentCell, { width: '60%' }]}>
-              <Text style={[TextStyles.contentTableText, { fontSize: 10 }]}>Atividades e operações perigosas em motocicleta </Text>
+              <Text style={[TextStyles.tableContentText, { fontSize: 10 }]}>Atividades e operações perigosas em motocicleta </Text>
             </View>
             <View style={[TableStyles.contentCell, { width: '20%' }]}>
-              <Text style={[TextStyles.contentTableText, { textAlign: 'center', fontSize: 10 }]}>30%</Text>
+              <Text style={[TextStyles.tableContentText, { textAlign: 'center', fontSize: 10 }]}>30%</Text>
             </View>
           </View>
           <View style={TableStyles.contentTable}>
             <View style={[TableStyles.contentCell, { width: '20%' }]}>
-              <Text style={[TextStyles.contentTableText, { textAlign: 'center', fontSize: 10 }]}>6</Text>
+              <Text style={[TextStyles.tableContentText, { textAlign: 'center', fontSize: 10 }]}>6</Text>
             </View>
             <View style={[TableStyles.contentCell, { width: '60%' }]}>
-              <Text style={[TextStyles.contentTableText, { fontSize: 10 }]}>Atividades e operações perigosas com radiações ionizantes ou substâncias radiotivas</Text>
+              <Text style={[TextStyles.tableContentText, { fontSize: 10 }]}>Atividades e operações perigosas com radiações ionizantes ou substâncias radiotivas</Text>
             </View>
             <View style={[TableStyles.contentCell, { width: '20%' }]}>
-              <Text style={[TextStyles.contentTableText, { textAlign: 'center', fontSize: 10 }]}>30%</Text>
+              <Text style={[TextStyles.tableContentText, { textAlign: 'center', fontSize: 10 }]}>30%</Text>
             </View>
           </View>
         </View>
@@ -897,90 +964,90 @@ function LipGenerate({ inventario, plano,
           </View>
           <View style={TableStyles.contentTable}>
             <View style={[TableStyles.contentCell, { width: '20%' }]}>
-              <Text style={[TextStyles.contentTableText, { textAlign: 'center' }]}>1</Text>
+              <Text style={[TextStyles.tableContentText, { textAlign: 'center' }]}>1</Text>
             </View>
             <View style={[TableStyles.contentCell, { width: '30%' }]}>
-              <Text style={TextStyles.contentTableText}>Identificação</Text>
+              <Text style={TextStyles.tableContentText}>Identificação</Text>
             </View>
             <View style={[TableStyles.contentCell, { width: '50%' }]}>
-              <Text style={TextStyles.contentTableText}>{'\u2022'} nome, endereço e CNPJ da empresa</Text>
+              <Text style={TextStyles.tableContentText}>{'\u2022'} nome, endereço e CNPJ da empresa</Text>
             </View>
           </View>
           <View style={TableStyles.contentTable}>
             <View style={[TableStyles.contentCell, { width: '20%' }]}>
-              <Text style={[TextStyles.contentTableText, { textAlign: 'center' }]}>2</Text>
+              <Text style={[TextStyles.tableContentText, { textAlign: 'center' }]}>2</Text>
             </View>
             <View style={[TableStyles.contentCell, { width: '30%' }]}>
-              <Text style={TextStyles.contentTableText}>Identificação do local avaliado</Text>
+              <Text style={TextStyles.tableContentText}>Identificação do local avaliado</Text>
             </View>
             <View style={[TableStyles.contentCell, { width: '50%' }]}>
-              <Text style={TextStyles.contentTableText}>{'\u2022'} nome do setor</Text>
-              <Text style={TextStyles.contentTableText}>{'\u2022'} descrição do setor</Text>
+              <Text style={TextStyles.tableContentText}>{'\u2022'} nome do setor</Text>
+              <Text style={TextStyles.tableContentText}>{'\u2022'} descrição do setor</Text>
             </View>
           </View>
           <View style={TableStyles.contentTable}>
             <View style={[TableStyles.contentCell, { width: '20%' }]}>
-              <Text style={[TextStyles.contentTableText, { textAlign: 'center' }]}>3</Text>
+              <Text style={[TextStyles.tableContentText, { textAlign: 'center' }]}>3</Text>
             </View>
             <View style={[TableStyles.contentCell, { width: '30%' }]}>
-              <Text style={TextStyles.contentTableText}>Descrição do ambiente de trabalho</Text>
+              <Text style={TextStyles.tableContentText}>Descrição do ambiente de trabalho</Text>
             </View>
             <View style={[TableStyles.contentCell, { width: '50%' }]}>
-              <Text style={TextStyles.contentTableText}>{'\u2022'} arranjo físico</Text>
-              <Text style={TextStyles.contentTableText}>{'\u2022'} tipo de construção</Text>
-              <Text style={TextStyles.contentTableText}>{'\u2022'} metragens</Text>
-              <Text style={TextStyles.contentTableText}>{'\u2022'} condições de higiene, ventilação e iluminação</Text>
-              <Text style={TextStyles.contentTableText}>{'\u2022'} tipo de cobertura, paredes, janelas e pisos</Text>
-              <Text style={TextStyles.contentTableText}>{'\u2022'} mobiliários e maquinários</Text>
+              <Text style={TextStyles.tableContentText}>{'\u2022'} arranjo físico</Text>
+              <Text style={TextStyles.tableContentText}>{'\u2022'} tipo de construção</Text>
+              <Text style={TextStyles.tableContentText}>{'\u2022'} metragens</Text>
+              <Text style={TextStyles.tableContentText}>{'\u2022'} condições de higiene, ventilação e iluminação</Text>
+              <Text style={TextStyles.tableContentText}>{'\u2022'} tipo de cobertura, paredes, janelas e pisos</Text>
+              <Text style={TextStyles.tableContentText}>{'\u2022'} mobiliários e maquinários</Text>
             </View>
           </View>
           <View style={TableStyles.contentTable}>
             <View style={[TableStyles.contentCell, { width: '20%' }]}>
-              <Text style={[TextStyles.contentTableText, { textAlign: 'center' }]}>4</Text>
+              <Text style={[TextStyles.tableContentText, { textAlign: 'center' }]}>4</Text>
             </View>
             <View style={[TableStyles.contentCell, { width: '30%' }]}>
-              <Text style={TextStyles.contentTableText}>Análise qualitativa</Text>
+              <Text style={TextStyles.tableContentText}>Análise qualitativa</Text>
             </View>
             <View style={[TableStyles.contentCell, { width: '50%' }]}>
-              <Text style={TextStyles.contentTableText}>{'\u2022'} as atividades do trabalhador</Text>
-              <Text style={TextStyles.contentTableText}>{'\u2022'} as etapas do processo operacional</Text>
-              <Text style={TextStyles.contentTableText}>{'\u2022'} os riscos ocupacionais</Text>
-              <Text style={TextStyles.contentTableText}>{'\u2022'} o tempo de exposição ao risco</Text>
+              <Text style={TextStyles.tableContentText}>{'\u2022'} as atividades do trabalhador</Text>
+              <Text style={TextStyles.tableContentText}>{'\u2022'} as etapas do processo operacional</Text>
+              <Text style={TextStyles.tableContentText}>{'\u2022'} os riscos ocupacionais</Text>
+              <Text style={TextStyles.tableContentText}>{'\u2022'} o tempo de exposição ao risco</Text>
             </View>
           </View>
           <View style={TableStyles.contentTable}>
             <View style={[TableStyles.contentCell, { width: '20%' }]}>
-              <Text style={[TextStyles.contentTableText, { textAlign: 'center' }]}>5</Text>
+              <Text style={[TextStyles.tableContentText, { textAlign: 'center' }]}>5</Text>
             </View>
             <View style={[TableStyles.contentCell, { width: '30%' }]}>
-              <Text style={TextStyles.contentTableText}>Análise quantitativa</Text>
+              <Text style={TextStyles.tableContentText}>Análise quantitativa</Text>
             </View>
             <View style={[TableStyles.contentCell, { width: '50%' }]}>
-              <Text style={TextStyles.contentTableText}>{'\u2022'} medição dos riscos como: calor, ruído, agentes químicos</Text>
-              <Text style={TextStyles.contentTableText}>{'\u2022'} descrever a metodologia de avaliação NHO, NIOSH, etc</Text>
+              <Text style={TextStyles.tableContentText}>{'\u2022'} medição dos riscos como: calor, ruído, agentes químicos</Text>
+              <Text style={TextStyles.tableContentText}>{'\u2022'} descrever a metodologia de avaliação NHO, NIOSH, etc</Text>
             </View>
           </View>
           <View style={TableStyles.contentTable}>
             <View style={[TableStyles.contentCell, { width: '20%' }]}>
-              <Text style={[TextStyles.contentTableText, { textAlign: 'center' }]}>6</Text>
+              <Text style={[TextStyles.tableContentText, { textAlign: 'center' }]}>6</Text>
             </View>
             <View style={[TableStyles.contentCell, { width: '30%' }]}>
-              <Text style={TextStyles.contentTableText}>Conclusão</Text>
+              <Text style={TextStyles.tableContentText}>Conclusão</Text>
             </View>
             <View style={[TableStyles.contentCell, { width: '50%' }]}>
-              <Text style={TextStyles.contentTableText}>{'\u2022'} fundamento científico: detalhar as doenças de acordo com os riscos</Text>
-              <Text style={TextStyles.contentTableText}>{'\u2022'} fundamento legal: realizar o enquadramento do agente periciado nas normas regulamentadoras</Text>
+              <Text style={TextStyles.tableContentText}>{'\u2022'} fundamento científico: detalhar as doenças de acordo com os riscos</Text>
+              <Text style={TextStyles.tableContentText}>{'\u2022'} fundamento legal: realizar o enquadramento do agente periciado nas normas regulamentadoras</Text>
             </View>
           </View>
           <View style={TableStyles.contentTable}>
             <View style={[TableStyles.contentCell, { width: '20%' }]}>
-              <Text style={[TextStyles.contentTableText, { textAlign: 'center' }]}>7</Text>
+              <Text style={[TextStyles.tableContentText, { textAlign: 'center' }]}>7</Text>
             </View>
             <View style={[TableStyles.contentCell, { width: '30%' }]}>
-              <Text style={TextStyles.contentTableText}>Proposta técnica para correção</Text>
+              <Text style={TextStyles.tableContentText}>Proposta técnica para correção</Text>
             </View>
             <View style={[TableStyles.contentCell, { width: '50%' }]}>
-              <Text style={TextStyles.contentTableText}>{'\u2022'} descrever as propostas para eliminação da insalubridade através de mudança do processo operacional ou utilização de EPIs</Text>
+              <Text style={TextStyles.tableContentText}>{'\u2022'} descrever as propostas para eliminação da insalubridade através de mudança do processo operacional ou utilização de EPIs</Text>
             </View>
           </View>
         </View>
@@ -1015,194 +1082,194 @@ function LipGenerate({ inventario, plano,
           </View>
           <View style={TableStyles.contentTable}>
             <View style={[TableStyles.contentCell, { width: '40%' }]}>
-              <Text style={[TextStyles.contentTableText, { textAlign: 'center', fontSize: 10 }]}>85</Text>
+              <Text style={[TextStyles.tableContentText, { textAlign: 'center', fontSize: 10 }]}>85</Text>
             </View>
             <View style={[TableStyles.contentCell, { width: '60%' }]}>
-              <Text style={[TextStyles.contentTableText, { fontSize: 10, textAlign: 'center' }]}>8 horas.</Text>
+              <Text style={[TextStyles.tableContentText, { fontSize: 10, textAlign: 'center' }]}>8 horas.</Text>
             </View>
           </View>
           <View style={TableStyles.contentTable}>
             <View style={[TableStyles.contentCell, { width: '40%' }]}>
-              <Text style={[TextStyles.contentTableText, { textAlign: 'center', fontSize: 10 }]}>86</Text>
+              <Text style={[TextStyles.tableContentText, { textAlign: 'center', fontSize: 10 }]}>86</Text>
             </View>
             <View style={[TableStyles.contentCell, { width: '60%' }]}>
-              <Text style={[TextStyles.contentTableText, { fontSize: 10, textAlign: 'center' }]}>7 horas.</Text>
+              <Text style={[TextStyles.tableContentText, { fontSize: 10, textAlign: 'center' }]}>7 horas.</Text>
             </View>
           </View>
           <View style={TableStyles.contentTable}>
             <View style={[TableStyles.contentCell, { width: '40%' }]}>
-              <Text style={[TextStyles.contentTableText, { textAlign: 'center', fontSize: 10 }]}>87</Text>
+              <Text style={[TextStyles.tableContentText, { textAlign: 'center', fontSize: 10 }]}>87</Text>
             </View>
             <View style={[TableStyles.contentCell, { width: '60%' }]}>
-              <Text style={[TextStyles.contentTableText, { fontSize: 10, textAlign: 'center' }]}>6 horas.</Text>
+              <Text style={[TextStyles.tableContentText, { fontSize: 10, textAlign: 'center' }]}>6 horas.</Text>
             </View>
           </View>
           <View style={TableStyles.contentTable}>
             <View style={[TableStyles.contentCell, { width: '40%' }]}>
-              <Text style={[TextStyles.contentTableText, { textAlign: 'center', fontSize: 10 }]}>88</Text>
+              <Text style={[TextStyles.tableContentText, { textAlign: 'center', fontSize: 10 }]}>88</Text>
             </View>
             <View style={[TableStyles.contentCell, { width: '60%' }]}>
-              <Text style={[TextStyles.contentTableText, { fontSize: 10, textAlign: 'center' }]}>5 horas.</Text>
+              <Text style={[TextStyles.tableContentText, { fontSize: 10, textAlign: 'center' }]}>5 horas.</Text>
             </View>
           </View>
           <View style={TableStyles.contentTable}>
             <View style={[TableStyles.contentCell, { width: '40%' }]}>
-              <Text style={[TextStyles.contentTableText, { textAlign: 'center', fontSize: 10 }]}>89</Text>
+              <Text style={[TextStyles.tableContentText, { textAlign: 'center', fontSize: 10 }]}>89</Text>
             </View>
             <View style={[TableStyles.contentCell, { width: '60%' }]}>
-              <Text style={[TextStyles.contentTableText, { fontSize: 10, textAlign: 'center' }]}>4 horas e 30 minutos.</Text>
+              <Text style={[TextStyles.tableContentText, { fontSize: 10, textAlign: 'center' }]}>4 horas e 30 minutos.</Text>
             </View>
           </View>
           <View style={TableStyles.contentTable}>
             <View style={[TableStyles.contentCell, { width: '40%' }]}>
-              <Text style={[TextStyles.contentTableText, { textAlign: 'center', fontSize: 10 }]}>90</Text>
+              <Text style={[TextStyles.tableContentText, { textAlign: 'center', fontSize: 10 }]}>90</Text>
             </View>
             <View style={[TableStyles.contentCell, { width: '60%' }]}>
-              <Text style={[TextStyles.contentTableText, { fontSize: 10, textAlign: 'center' }]}>4 horas.</Text>
+              <Text style={[TextStyles.tableContentText, { fontSize: 10, textAlign: 'center' }]}>4 horas.</Text>
             </View>
           </View>
           <View style={TableStyles.contentTable}>
             <View style={[TableStyles.contentCell, { width: '40%' }]}>
-              <Text style={[TextStyles.contentTableText, { textAlign: 'center', fontSize: 10 }]}>91</Text>
+              <Text style={[TextStyles.tableContentText, { textAlign: 'center', fontSize: 10 }]}>91</Text>
             </View>
             <View style={[TableStyles.contentCell, { width: '60%' }]}>
-              <Text style={[TextStyles.contentTableText, { fontSize: 10, textAlign: 'center' }]}>3 horas e 30 minutos.</Text>
+              <Text style={[TextStyles.tableContentText, { fontSize: 10, textAlign: 'center' }]}>3 horas e 30 minutos.</Text>
             </View>
           </View>
           <View style={TableStyles.contentTable}>
             <View style={[TableStyles.contentCell, { width: '40%' }]}>
-              <Text style={[TextStyles.contentTableText, { textAlign: 'center', fontSize: 10 }]}>91</Text>
+              <Text style={[TextStyles.tableContentText, { textAlign: 'center', fontSize: 10 }]}>91</Text>
             </View>
             <View style={[TableStyles.contentCell, { width: '60%' }]}>
-              <Text style={[TextStyles.contentTableText, { fontSize: 10, textAlign: 'center' }]}>3 horas e 30 minutos.</Text>
+              <Text style={[TextStyles.tableContentText, { fontSize: 10, textAlign: 'center' }]}>3 horas e 30 minutos.</Text>
             </View>
           </View>
           <View style={TableStyles.contentTable}>
             <View style={[TableStyles.contentCell, { width: '40%' }]}>
-              <Text style={[TextStyles.contentTableText, { textAlign: 'center', fontSize: 10 }]}>92</Text>
+              <Text style={[TextStyles.tableContentText, { textAlign: 'center', fontSize: 10 }]}>92</Text>
             </View>
             <View style={[TableStyles.contentCell, { width: '60%' }]}>
-              <Text style={[TextStyles.contentTableText, { fontSize: 10, textAlign: 'center' }]}>3 horas.</Text>
+              <Text style={[TextStyles.tableContentText, { fontSize: 10, textAlign: 'center' }]}>3 horas.</Text>
             </View>
           </View>
           <View style={TableStyles.contentTable}>
             <View style={[TableStyles.contentCell, { width: '40%' }]}>
-              <Text style={[TextStyles.contentTableText, { textAlign: 'center', fontSize: 10 }]}>93</Text>
+              <Text style={[TextStyles.tableContentText, { textAlign: 'center', fontSize: 10 }]}>93</Text>
             </View>
             <View style={[TableStyles.contentCell, { width: '60%' }]}>
-              <Text style={[TextStyles.contentTableText, { fontSize: 10, textAlign: 'center' }]}>2 horas e 40 minutos.</Text>
+              <Text style={[TextStyles.tableContentText, { fontSize: 10, textAlign: 'center' }]}>2 horas e 40 minutos.</Text>
             </View>
           </View>
           <View style={TableStyles.contentTable}>
             <View style={[TableStyles.contentCell, { width: '40%' }]}>
-              <Text style={[TextStyles.contentTableText, { textAlign: 'center', fontSize: 10 }]}>94</Text>
+              <Text style={[TextStyles.tableContentText, { textAlign: 'center', fontSize: 10 }]}>94</Text>
             </View>
             <View style={[TableStyles.contentCell, { width: '60%' }]}>
-              <Text style={[TextStyles.contentTableText, { fontSize: 10, textAlign: 'center' }]}>2 horas e 15 minutos.</Text>
+              <Text style={[TextStyles.tableContentText, { fontSize: 10, textAlign: 'center' }]}>2 horas e 15 minutos.</Text>
             </View>
           </View>
           <View style={TableStyles.contentTable}>
             <View style={[TableStyles.contentCell, { width: '40%' }]}>
-              <Text style={[TextStyles.contentTableText, { textAlign: 'center', fontSize: 10 }]}>95</Text>
+              <Text style={[TextStyles.tableContentText, { textAlign: 'center', fontSize: 10 }]}>95</Text>
             </View>
             <View style={[TableStyles.contentCell, { width: '60%' }]}>
-              <Text style={[TextStyles.contentTableText, { fontSize: 10, textAlign: 'center' }]}>2 horas.</Text>
+              <Text style={[TextStyles.tableContentText, { fontSize: 10, textAlign: 'center' }]}>2 horas.</Text>
             </View>
           </View>
           <View style={TableStyles.contentTable}>
             <View style={[TableStyles.contentCell, { width: '40%' }]}>
-              <Text style={[TextStyles.contentTableText, { textAlign: 'center', fontSize: 10 }]}>96</Text>
+              <Text style={[TextStyles.tableContentText, { textAlign: 'center', fontSize: 10 }]}>96</Text>
             </View>
             <View style={[TableStyles.contentCell, { width: '60%' }]}>
-              <Text style={[TextStyles.contentTableText, { fontSize: 10, textAlign: 'center' }]}>1 hora e 45 minutos.</Text>
+              <Text style={[TextStyles.tableContentText, { fontSize: 10, textAlign: 'center' }]}>1 hora e 45 minutos.</Text>
             </View>
           </View>
           <View style={TableStyles.contentTable}>
             <View style={[TableStyles.contentCell, { width: '40%' }]}>
-              <Text style={[TextStyles.contentTableText, { textAlign: 'center', fontSize: 10 }]}>98</Text>
+              <Text style={[TextStyles.tableContentText, { textAlign: 'center', fontSize: 10 }]}>98</Text>
             </View>
             <View style={[TableStyles.contentCell, { width: '60%' }]}>
-              <Text style={[TextStyles.contentTableText, { fontSize: 10, textAlign: 'center' }]}>1 hora e 15 minutos.</Text>
+              <Text style={[TextStyles.tableContentText, { fontSize: 10, textAlign: 'center' }]}>1 hora e 15 minutos.</Text>
             </View>
           </View>
           <View style={TableStyles.contentTable}>
             <View style={[TableStyles.contentCell, { width: '40%' }]}>
-              <Text style={[TextStyles.contentTableText, { textAlign: 'center', fontSize: 10 }]}>100</Text>
+              <Text style={[TextStyles.tableContentText, { textAlign: 'center', fontSize: 10 }]}>100</Text>
             </View>
             <View style={[TableStyles.contentCell, { width: '60%' }]}>
-              <Text style={[TextStyles.contentTableText, { fontSize: 10, textAlign: 'center' }]}>1 hora</Text>
+              <Text style={[TextStyles.tableContentText, { fontSize: 10, textAlign: 'center' }]}>1 hora</Text>
             </View>
           </View>
           <View style={TableStyles.contentTable}>
             <View style={[TableStyles.contentCell, { width: '40%' }]}>
-              <Text style={[TextStyles.contentTableText, { textAlign: 'center', fontSize: 10 }]}>102</Text>
+              <Text style={[TextStyles.tableContentText, { textAlign: 'center', fontSize: 10 }]}>102</Text>
             </View>
             <View style={[TableStyles.contentCell, { width: '60%' }]}>
-              <Text style={[TextStyles.contentTableText, { fontSize: 10, textAlign: 'center' }]}>45 minutos.</Text>
+              <Text style={[TextStyles.tableContentText, { fontSize: 10, textAlign: 'center' }]}>45 minutos.</Text>
             </View>
           </View>
           <View style={TableStyles.contentTable}>
             <View style={[TableStyles.contentCell, { width: '40%' }]}>
-              <Text style={[TextStyles.contentTableText, { textAlign: 'center', fontSize: 10 }]}>104</Text>
+              <Text style={[TextStyles.tableContentText, { textAlign: 'center', fontSize: 10 }]}>104</Text>
             </View>
             <View style={[TableStyles.contentCell, { width: '60%' }]}>
-              <Text style={[TextStyles.contentTableText, { fontSize: 10, textAlign: 'center' }]}>35 minutos.</Text>
+              <Text style={[TextStyles.tableContentText, { fontSize: 10, textAlign: 'center' }]}>35 minutos.</Text>
             </View>
           </View>
           <View style={TableStyles.contentTable}>
             <View style={[TableStyles.contentCell, { width: '40%' }]}>
-              <Text style={[TextStyles.contentTableText, { textAlign: 'center', fontSize: 10 }]}>105</Text>
+              <Text style={[TextStyles.tableContentText, { textAlign: 'center', fontSize: 10 }]}>105</Text>
             </View>
             <View style={[TableStyles.contentCell, { width: '60%' }]}>
-              <Text style={[TextStyles.contentTableText, { fontSize: 10, textAlign: 'center' }]}>30 minutos.</Text>
+              <Text style={[TextStyles.tableContentText, { fontSize: 10, textAlign: 'center' }]}>30 minutos.</Text>
             </View>
           </View>
           <View style={TableStyles.contentTable}>
             <View style={[TableStyles.contentCell, { width: '40%' }]}>
-              <Text style={[TextStyles.contentTableText, { textAlign: 'center', fontSize: 10 }]}>106</Text>
+              <Text style={[TextStyles.tableContentText, { textAlign: 'center', fontSize: 10 }]}>106</Text>
             </View>
             <View style={[TableStyles.contentCell, { width: '60%' }]}>
-              <Text style={[TextStyles.contentTableText, { fontSize: 10, textAlign: 'center' }]}>25 minutos.</Text>
+              <Text style={[TextStyles.tableContentText, { fontSize: 10, textAlign: 'center' }]}>25 minutos.</Text>
             </View>
           </View>
           <View style={TableStyles.contentTable}>
             <View style={[TableStyles.contentCell, { width: '40%' }]}>
-              <Text style={[TextStyles.contentTableText, { textAlign: 'center', fontSize: 10 }]}>108</Text>
+              <Text style={[TextStyles.tableContentText, { textAlign: 'center', fontSize: 10 }]}>108</Text>
             </View>
             <View style={[TableStyles.contentCell, { width: '60%' }]}>
-              <Text style={[TextStyles.contentTableText, { fontSize: 10, textAlign: 'center' }]}>20 minutos.</Text>
+              <Text style={[TextStyles.tableContentText, { fontSize: 10, textAlign: 'center' }]}>20 minutos.</Text>
             </View>
           </View>
           <View style={TableStyles.contentTable}>
             <View style={[TableStyles.contentCell, { width: '40%' }]}>
-              <Text style={[TextStyles.contentTableText, { textAlign: 'center', fontSize: 10 }]}>110</Text>
+              <Text style={[TextStyles.tableContentText, { textAlign: 'center', fontSize: 10 }]}>110</Text>
             </View>
             <View style={[TableStyles.contentCell, { width: '60%' }]}>
-              <Text style={[TextStyles.contentTableText, { fontSize: 10, textAlign: 'center' }]}>15 minutos.</Text>
+              <Text style={[TextStyles.tableContentText, { fontSize: 10, textAlign: 'center' }]}>15 minutos.</Text>
             </View>
           </View>
           <View style={TableStyles.contentTable}>
             <View style={[TableStyles.contentCell, { width: '40%' }]}>
-              <Text style={[TextStyles.contentTableText, { textAlign: 'center', fontSize: 10 }]}>112</Text>
+              <Text style={[TextStyles.tableContentText, { textAlign: 'center', fontSize: 10 }]}>112</Text>
             </View>
             <View style={[TableStyles.contentCell, { width: '60%' }]}>
-              <Text style={[TextStyles.contentTableText, { fontSize: 10, textAlign: 'center' }]}>10 minutos.</Text>
+              <Text style={[TextStyles.tableContentText, { fontSize: 10, textAlign: 'center' }]}>10 minutos.</Text>
             </View>
           </View>
           <View style={TableStyles.contentTable}>
             <View style={[TableStyles.contentCell, { width: '40%' }]}>
-              <Text style={[TextStyles.contentTableText, { textAlign: 'center', fontSize: 10 }]}>114</Text>
+              <Text style={[TextStyles.tableContentText, { textAlign: 'center', fontSize: 10 }]}>114</Text>
             </View>
             <View style={[TableStyles.contentCell, { width: '60%' }]}>
-              <Text style={[TextStyles.contentTableText, { fontSize: 10, textAlign: 'center' }]}>8 minutos.</Text>
+              <Text style={[TextStyles.tableContentText, { fontSize: 10, textAlign: 'center' }]}>8 minutos.</Text>
             </View>
           </View>
           <View style={TableStyles.contentTable}>
             <View style={[TableStyles.contentCell, { width: '40%' }]}>
-              <Text style={[TextStyles.contentTableText, { textAlign: 'center', fontSize: 10 }]}>115</Text>
+              <Text style={[TextStyles.tableContentText, { textAlign: 'center', fontSize: 10 }]}>115</Text>
             </View>
             <View style={[TableStyles.contentCell, { width: '60%' }]}>
-              <Text style={[TextStyles.contentTableText, { fontSize: 10, textAlign: 'center' }]}>7 minutos.</Text>
+              <Text style={[TextStyles.tableContentText, { fontSize: 10, textAlign: 'center' }]}>7 minutos.</Text>
             </View>
           </View>
         </View>
@@ -1254,14 +1321,14 @@ function LipGenerate({ inventario, plano,
                 <Text style={TextStyles.tableTitle}>Na Fonte</Text>
               </View>
               <View style={TableStyles.contentColumn}>
-                <Text style={TextStyles.contentTableText}>{'\u2022'} Substituir o equipamento por outro mais silencioso.</Text>
-                <Text style={TextStyles.contentTableText}>{'\u2022'} Balancear e equilibrar partes móveis.</Text>
-                <Text style={TextStyles.contentTableText}>{'\u2022'} Lubrificar mancais, rolamentos, etc.</Text>
-                <Text style={TextStyles.contentTableText}>{'\u2022'} Alterar o processo.</Text>
-                <Text style={TextStyles.contentTableText}>{'\u2022'} Aplicar material de modo a atenuar as vibrações.</Text>
-                <Text style={TextStyles.contentTableText}>{'\u2022'} Regular os motores.</Text>
-                <Text style={TextStyles.contentTableText}>{'\u2022'} Reapertar as estruturas. </Text>
-                <Text style={TextStyles.contentTableText}>{'\u2022'} Substituir engrenagens metálicas por material de plástico ou celeron.</Text>
+                <Text style={TextStyles.tableContentText}>{'\u2022'} Substituir o equipamento por outro mais silencioso.</Text>
+                <Text style={TextStyles.tableContentText}>{'\u2022'} Balancear e equilibrar partes móveis.</Text>
+                <Text style={TextStyles.tableContentText}>{'\u2022'} Lubrificar mancais, rolamentos, etc.</Text>
+                <Text style={TextStyles.tableContentText}>{'\u2022'} Alterar o processo.</Text>
+                <Text style={TextStyles.tableContentText}>{'\u2022'} Aplicar material de modo a atenuar as vibrações.</Text>
+                <Text style={TextStyles.tableContentText}>{'\u2022'} Regular os motores.</Text>
+                <Text style={TextStyles.tableContentText}>{'\u2022'} Reapertar as estruturas. </Text>
+                <Text style={TextStyles.tableContentText}>{'\u2022'} Substituir engrenagens metálicas por material de plástico ou celeron.</Text>
               </View>
             </View>
             <View style={TableStyles.Column}>
@@ -1269,9 +1336,9 @@ function LipGenerate({ inventario, plano,
                 <Text style={TextStyles.tableTitle}>Na Trajetória</Text>
               </View>
               <View style={TableStyles.contentColumn}>
-                <Text style={TextStyles.contentTableText}>{'\u2022'} Isolar a fonte.</Text>
-                <Text style={TextStyles.contentTableText}>{'\u2022'} Isolar o receptor.</Text>
-                <Text style={TextStyles.contentTableText}>{'\u2022'} Evitar a propagação com barreiras.</Text>
+                <Text style={TextStyles.tableContentText}>{'\u2022'} Isolar a fonte.</Text>
+                <Text style={TextStyles.tableContentText}>{'\u2022'} Isolar o receptor.</Text>
+                <Text style={TextStyles.tableContentText}>{'\u2022'} Evitar a propagação com barreiras.</Text>
               </View>
             </View>
             <View style={TableStyles.Column}>
@@ -1279,8 +1346,8 @@ function LipGenerate({ inventario, plano,
                 <Text style={TextStyles.tableTitle}>No Homem</Text>
               </View>
               <View style={TableStyles.contentColumn}>
-                <Text style={TextStyles.contentTableText}>{'\u2022'} Limitar o tempo de exposição.</Text>
-                <Text style={TextStyles.contentTableText}>{'\u2022'} Fornecer protetores auriculare.</Text>
+                <Text style={TextStyles.tableContentText}>{'\u2022'} Limitar o tempo de exposição.</Text>
+                <Text style={TextStyles.tableContentText}>{'\u2022'} Fornecer protetores auriculare.</Text>
               </View>
             </View>
           </View>
@@ -1381,101 +1448,101 @@ function LipGenerate({ inventario, plano,
             </View>
             <View style={TableStyles.contentTable}>
               <View style={[TableStyles.contentCell, { width: '40%' }]}>
-                <Text style={TextStyles.contentTableText}>Trabalho Conínuo</Text>
+                <Text style={TextStyles.tableContentText}>Trabalho Conínuo</Text>
               </View>
               <View style={[TableStyles.contentCell, { width: '20%' }]}>
-                <Text style={[TextStyles.contentTableText, { textAlign: 'center' }]}>Até 30,0</Text>
+                <Text style={[TextStyles.tableContentText, { textAlign: 'center' }]}>Até 30,0</Text>
               </View>
               <View style={[TableStyles.contentCell, { width: '20%' }]}>
-                <Text style={[TextStyles.contentTableText, { textAlign: 'center' }]}>Até 26,7</Text>
+                <Text style={[TextStyles.tableContentText, { textAlign: 'center' }]}>Até 26,7</Text>
               </View>
               <View style={[TableStyles.contentCell, { width: '20%' }]}>
-                <Text style={[TextStyles.contentTableText, { textAlign: 'center' }]}>Até 25,0</Text>
+                <Text style={[TextStyles.tableContentText, { textAlign: 'center' }]}>Até 25,0</Text>
               </View>
             </View>
             <View style={TableStyles.contentTable}>
               <View style={[TableStyles.contentCell, { width: '40%' }]}>
-                <Text style={TextStyles.contentTableText}>45 minutos trabalho</Text>
+                <Text style={TextStyles.tableContentText}>45 minutos trabalho</Text>
               </View>
               <View style={[TableStyles.contentCell, { width: '20%' }]}>
-                <Text style={[TextStyles.contentTableText, { textAlign: 'center' }]}>30,1 à 30,6</Text>
+                <Text style={[TextStyles.tableContentText, { textAlign: 'center' }]}>30,1 à 30,6</Text>
               </View>
               <View style={[TableStyles.contentCell, { width: '20%' }]}>
-                <Text style={[TextStyles.contentTableText, { textAlign: 'center' }]}>26,8 à 28,8</Text>
+                <Text style={[TextStyles.tableContentText, { textAlign: 'center' }]}>26,8 à 28,8</Text>
               </View>
               <View style={[TableStyles.contentCell, { width: '20%' }]}>
-                <Text style={[TextStyles.contentTableText, { textAlign: 'center' }]}>25,1 à 25,9</Text>
+                <Text style={[TextStyles.tableContentText, { textAlign: 'center' }]}>25,1 à 25,9</Text>
               </View>
             </View>
             <View style={TableStyles.contentTable}>
               <View style={[TableStyles.contentCell, { width: '40%' }]}>
-                <Text style={TextStyles.contentTableText}>15 minutos descanso</Text>
+                <Text style={TextStyles.tableContentText}>15 minutos descanso</Text>
               </View>
               <View style={[TableStyles.contentCell, { width: '20%' }]}>
-                <Text style={[TextStyles.contentTableText, { textAlign: 'center' }]}>30,1 à 30,6</Text>
+                <Text style={[TextStyles.tableContentText, { textAlign: 'center' }]}>30,1 à 30,6</Text>
               </View>
               <View style={[TableStyles.contentCell, { width: '20%' }]}>
-                <Text style={[TextStyles.contentTableText, { textAlign: 'center' }]}>26,8 à 28,8</Text>
+                <Text style={[TextStyles.tableContentText, { textAlign: 'center' }]}>26,8 à 28,8</Text>
               </View>
               <View style={[TableStyles.contentCell, { width: '20%' }]}>
-                <Text style={[TextStyles.contentTableText, { textAlign: 'center' }]}>25,1 à 25,9</Text>
+                <Text style={[TextStyles.tableContentText, { textAlign: 'center' }]}>25,1 à 25,9</Text>
               </View>
             </View>
             <View style={TableStyles.contentTable}>
               <View style={[TableStyles.contentCell, { width: '40%' }]}>
-                <Text style={TextStyles.contentTableText}>30 minutos de trabalho</Text>
-                <Text style={TextStyles.contentTableText}>30 minutos de descanso</Text>
+                <Text style={TextStyles.tableContentText}>30 minutos de trabalho</Text>
+                <Text style={TextStyles.tableContentText}>30 minutos de descanso</Text>
               </View>
               <View style={[TableStyles.contentCell, { width: '20%' }]}>
-                <Text style={[TextStyles.contentTableText, { textAlign: 'center' }]}>30,7 à 31,4</Text>
+                <Text style={[TextStyles.tableContentText, { textAlign: 'center' }]}>30,7 à 31,4</Text>
               </View>
               <View style={[TableStyles.contentCell, { width: '20%' }]}>
-                <Text style={[TextStyles.contentTableText, { textAlign: 'center' }]}>28,1 à 29,4</Text>
+                <Text style={[TextStyles.tableContentText, { textAlign: 'center' }]}>28,1 à 29,4</Text>
               </View>
               <View style={[TableStyles.contentCell, { width: '20%' }]}>
-                <Text style={[TextStyles.contentTableText, { textAlign: 'center' }]}>26,0 à 27,9</Text>
+                <Text style={[TextStyles.tableContentText, { textAlign: 'center' }]}>26,0 à 27,9</Text>
               </View>
             </View>
             <View style={TableStyles.contentTable}>
               <View style={[TableStyles.contentCell, { width: '40%' }]}>
-                <Text style={TextStyles.contentTableText}>15 minutos de trabalho</Text>
+                <Text style={TextStyles.tableContentText}>15 minutos de trabalho</Text>
               </View>
               <View style={[TableStyles.contentCell, { width: '20%' }]}>
-                <Text style={[TextStyles.contentTableText, { textAlign: 'center' }]}>31,5 à 32,2</Text>
+                <Text style={[TextStyles.tableContentText, { textAlign: 'center' }]}>31,5 à 32,2</Text>
               </View>
               <View style={[TableStyles.contentCell, { width: '20%' }]}>
-                <Text style={[TextStyles.contentTableText, { textAlign: 'center' }]}>29,5 à 31,1</Text>
+                <Text style={[TextStyles.tableContentText, { textAlign: 'center' }]}>29,5 à 31,1</Text>
               </View>
               <View style={[TableStyles.contentCell, { width: '20%' }]}>
-                <Text style={[TextStyles.contentTableText, { textAlign: 'center' }]}>28,0 à 30,0</Text>
+                <Text style={[TextStyles.tableContentText, { textAlign: 'center' }]}>28,0 à 30,0</Text>
               </View>
             </View>
             <View style={TableStyles.contentTable}>
               <View style={[TableStyles.contentCell, { width: '40%' }]}>
-                <Text style={TextStyles.contentTableText}>30 minutos de descanso</Text>
+                <Text style={TextStyles.tableContentText}>30 minutos de descanso</Text>
               </View>
               <View style={[TableStyles.contentCell, { width: '20%' }]}>
-                <Text style={[TextStyles.contentTableText, { textAlign: 'center' }]}>31,5 à 32,2</Text>
+                <Text style={[TextStyles.tableContentText, { textAlign: 'center' }]}>31,5 à 32,2</Text>
               </View>
               <View style={[TableStyles.contentCell, { width: '20%' }]}>
-                <Text style={[TextStyles.contentTableText, { textAlign: 'center' }]}>29,5 à 31,1</Text>
+                <Text style={[TextStyles.tableContentText, { textAlign: 'center' }]}>29,5 à 31,1</Text>
               </View>
               <View style={[TableStyles.contentCell, { width: '20%' }]}>
-                <Text style={[TextStyles.contentTableText, { textAlign: 'center' }]}>28,0 à 30,0</Text>
+                <Text style={[TextStyles.tableContentText, { textAlign: 'center' }]}>28,0 à 30,0</Text>
               </View>
             </View>
             <View style={TableStyles.contentTable}>
               <View style={[TableStyles.contentCell, { width: '40%' }]}>
-                <Text style={TextStyles.contentTableText}>Não é permitido o trabalho sem a adoção de medidas adequadas de controlo</Text>
+                <Text style={TextStyles.tableContentText}>Não é permitido o trabalho sem a adoção de medidas adequadas de controlo</Text>
               </View>
               <View style={[TableStyles.contentCell, { width: '20%' }]}>
-                <Text style={[TextStyles.contentTableText, { textAlign: 'center' }]}>Acima de 32,2</Text>
+                <Text style={[TextStyles.tableContentText, { textAlign: 'center' }]}>Acima de 32,2</Text>
               </View>
               <View style={[TableStyles.contentCell, { width: '20%' }]}>
-                <Text style={[TextStyles.contentTableText, { textAlign: 'center' }]}>Acima de 31,1</Text>
+                <Text style={[TextStyles.tableContentText, { textAlign: 'center' }]}>Acima de 31,1</Text>
               </View>
               <View style={[TableStyles.contentCell, { width: '20%' }]}>
-                <Text style={[TextStyles.contentTableText, { textAlign: 'center' }]}>Acima de 30,0</Text>
+                <Text style={[TextStyles.tableContentText, { textAlign: 'center' }]}>Acima de 30,0</Text>
               </View>
             </View>
           </View>
@@ -1501,66 +1568,66 @@ function LipGenerate({ inventario, plano,
             </View>
             <View style={TableStyles.contentTable}>
               <View style={[TableStyles.contentCell, { width: '50%' }]}>
-                <Text style={[TextStyles.contentTableText, { textAlign: 'center' }]}>175</Text>
+                <Text style={[TextStyles.tableContentText, { textAlign: 'center' }]}>175</Text>
               </View>
               <View style={[TableStyles.contentCell, { width: '50%' }]}>
-                <Text style={[TextStyles.contentTableText, { textAlign: 'center' }]}>30,5</Text>
-              </View>
-            </View>
-            <View style={TableStyles.contentTable}>
-              <View style={[TableStyles.contentCell, { width: '50%' }]}>
-                <Text style={[TextStyles.contentTableText, { textAlign: 'center' }]}>200</Text>
-              </View>
-              <View style={[TableStyles.contentCell, { width: '50%' }]}>
-                <Text style={[TextStyles.contentTableText, { textAlign: 'center' }]}>30,0</Text>
+                <Text style={[TextStyles.tableContentText, { textAlign: 'center' }]}>30,5</Text>
               </View>
             </View>
             <View style={TableStyles.contentTable}>
               <View style={[TableStyles.contentCell, { width: '50%' }]}>
-                <Text style={[TextStyles.contentTableText, { textAlign: 'center' }]}>250</Text>
+                <Text style={[TextStyles.tableContentText, { textAlign: 'center' }]}>200</Text>
               </View>
               <View style={[TableStyles.contentCell, { width: '50%' }]}>
-                <Text style={[TextStyles.contentTableText, { textAlign: 'center' }]}>28,5</Text>
-              </View>
-            </View>
-            <View style={TableStyles.contentTable}>
-              <View style={[TableStyles.contentCell, { width: '50%' }]}>
-                <Text style={[TextStyles.contentTableText, { textAlign: 'center' }]}>300</Text>
-              </View>
-              <View style={[TableStyles.contentCell, { width: '50%' }]}>
-                <Text style={[TextStyles.contentTableText, { textAlign: 'center' }]}>27,5</Text>
+                <Text style={[TextStyles.tableContentText, { textAlign: 'center' }]}>30,0</Text>
               </View>
             </View>
             <View style={TableStyles.contentTable}>
               <View style={[TableStyles.contentCell, { width: '50%' }]}>
-                <Text style={[TextStyles.contentTableText, { textAlign: 'center' }]}>350</Text>
+                <Text style={[TextStyles.tableContentText, { textAlign: 'center' }]}>250</Text>
               </View>
               <View style={[TableStyles.contentCell, { width: '50%' }]}>
-                <Text style={[TextStyles.contentTableText, { textAlign: 'center' }]}>26,5</Text>
-              </View>
-            </View>
-            <View style={TableStyles.contentTable}>
-              <View style={[TableStyles.contentCell, { width: '50%' }]}>
-                <Text style={[TextStyles.contentTableText, { textAlign: 'center' }]}>400</Text>
-              </View>
-              <View style={[TableStyles.contentCell, { width: '50%' }]}>
-                <Text style={[TextStyles.contentTableText, { textAlign: 'center' }]}>26,0</Text>
+                <Text style={[TextStyles.tableContentText, { textAlign: 'center' }]}>28,5</Text>
               </View>
             </View>
             <View style={TableStyles.contentTable}>
               <View style={[TableStyles.contentCell, { width: '50%' }]}>
-                <Text style={[TextStyles.contentTableText, { textAlign: 'center' }]}>450</Text>
+                <Text style={[TextStyles.tableContentText, { textAlign: 'center' }]}>300</Text>
               </View>
               <View style={[TableStyles.contentCell, { width: '50%' }]}>
-                <Text style={[TextStyles.contentTableText, { textAlign: 'center' }]}>25,5</Text>
+                <Text style={[TextStyles.tableContentText, { textAlign: 'center' }]}>27,5</Text>
               </View>
             </View>
             <View style={TableStyles.contentTable}>
               <View style={[TableStyles.contentCell, { width: '50%' }]}>
-                <Text style={[TextStyles.contentTableText, { textAlign: 'center' }]}>500</Text>
+                <Text style={[TextStyles.tableContentText, { textAlign: 'center' }]}>350</Text>
               </View>
               <View style={[TableStyles.contentCell, { width: '50%' }]}>
-                <Text style={[TextStyles.contentTableText, { textAlign: 'center' }]}>25,0</Text>
+                <Text style={[TextStyles.tableContentText, { textAlign: 'center' }]}>26,5</Text>
+              </View>
+            </View>
+            <View style={TableStyles.contentTable}>
+              <View style={[TableStyles.contentCell, { width: '50%' }]}>
+                <Text style={[TextStyles.tableContentText, { textAlign: 'center' }]}>400</Text>
+              </View>
+              <View style={[TableStyles.contentCell, { width: '50%' }]}>
+                <Text style={[TextStyles.tableContentText, { textAlign: 'center' }]}>26,0</Text>
+              </View>
+            </View>
+            <View style={TableStyles.contentTable}>
+              <View style={[TableStyles.contentCell, { width: '50%' }]}>
+                <Text style={[TextStyles.tableContentText, { textAlign: 'center' }]}>450</Text>
+              </View>
+              <View style={[TableStyles.contentCell, { width: '50%' }]}>
+                <Text style={[TextStyles.tableContentText, { textAlign: 'center' }]}>25,5</Text>
+              </View>
+            </View>
+            <View style={TableStyles.contentTable}>
+              <View style={[TableStyles.contentCell, { width: '50%' }]}>
+                <Text style={[TextStyles.tableContentText, { textAlign: 'center' }]}>500</Text>
+              </View>
+              <View style={[TableStyles.contentCell, { width: '50%' }]}>
+                <Text style={[TextStyles.tableContentText, { textAlign: 'center' }]}>25,0</Text>
               </View>
             </View>
           </View>
@@ -1618,52 +1685,52 @@ function LipGenerate({ inventario, plano,
 
             <View style={TableStyles.contentTable}>
               <View style={[TableStyles.contentCell, { width: '80%' }]}>
-                <Text style={TextStyles.contentTableText}>Sentado em repouso</Text>
+                <Text style={TextStyles.tableContentText}>Sentado em repouso</Text>
               </View>
               <View style={[TableStyles.contentCell, { width: '20%' }]}>
-                <Text style={[TextStyles.contentTableText, { textAlign: 'center' }]}>100</Text>
+                <Text style={[TextStyles.tableContentText, { textAlign: 'center' }]}>100</Text>
               </View>
             </View>
             <View style={TableStyles.contentTable}>
               <View style={[TableStyles.contentCell, { width: '80%' }]}>
-                <Text style={[TextStyles.contentTableText, { fontSize: 8, fontFamily: 'OpenSansSemiBold' }]}>Trabalho Leve</Text>
-                <Text style={TextStyles.contentTableText}>Sentado, movimentos moderados com braços e tronco (ex: datilografia).</Text>
-                <Text style={TextStyles.contentTableText}>Sentado, movimentos moderados com braços e pernas (ex: dirigir).</Text>
-                <Text style={TextStyles.contentTableText}>De pé, trabalho leve, em máquina ou bancada, principalmente com os braços.</Text>
+                <Text style={[TextStyles.tableContentText, { fontSize: 8, fontFamily: 'OpenSansSemiBold' }]}>Trabalho Leve</Text>
+                <Text style={TextStyles.tableContentText}>Sentado, movimentos moderados com braços e tronco (ex: datilografia).</Text>
+                <Text style={TextStyles.tableContentText}>Sentado, movimentos moderados com braços e pernas (ex: dirigir).</Text>
+                <Text style={TextStyles.tableContentText}>De pé, trabalho leve, em máquina ou bancada, principalmente com os braços.</Text>
               </View>
               <View style={[TableStyles.contentCell, { width: '20%' }]}>
-                <Text style={[TextStyles.contentTableText, { textAlign: 'center' }]}> </Text>
-                <Text style={[TextStyles.contentTableText, { textAlign: 'center' }]}>125</Text>
-                <Text style={[TextStyles.contentTableText, { textAlign: 'center' }]}>150</Text>
-                <Text style={[TextStyles.contentTableText, { textAlign: 'center' }]}>150</Text>
+                <Text style={[TextStyles.tableContentText, { textAlign: 'center' }]}> </Text>
+                <Text style={[TextStyles.tableContentText, { textAlign: 'center' }]}>125</Text>
+                <Text style={[TextStyles.tableContentText, { textAlign: 'center' }]}>150</Text>
+                <Text style={[TextStyles.tableContentText, { textAlign: 'center' }]}>150</Text>
               </View>
             </View>
             <View style={TableStyles.contentTable}>
               <View style={[TableStyles.contentCell, { width: '80%' }]}>
-                <Text style={[TextStyles.contentTableText, { fontSize: 8, fontFamily: 'OpenSansSemiBold' }]}>Trabalho Moderado</Text>
-                <Text style={TextStyles.contentTableText}>Sentados, movimento vigorosos com braços e pernas.</Text>
-                <Text style={TextStyles.contentTableText}>De pé, trabalho leve, em máquina ou bancada, com alguma movimentação.</Text>
-                <Text style={TextStyles.contentTableText}>De pé, trabalho moderado, em máquina ou bancada, com alguma movimentação.</Text>
-                <Text style={TextStyles.contentTableText}>Em movimento, trabalho moderado de levantar ou empurrar.</Text>
+                <Text style={[TextStyles.tableContentText, { fontSize: 8, fontFamily: 'OpenSansSemiBold' }]}>Trabalho Moderado</Text>
+                <Text style={TextStyles.tableContentText}>Sentados, movimento vigorosos com braços e pernas.</Text>
+                <Text style={TextStyles.tableContentText}>De pé, trabalho leve, em máquina ou bancada, com alguma movimentação.</Text>
+                <Text style={TextStyles.tableContentText}>De pé, trabalho moderado, em máquina ou bancada, com alguma movimentação.</Text>
+                <Text style={TextStyles.tableContentText}>Em movimento, trabalho moderado de levantar ou empurrar.</Text>
               </View>
               <View style={[TableStyles.contentCell, { width: '20%' }]}>
-                <Text style={[TextStyles.contentTableText, { textAlign: 'center' }]}> </Text>
-                <Text style={[TextStyles.contentTableText, { textAlign: 'center' }]}>180</Text>
-                <Text style={[TextStyles.contentTableText, { textAlign: 'center' }]}>175</Text>
-                <Text style={[TextStyles.contentTableText, { textAlign: 'center' }]}>220</Text>
-                <Text style={[TextStyles.contentTableText, { textAlign: 'center' }]}>300</Text>
+                <Text style={[TextStyles.tableContentText, { textAlign: 'center' }]}> </Text>
+                <Text style={[TextStyles.tableContentText, { textAlign: 'center' }]}>180</Text>
+                <Text style={[TextStyles.tableContentText, { textAlign: 'center' }]}>175</Text>
+                <Text style={[TextStyles.tableContentText, { textAlign: 'center' }]}>220</Text>
+                <Text style={[TextStyles.tableContentText, { textAlign: 'center' }]}>300</Text>
               </View>
             </View>
             <View style={TableStyles.contentTable}>
               <View style={[TableStyles.contentCell, { width: '80%' }]}>
-                <Text style={[TextStyles.contentTableText, { fontSize: 8, fontFamily: 'OpenSansSemiBold' }]}>Trabalho Pesado</Text>
-                <Text style={TextStyles.contentTableText}>Trabalho intermitente de levantar, empurrar ou arrastar pesos (ex: remoção com pá).</Text>
-                <Text style={TextStyles.contentTableText}>Trabalho fatigante.</Text>
+                <Text style={[TextStyles.tableContentText, { fontSize: 8, fontFamily: 'OpenSansSemiBold' }]}>Trabalho Pesado</Text>
+                <Text style={TextStyles.tableContentText}>Trabalho intermitente de levantar, empurrar ou arrastar pesos (ex: remoção com pá).</Text>
+                <Text style={TextStyles.tableContentText}>Trabalho fatigante.</Text>
               </View>
               <View style={[TableStyles.contentCell, { width: '20%' }]}>
-                <Text style={[TextStyles.contentTableText, { textAlign: 'center' }]}> </Text>
-                <Text style={[TextStyles.contentTableText, { textAlign: 'center' }]}>440</Text>
-                <Text style={[TextStyles.contentTableText, { textAlign: 'center' }]}>550</Text>
+                <Text style={[TextStyles.tableContentText, { textAlign: 'center' }]}> </Text>
+                <Text style={[TextStyles.tableContentText, { textAlign: 'center' }]}>440</Text>
+                <Text style={[TextStyles.tableContentText, { textAlign: 'center' }]}>550</Text>
               </View>
             </View>
           </View>
@@ -2304,6 +2371,35 @@ function LipGenerate({ inventario, plano,
 
 
   const CompanyPage = () => {
+const CompanyStyles = StyleSheet.create({
+      officeFiftyRow: {
+        paddingHorizontal: 10,
+        paddingVertical: 20,
+        width: '50%',
+        alignItems: 'center',
+        justifyContent: 'center',
+      },
+
+      headerSignatureContentCell: {
+        paddingHorizontal: 10,
+        paddingVertical: 10,
+        backgroundColor: '#0077b6',
+        width: '100%',
+        flexDirection: 'row',
+      },
+
+      headerSignatureCell: {
+        justifyContent: 'center',
+        alignItems: 'center',
+        width: '100%',
+      },
+
+      signatureLine: {
+        paddingTop: 50,
+        borderBottom: '1 solid #343a40'
+      },
+
+    });
 
     return (
       <Page style={PageStyles.Page}>
@@ -2312,75 +2408,118 @@ function LipGenerate({ inventario, plano,
         <HeaderPage />
 
         {/* Sumário */}
-        <Text style={TextStyles.subTitleSumary}>1. Identificação da Empresa</Text>
 
         {/* Company Table */}
+        <Text style={TextStyles.subTitleSumary}>1. Identificação da Empresa</Text>
+
         <View style={TableStyles.table}>
           <View style={TableStyles.headerCell}>
             <Text style={TextStyles.prefixTextTitle}>Empresa: </Text>
-            <Text style={TextStyles.valueTextTitle}>{company.nome_empresa || "N/A"}</Text>
+            <Text style={TextStyles.valueTextTitle}>{dados.empresas[0].nome_empresa || "N/A"}</Text>
           </View>
           <View style={TableStyles.tableRow}>
             <View style={TableStyles.twentyFiveRow}>
               <Text style={TextStyles.prefixText}>CNPJ:</Text>
-              <Text style={TextStyles.valueText}>{company.cnpj_empresa || "N/A"}</Text>
+              <Text style={TextStyles.valueText}>{dados.empresas[0].cnpj_empresa || "N/A"}</Text>
             </View>
             <View style={TableStyles.fifTeenRow}>
               <Text style={TextStyles.prefixText}>Cnae:</Text>
-              <Text style={TextStyles.valueText}>{company.cnae_empresa || "0"}</Text>
+              <Text style={TextStyles.valueText}>{dados.empresas[0].cnae_empresa || "0"}</Text>
             </View>
             <View style={TableStyles.fifTeenRow}>
               <Text style={TextStyles.prefixText}>Grau de Risco:</Text>
-              <Text style={TextStyles.valueText}>{company.grau_risco_cnae || "0"}</Text>
+              <Text style={TextStyles.valueText}>{dados.empresas[0].grau_risco_cnae || "0"}</Text>
             </View>
             <View style={TableStyles.fiftyRow}>
               <Text style={TextStyles.prefixText}>Descrição CNAE:</Text>
-              <Text style={TextStyles.valueText}>Serviços de manutenção e reparação mecânica de veículos automotores</Text>
+              <Text style={TextStyles.valueText}>{dados.empresas[0].descricao_cnae || "N/A"}</Text>
             </View>
           </View>
         </View>
 
         {/* Signature Table */}
         <View style={ContainerStyles.signatureContainer}>
+          <Text style={[TextStyles.subTitleSumary, { textAlign: 'center' }]}>Assinaturas</Text>
           <Text style={TextStyles.SignatureDate}>Londrina, {formatData(data)}</Text>
 
           {/* Assinatura do Técnico */}
-          <View style={TableStyles.table}>
-            <View style={TableStyles.headerSignatureContentCell}>
-              <View style={TableStyles.headerSignatureCell}>
-                <Text style={TextStyles.valueTextSignatureTitle}>Elaborador</Text>
+          <View style={{ width: '100%', flexDirection: 'row' }}>
+            {/* Elaborador */}
+            <View style={[TableStyles.table, { width: '50%', justifyContent: 'center', alignItems: 'center', paddingRight: 10 }]}>
+              <View style={CompanyStyles.headerSignatureContentCell}>
+                <View style={CompanyStyles.headerSignatureCell}>
+                  <Text style={[TextStyles.valueTextSignatureTitle, { textAlign: 'center' }]}>Elaborador</Text>
+                </View>
               </View>
-              <View style={TableStyles.headerSignatureCell}>
-                <Text style={TextStyles.valueTextSignatureTitle}>Assinatura</Text>
-              </View>
-            </View>
-            <View style={TableStyles.tableRow}>
-              <View style={TableStyles.officeFiftyRow}>
-                <Text style={TextStyles.officeText}>{user.nome_usuario}</Text>
-              </View>
-              <View style={TableStyles.fiftyRow}>
-                <View style={TableStyles.signatureLine}></View>
-              </View>
-            </View>
-          </View>
+              <View style={[TableStyles.contentTable2, { width: '100%' }]}>
+                {/* Linha de Assinatura */}
+                <View style={[TableStyles.contentCell2, { width: '100%' }]}>
+                  <Text style={TextStyles.tableContentSubText}>Assinatura:</Text>
+                  <View style={CompanyStyles.signatureLine}></View>
+                </View>
+                <View style={[TableStyles.contentCell2, { width: '100%' }]}>
+                  {/* Nome e Registro */}
+                  <View style={[TableStyles.contentColumm, { width: '100%' }]}>
+                    <View style={[TableStyles.contentCell2, { width: '75%' }]}>
+                      <Text style={[TextStyles.tableContentText, { fontFamily: 'OpenSansBold', fontSize: 10 }]}>{elaborador.nome_elaborador || "N/A"}</Text>
+                    </View>
+                    <View style={[TableStyles.contentCell2, { width: '25%' }]}>
+                      <Text style={[TextStyles.tableContentSubText, { textAlign: 'left' }]}>{findRegisterName(elaborador.cargo_elaborador) || "N/A"}:</Text>
+                      <Text style={[TextStyles.tableContentText, { textAlign: 'right' }]}>{elaborador.registro_elaborador || "N/A"}</Text>
+                    </View>
+                  </View>
+                  {/* Email e Telefone */}
+                  <View style={[TableStyles.contentColumm, { width: '100%' }]}>
+                    <View style={[TableStyles.contentCell2, { width: '75%' }]}>
+                      <Text style={[TextStyles.tableContentSubText, { textAlign: 'left' }]}>Email:</Text>
+                      <Text style={[TextStyles.tableContentText, { textAlign: 'left' }]}>{elaborador.email_elaborador || "N/A"}</Text>
+                    </View>
+                    <View style={[TableStyles.contentCell2, { width: '25%' }]}>
+                      <Text style={[TextStyles.tableContentSubText, { textAlign: 'left' }]}>Telefone:</Text>
+                      <Text style={[TextStyles.tableContentText, { textAlign: 'right' }]}>{elaborador.telefone_elaborador || "N/A"}</Text>
+                    </View>
+                  </View>
 
-          {/* Signature Table */}
-          <View style={TableStyles.table}>
-            <View style={TableStyles.headerSignatureContentCell}>
-              <View style={TableStyles.headerSignatureCell}>
-                <Text style={TextStyles.valueTextSignatureTitle}>Responsável</Text>
-              </View>
-              <View style={TableStyles.headerSignatureCell}>
-                <Text style={TextStyles.valueTextSignatureTitle}>Assinatura</Text>
+                </View>
               </View>
             </View>
-            <View style={TableStyles.tableRow}>
-              <View style={TableStyles.officeFiftyRow}>
-                <Text style={TextStyles.officeText}>{contatos.nome_contato}</Text>
-                <Text style={TextStyles.officeSmallText}>{contatos.email_contato}</Text>
+
+            {/* Responsável */}
+            <View style={[TableStyles.table, { width: '50%', justifyContent: 'center', alignItems: 'center', paddingLeft: 10 }]}>
+              <View style={CompanyStyles.headerSignatureContentCell}>
+                <View style={CompanyStyles.headerSignatureCell}>
+                  <Text style={[TextStyles.valueTextSignatureTitle, { textAlign: 'center' }]}>Responsável</Text>
+                </View>
               </View>
-              <View style={TableStyles.fiftyRow}>
-                <View style={TableStyles.signatureLine}></View>
+              <View style={[TableStyles.contentTable2, { width: '100%' }]}>
+                {/* Linha de Assinatura */}
+                <View style={[TableStyles.contentCell2, { width: '100%' }]}>
+                  <Text style={TextStyles.tableContentSubText}>Assinatura:</Text>
+                  <View style={CompanyStyles.signatureLine}></View>
+                </View>
+                {dados && dados.contatos.filter(contact => contact.id_contato === dados.empresas[0].fk_contato_id)
+                  .map((contact, index) => (
+                    <View key={index} style={[TableStyles.contentCell2, { width: '100%' }]}>
+                      {/* Nome e Registro */}
+                      <View style={[TableStyles.contentColumm, { width: '100%' }]}>
+                        <View style={[TableStyles.contentCell2, { width: '100%' }]}>
+                          <Text style={[TextStyles.tableContentText, { fontFamily: 'OpenSansBold', fontSize: 10 }]}>{contact.nome_contato || "N/A"}</Text>
+                        </View>
+                      </View>
+                      {/* Email e Telefone */}
+                      <View style={[TableStyles.contentColumm, { width: '100%' }]}>
+                        <View style={[TableStyles.contentCell2, { width: '75%' }]}>
+                          <Text style={[TextStyles.tableContentSubText, { textAlign: 'left' }]}>Email:</Text>
+                          <Text style={[TextStyles.tableContentText, { textAlign: 'left' }]}>{contact.email_contato || "N/A"}</Text>
+                        </View>
+                        <View style={[TableStyles.contentCell2, { width: '25%' }]}>
+                          <Text style={[TextStyles.tableContentSubText, { textAlign: 'left' }]}>Telefone:</Text>
+                          <Text style={[TextStyles.tableContentText, { textAlign: 'right' }]}>{contact.telefone_contato || "N/A"}</Text>
+                        </View>
+                      </View>
+
+                    </View>
+                  ))}
               </View>
             </View>
           </View>
@@ -2404,7 +2543,7 @@ function LipGenerate({ inventario, plano,
         <Text style={TextStyles.subTitleSumary}>6. Unidades da empresa</Text>
 
         {/* Unidades */}
-        {unidades.map((item, i) => (
+        {dados.unidades.map((item, i) => (
           <View key={i} style={TableStyles.table}>
             <View style={TableStyles.headerCell}>
               <Text style={TextStyles.prefixTextTitle}>Unidade: </Text>
@@ -2455,21 +2594,22 @@ function LipGenerate({ inventario, plano,
               <Text style={TextStyles.tableTitle}>Funcionários</Text>
             </View>
           </View>
-          {cargos.map((item, i) => (
+          {dados.cargos.filter((item) => item.id_cargo)
+            .map((item, i) => (
             <View key={i} style={TableStyles.contentTable}>
               <View style={[TableStyles.contentCell, { width: '20%' }]}>
-                <Text style={TextStyles.contentTableText}>{findSetor(item.fk_setor_id)}</Text>
+                <Text style={TextStyles.tableContentText}>{findSetor(item.fk_setor_id)}</Text>
               </View>
               <View style={[TableStyles.contentCell, { width: '20%' }]}>
-                <Text style={TextStyles.contentTableText}>{item.nome_cargo}</Text>
+                <Text style={TextStyles.tableContentText}>{item.nome_cargo}</Text>
               </View>
               <View style={[TableStyles.contentCell, { width: '40%' }]}>
-                <Text style={TextStyles.contentTableText}>{item.descricao}</Text>
+                <Text style={TextStyles.tableContentText}>{item.descricao}</Text>
               </View>
               <View style={[TableStyles.contentCell, { width: '20%', alignItems: 'center', }]}>
-                <Text style={TextStyles.contentTableText}>Masc: {item.func_masc}</Text>
-                <Text style={TextStyles.contentTableText}>Fem: {item.func_fem}</Text>
-                <Text style={TextStyles.contentTableText}>Menor: {item.func_menor}</Text>
+                <Text style={TextStyles.tableContentText}>Masc: {item.func_masc}</Text>
+                <Text style={TextStyles.tableContentText}>Fem: {item.func_fem}</Text>
+                <Text style={TextStyles.tableContentText}>Menor: {item.func_menor}</Text>
               </View>
             </View>
           ))}
@@ -2496,16 +2636,16 @@ function LipGenerate({ inventario, plano,
           </View>
           <View style={TableStyles.contentTable}>
             <View style={[TableStyles.contentCell, { width: '25%', alignItems: 'center', }]}>
-              <Text style={TextStyles.contentTableText}>{getTotalFuncMasc()}</Text>
+              <Text style={TextStyles.tableContentText}>{getTotalFuncMasc()}</Text>
             </View>
             <View style={[TableStyles.contentCell, { width: '25%', alignItems: 'center', }]}>
-              <Text style={TextStyles.contentTableText}>{getTotalFuncFem()}</Text>
+              <Text style={TextStyles.tableContentText}>{getTotalFuncFem()}</Text>
             </View>
             <View style={[TableStyles.contentCell, { width: '25%', alignItems: 'center', }]}>
-              <Text style={TextStyles.contentTableText}>{getTotalFuncMenor()}</Text>
+              <Text style={TextStyles.tableContentText}>{getTotalFuncMenor()}</Text>
             </View>
             <View style={[TableStyles.contentCell, { width: '25%', alignItems: 'center', }]}>
-              <Text style={TextStyles.contentTableText}>{getTotalFunc()}</Text>
+              <Text style={TextStyles.tableContentText}>{getTotalFunc()}</Text>
             </View>
           </View>
         </View>
@@ -2540,9 +2680,6 @@ function LipGenerate({ inventario, plano,
         <View style={TableStyles.table}>
           {/* Header */}
           <View style={[TableStyles.headerTable, { justifyContent: 'center', alignItems: 'center', }]} fixed>
-            <View style={[TableStyles.headerCell, { width: ' 5%', }]}>
-              <Text style={[{ fontFamily: 'OpenSansBold', fontSize: 6, color: '#ffffff', textAlign: 'center' }]}>ID</Text>
-            </View>
             <View style={[TableStyles.headerCell, { width: ' 8%' }]}>
               <Text style={[{ fontFamily: 'OpenSansBold', fontSize: 6, color: '#ffffff', textAlign: 'center' }]}>Data</Text>
             </View>
@@ -2591,115 +2728,136 @@ function LipGenerate({ inventario, plano,
             <View style={[TableStyles.headerCell, { width: ' 10%' }]}>
               <Text style={[{ fontFamily: 'OpenSansBold', fontSize: 6, color: '#ffffff', textAlign: 'center' }]}>Medidas</Text>
             </View>
-            <View style={[TableStyles.headerCell, { width: ' 10%' }]}>
-              <Text style={[{ fontFamily: 'OpenSansBold', fontSize: 6, color: '#ffffff', textAlign: 'center' }]}>Conclusão Insalubridade</Text>
+            <View style={[TableStyles.headerCell, { width: ' 5%' }]}>
+              <Text style={[{ fontFamily: 'OpenSansBold', fontSize: 6, color: '#ffffff', textAlign: 'center' }]}>P</Text>
+            </View>
+            <View style={[TableStyles.headerCell, { width: ' 5%' }]}>
+              <Text style={[{ fontFamily: 'OpenSansBold', fontSize: 6, color: '#ffffff', textAlign: 'center' }]}>S</Text>
+            </View>
+            <View style={[TableStyles.headerCell, { width: ' 5%' }]}>
+              <Text style={[{ fontFamily: 'OpenSansBold', fontSize: 6, color: '#ffffff', textAlign: 'center' }]}>N</Text>
             </View>
             <View style={[TableStyles.headerCell, { width: ' 10%' }]}>
-              <Text style={[{ fontFamily: 'OpenSansBold', fontSize: 6, color: '#ffffff', textAlign: 'center' }]}>Conclusão Periculosidade</Text>
+              <Text style={[{ fontFamily: 'OpenSansBold', fontSize: 6, color: '#ffffff', textAlign: 'center' }]}>Comentários</Text>
             </View>
           </View>
           {/* Body */}
           {inventario.map((item, i) => (
-            <View key={i} style={TableStyles.contentTable} wrap={false}>
-              <View style={[TableStyles.contentCell, { width: '5%' }]}>
-                <Text style={[RiskInventoryStyles.contentText, { textAlign: 'center', }]}>
-                  {item.id_inventario || ''}
-                </Text>
-              </View>
-              <View style={[TableStyles.contentCell, { width: '8%' }]}>
+            <View key={i} style={TableStyles.contentRiskTable} wrap={false}>
+              <View style={[TableStyles.contentRiskCell, { width: '8%' }]}>
                 <Text style={[RiskInventoryStyles.contentText, { textAlign: 'center', }]}>
                   {formatData(item.data_inventario) || 'N/A'}
                 </Text>
               </View>
-              <View style={[TableStyles.contentCell, { width: '8%' }]}>
+              <View style={[TableStyles.contentRiskCell, { width: '8%' }]}>
                 <Text style={[RiskInventoryStyles.contentText, { textAlign: 'left', }]}>
-                  {find(item.fk_unidade_id, 'nome_unidade')}
+                  {find(item.fk_unidade_id, 'nome_unidade') || 'N/A'}
                 </Text>
               </View>
-              <View style={[TableStyles.contentCell, { width: '10%' }]}>
+              <View style={[TableStyles.contentRiskCell, { width: '10%' }]}>
                 <Text style={[RiskInventoryStyles.contentText, { textAlign: 'left', }]}>
                   {find(item.fk_setor_id, 'nome_setor')}
                 </Text>
               </View>
-              <View style={[TableStyles.contentCell, { width: '10%' }]}>
+              <View style={[TableStyles.contentRiskCell, { width: '10%' }]}>
                 <Text style={[RiskInventoryStyles.contentText, { textAlign: 'left', }]}>
                   {find(item.fk_processo_id, 'nome_processo')}
                 </Text>
               </View>
-              <View style={[TableStyles.contentCell, { width: '10%' }]}>
+              <View style={[TableStyles.contentRiskCell, { width: '10%' }]}>
                 <Text style={[RiskInventoryStyles.contentText, { textAlign: 'left', }]}>
                   {find(item.fk_risco_id, 'nome_risco') || 'N/A'}
                 </Text>
               </View>
-              <View style={[TableStyles.contentCell, { width: '5%' }]}>
+              <View style={[TableStyles.contentRiskCell, { width: '5%' }]}>
                 <Text style={[RiskInventoryStyles.contentText, { textAlign: 'center', }]}>
-                  {find(item.fk_risco_id, 'grupo_risco') || 'N/A'}
+                  {getFirstLetter(find(item.fk_risco_id, 'grupo_risco')) || 'N/A'}
                 </Text>
               </View>
-              <View style={[TableStyles.contentCell, { width: '12%' }]}>
+              <View style={[TableStyles.contentRiskCell, { width: '12%' }]}>
                 <Text style={[RiskInventoryStyles.contentText, { textAlign: 'left', }]}>
                   {find(item.fk_risco_id, 'consequencia') || 'N/A'}
                 </Text>
               </View>
-              <View style={[TableStyles.contentCell, { width: '10%' }]}>
+              <View style={[TableStyles.contentRiskCell, { width: '10%' }]}>
                 <Text style={[RiskInventoryStyles.contentText, { textAlign: 'left', }]}>
                   {item.fontes || 'N/A'}
                 </Text>
               </View>
-              <View style={[TableStyles.contentCell, { width: '5%' }]}>
+              <View style={[TableStyles.contentRiskCell, { width: '5%' }]}>
                 <Text style={[RiskInventoryStyles.contentText, { textAlign: 'center', }]}>
                   {item.pessoas_expostas || 'N/A'}
                 </Text>
               </View>
-              <View style={[TableStyles.contentCell, { width: '10%' }]}>
+              <View style={[TableStyles.contentRiskCell, { width: '10%' }]}>
                 <Text style={[RiskInventoryStyles.contentText, { textAlign: 'center', }]}>
                   {find(item.fk_risco_id, 'avaliacao') || 'N/A'}
                 </Text>
               </View>
-              <View style={[TableStyles.contentCell, { width: '5%' }]}>
+              <View style={[TableStyles.contentRiskCell, { width: '5%' }]}>
                 <Text style={[RiskInventoryStyles.contentText, { textAlign: 'left', }]}>
                   {item.frequencia || '0'}
                 </Text>
               </View>
-              <View style={[TableStyles.contentCell, { width: '10%' }]}>
+              <View style={[TableStyles.contentRiskCell, { width: '10%' }]}>
                 <Text style={[RiskInventoryStyles.contentText, { textAlign: 'center', }]}>
                   {item.medicao + " " + find(item.fk_risco_id, 'unidade_medida') || '0'}
                 </Text>
               </View>
-              <View style={[TableStyles.contentCell, { width: '10%' }]}>
+              <View style={[TableStyles.contentRiskCell, { width: '10%' }]}>
                 <Text style={[RiskInventoryStyles.contentText, { textAlign: 'left', }]}>
                   {find(item.fk_aparelho_id, 'nome_aparelho') || 'N/A'}
                 </Text>
               </View>
-              <View style={[TableStyles.contentCell, { width: '5%' }]}>
+              <View style={[TableStyles.contentRiskCell, { width: '5%' }]}>
                 <Text style={[RiskInventoryStyles.contentText, { textAlign: 'center', }]}>
                   {find(item.fk_risco_id, 'limite_tolerancia') + " " + find(item.fk_risco_id, 'unidade_medida') || '0'}
                 </Text>
               </View>
-              <View style={[TableStyles.contentCell, { width: '10%' }]}>
+              <View style={[TableStyles.contentRiskCell, { width: '10%' }]}>
                 <Text style={[RiskInventoryStyles.contentText, { textAlign: 'left', }]}>
                   {find(item.fk_risco_id, 'metodologia') || 'N/A'}
                 </Text>
               </View>
-              <View style={[TableStyles.contentCell, { width: '10%' }]}>
+              <View style={[TableStyles.contentRiskCell, { width: '10%' }]}>
                 <Text style={[RiskInventoryStyles.contentText, { textAlign: 'left', }]}>
-                  {convertMedidas(item.medidas) || 'N/A'}
+                  {convertMedidas(item.medidas, item.fk_setor_id, item.fk_processo_id, item.fk_risco_id) || 'N/A'}
                 </Text>
               </View>
-              <View style={[TableStyles.contentCell, { width: '10%' }]}>
+              <View style={[TableStyles.contentRiskCell, { width: '5%' }]}>
                 <Text style={[RiskInventoryStyles.contentText, { textAlign: 'left', }]}>
-                  {item.conclusao_li || '-'}
+                  {item.probabilidade || '-'}
                 </Text>
               </View>
-              <View style={[TableStyles.contentCell, { width: '10%' }]}>
+              <View style={[TableStyles.contentRiskCell, { width: '5%' }]}>
                 <Text style={[RiskInventoryStyles.contentText, { textAlign: 'left', }]}>
-                  {item.conclusao_lp || '-'}
+                  {find(item.fk_risco_id, 'severidade') || '-'}
+                </Text>
+              </View>
+              <View style={[TableStyles.contentRiskCell, { width: '5%' }]}>
+                <Text style={[RiskInventoryStyles.contentText, { textAlign: 'left', }]}>
+                  {item.nivel || '-'}
+                </Text>
+              </View>
+              <View style={[TableStyles.contentRiskCell, { width: '10%' }]}>
+                <Text style={[RiskInventoryStyles.contentText, { textAlign: 'left', }]}>
+                  {item.comentarios || '-'}
                 </Text>
               </View>
             </View>
           ))}
         </View>
-
+        {/* Legenda */}
+        <View style={{ textAlign: 'right', paddingRight: 5 }}>
+          <Text style={TextStyles.legend}>
+            <Text style={TextStyles.legendBold}>PE:</Text> Pessoas Expostas -
+            <Text style={TextStyles.legendBold}> Freq:</Text> Frequência -
+            <Text style={TextStyles.legendBold}> LT</Text> Limite de Tolerância -
+            <Text style={TextStyles.legendBold}> P:</Text> Probabilidade -
+            <Text style={TextStyles.legendBold}> S:</Text> Severidade -
+            <Text style={TextStyles.legendBold}> N:</Text> Nível
+          </Text>
+        </View>
         {/* Footer */}
         <FooterPage />
       </Page>

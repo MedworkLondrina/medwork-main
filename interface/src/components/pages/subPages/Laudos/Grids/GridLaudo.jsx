@@ -3,7 +3,7 @@ import { toast } from "react-toastify";
 import { FaDownload } from "react-icons/fa6";
 import { MdNoteAdd } from "react-icons/md";
 
-function GridLaudo({ children, companyId, empresas, handleGenerate, pdf }) {
+function GridLaudo({ children, dados, empresas, handleGenerate, pdf }) {
 
   const [grid, setGrid] = useState(true);
   const [pdfComponents, setPdfComponents] = useState([]);
