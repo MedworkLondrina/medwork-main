@@ -56,7 +56,7 @@ router.get("/empresas", (req, res) => {
 //Add rows in table
 router.post("/empresas", (req, res) => {
   const { empresa_data, contato_data } = req.body;
-  console.log('teste') 
+  console.log('teste')
   const nomeUsuario = req.query.nome_usuario;
   const tenant = empresa_data.fk_tenant_code;
   console.log(tenant)
@@ -67,7 +67,7 @@ router.post("/empresas", (req, res) => {
   if (!empresa_data) {
     return res.status(400).json({ error: 'Dados da empresa não fornecidos na requisição' });
   }
-  
+
   pool.getConnection((err, con) => {
     if (err) return next(err);
 
@@ -1422,6 +1422,97 @@ router.put("/conclusoes/:id_conclusao", (req, res) => {
   })
 
 });
+
+
+
+//Tabela de Exames
+router.get("/exames", (req, res) => {
+  const q = `SELECT * FROM exames`;
+
+  pool.getConnection((err, con) => {
+    if (err) return next(err);
+
+    con.query(q, (err, data) => {
+      if (err) return res.status(500).json(err);
+
+      return res.status(200).json(data);
+    });
+
+    con.release();
+  })
+
+});
+
+router.post("/exames", (req, res) => {
+  const data = req.body;
+
+  const q = "INSERT INTO exames SET ?"
+
+  pool.getConnection((err, con) => {
+    if (err) return next(err);
+
+    con.query(q, data, (err, result) => {
+      if (err) {
+        console.error("Erro ao inserir exame na tabela", err);
+        return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
+      }
+
+      return res.status(200).json(`Exame cadastrado com sucesso!`);
+    });
+
+    con.release();
+  })
+
+});
+
+
+
+//Tabela Risco Exame
+router.get("/risco_exame", (req, res) => {
+  const q = `SELECT * FROM risco_exame`;
+
+  pool.getConnection((err, con) => {
+    if (err) return next(err);
+
+    con.query(q, (err, data) => {
+      if (err) return res.status(500).json(err);
+
+      return res.status(200).json(data);
+    });
+
+    con.release();
+  })
+
+});
+
+//Add rows in table
+router.post("/risco_exame", (req, res) => {
+  const data = req.body;
+
+  const q = "INSERT INTO risco_exame SET ?"
+
+  pool.getConnection((err, con) => {
+    if (err) return next(err);
+
+    con.query(q, data, (err, result) => {
+      if (err) {
+        console.error("Erro ao vincular exame ao risco", err);
+        return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
+      }
+
+      return res.status(200).json(`Exame vinculado com sucesso!`);
+    });
+
+    con.release();
+  })
+
+});
+
+
+
+
+
+
 
 router.put("/medidas/:id_medida", (req, res) => {
   const id_medida = req.params.id_medida;

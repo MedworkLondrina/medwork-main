@@ -11,6 +11,7 @@ import BotaoRiscos from './subPages/buttons/Cadastros/BotaoRiscos';
 import BotaoMedidasDeProtecao from "./subPages/buttons/Cadastros/BotaoMedidasDeProtecao";
 
 import { IoInformationCircleSharp } from "react-icons/io5";
+import BotaoExame from "./subPages/buttons/Gestao/BotaoExames";
 
 function Cadastros() {
 
@@ -107,6 +108,12 @@ function Cadastros() {
           <figure className="flex flex-col justify-center">
             <Link to="/cadastro_medida">
               <BotaoMedidasDeProtecao />
+            </Link>
+          </figure>
+          {/* Exame */}
+          <figure className="flex flex-col justify-center">
+            <Link to="/cadastro_exames">
+              <BotaoExame />
             </Link>
           </figure>
         </div>

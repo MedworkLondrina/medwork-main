@@ -16,20 +16,27 @@ function Riscos() {
   const {
     handleSetCompanyId, companyId,
     riscos, setRiscos, getRiscos,
-     medidasAdm, fetchMedidas, medidasEpi, medidasEpc,
+    fetchMedidas,
     getProcessos, processos,
     getProcessosRiscos, processosRiscos,
     getRiscosMedidas, riscosMedidas,
+    getExames,
   } = useAuth(null);
 
   //Instanciando o Search
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredRiscos, setFilteredRiscos] = useState([]);
   const [medidas, setMedidas] = useState([]);
+  const [exames, setExames] = useState([]);
 
   useEffect(() => {
     handleSetCompanyId();
   }, [])
+
+  const fetchExames = async () => {
+    const ex = await getExames();
+    setExames(ex);
+  }
 
   useEffect(() => {
     getRiscos();
@@ -37,6 +44,7 @@ function Riscos() {
     getMedidas();
     getProcessosRiscos();
     getRiscosMedidas();
+    fetchExames();
   }, [companyId])
 
   const handleEdit = (selectedRisco) => {
@@ -118,11 +126,8 @@ function Riscos() {
         {/* Tabela */}
         <GridRiscos
           riscos={filteredRiscos}
-          setRiscos={setRiscos}
           setOnEdit={handleEdit}
-          processos={processos}
-          processosRiscos={processosRiscos}
-          riscosMeidas={riscosMedidas}
+          exames={exames}
         />
 
       </div>
