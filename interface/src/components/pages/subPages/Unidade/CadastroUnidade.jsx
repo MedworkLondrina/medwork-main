@@ -34,8 +34,9 @@ function CadastroUnidade() {
   }, []);
 
   const get = async () => {
-    const data = await fetchUnidades();
-    setUnidades(data);
+    const units = await fetchUnidades();
+    console.log(units);
+    setUnidades(units);
   };
 
   const getContatos = async () => {
