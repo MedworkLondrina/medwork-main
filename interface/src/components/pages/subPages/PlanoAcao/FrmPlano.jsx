@@ -471,7 +471,7 @@ function FrmPlano({
       {(isVerify && !onEdit) && (
         <>
           {/* Alert */}
-          <div className="block m-2">
+          <div className="block ">
             <div className={`bg-orange-50 text-gray-600 rounded-lg px-6 py-2 ${isVerify ? 'block' : 'hidden'}`}>
               <div className="flex items-center gap-6">
                 <div className="">
@@ -491,6 +491,9 @@ function FrmPlano({
           </div>
         </>
       )}
+      <div className="flex justify-center items-center mt-12 mb-10">
+        <h1 className="text-3xl font-extrabold text-sky-700">Plano de Ação</h1>
+      </div>
       {loading && <LoadingScreen />}
       <div className="flex justify-center">
         <form className="w-full max-w-7xl" ref={user} onSubmit={handleSubmit}>
