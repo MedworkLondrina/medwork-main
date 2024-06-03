@@ -86,7 +86,6 @@ function LaudoPgr() {
 
     const sprm = await getGlobalSprm();
     setGlobalSprm(sprm);
-
   };
 
   useEffect(() => {
@@ -149,8 +148,6 @@ function LaudoPgr() {
   }, [showModalSetor, unidadeId, setores]);
 
   const handleGerarRelatorio = async () => {
-
-
     setLoading(true);
     const res = await fetch(`${connect}/relatorio_pgr`, {
       method: 'POST',
@@ -214,7 +211,6 @@ function LaudoPgr() {
   const handleClear = () => {
     setPdfComponent(null);
     setPdfGrid(null);
-    window.location.reload();
   };
 
   const openPdfInNewTab = (pdfComponent) => {
