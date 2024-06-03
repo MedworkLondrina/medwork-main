@@ -91,12 +91,9 @@ function LaudoPgr() {
 
     const sprm = await getGlobalSprm();
     setGlobalSprm(sprm);
-<<<<<<< HEAD
-=======
 
     const authors = await getTable('elaboradores');
     setElaboradores(authors);
->>>>>>> bfa078ac186e01160c44fc788de3d0ebd29a3da3
   };
 
   useEffect(() => {
@@ -162,13 +159,10 @@ function LaudoPgr() {
   }, [showModalSetor, unidadeId, setores]);
 
   const handleGerarRelatorio = async () => {
-<<<<<<< HEAD
-=======
     if (!elaboradorId) {
       return toast.warn("Selecione um elaborador!");
     }
 
->>>>>>> bfa078ac186e01160c44fc788de3d0ebd29a3da3
     setLoading(true);
     const res = await fetch(`${connect}/relatorio_pgr`, {
       method: 'POST',
@@ -233,12 +227,8 @@ function LaudoPgr() {
   const handleClear = () => {
     setPdfComponent(null);
     setPdfGrid(null);
-<<<<<<< HEAD
-=======
     window.location.reload();
     handleClearElaborador();
-
->>>>>>> bfa078ac186e01160c44fc788de3d0ebd29a3da3
   };
 
   const openPdfInNewTab = (pdfComponent) => {
