@@ -96,10 +96,12 @@ function LtcatGenerate({ inventario, dados, data, user, elaborador}) {
       return 'N/A';
     }
   };
+
   const findSetor = (item) => {
     const findSetor = dados.setores.find((i) => i.id_setor === item);
     return findSetor ? findSetor.nome_setor : "N/A";
   };
+  
   const getFirstLetter = (item) => {
     return item.charAt(0);
   };

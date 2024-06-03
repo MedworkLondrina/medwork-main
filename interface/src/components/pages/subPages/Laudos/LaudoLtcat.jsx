@@ -229,7 +229,6 @@ function LaudoPgr() {
     setPdfGrid(null);
     window.location.reload();
     handleClearElaborador();
-
   };
 
   const openPdfInNewTab = (pdfComponent) => {
