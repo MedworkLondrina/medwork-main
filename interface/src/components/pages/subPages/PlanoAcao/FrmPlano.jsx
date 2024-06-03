@@ -703,7 +703,7 @@ function FrmPlano({
             </div>
 
             {/* Data */}
-            <div className="w-full md:w-1/4 px-3">
+            <div className="w-full md:w-1/3 px-3">
               <label className="tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="grid-raza_social">
                 Data:
               </label>
@@ -715,6 +715,41 @@ function FrmPlano({
                 onChange={handleChangeData}
               />
             </div>
+
+            {onEdit && (
+              <>
+                {/* Data Conclusão */}
+                <div className="w-full md:w-1/3 px-3">
+                  <label className="tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="data_conclusao">
+                    Data de Conclusão:
+                  </label>
+                  <input
+                    className="appearance-none block w-full bg-gray-100 rounded py-3 px-4 mb-3 mt-1 leading-tight focus:outline-gray-100 focus:bg-white"
+                    type="date"
+                    id="data_conclusao"
+                    name="data_conclusao"
+                    value={data_conclusao}
+                    onChange={handleChangeDataConclusao}
+                  />
+                </div>
+                {/* Status */}
+                <div className="w-full md:w-3/12 px-3">
+                  <label className="tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="grid-raza_social">
+                    Status:
+                  </label>
+                  <select
+                    className="appearence-none block w-full bg-gray-100 rounded py-3 px-4 mb-3 mt-1 leading-tight focus:outline-gray-100 focus:bg-white"
+                    name="status"
+                    onChange={(e) => setStatus(e.target.value)}
+                    value={status}
+                  >
+                    <option value="0">Selecione o Status</option>
+                    <option value="Realizado">Realizado</option>
+                    <option value="Não Realizado">Não Realizado</option>
+                  </select>
+                </div>
+              </>
+            )}
 
             {/* Medidas de Controle */}
             <div className="w-full md:w-1/4 px-3">
@@ -741,44 +776,9 @@ function FrmPlano({
                 getGlobalSprm={getGlobalSprm}
               />
             </div>
-            {onEdit ? (
-              <div className="w-full md:w-1/4 px-3">
-                <div className="flex space-x-4">
-                  {/* Data */}
-                  <div className="flex-1">
-                    <label className="tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="data_conclusao">
-                      Data:
-                    </label>
-                    <input
-                      className="appearance-none block w-full bg-gray-100 rounded py-3 px-4 mb-3 mt-1 leading-tight focus:outline-gray-100 focus:bg-white"
-                      type="date"
-                      name="data_conclusao"
-                      value={data_conclusao}
-                      onChange={handleChangeDataConclusao}
-                    />
-                  </div>
-                  {/* Status */}
-                  <div className="flex-1">
-                    <label className="tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="status">
-                      Status:
-                    </label>
-                    <select
-                      className="appearance-none bg-gray-100 rounded py-3 px-4 mb-3 mt-1 leading-tight cursor-pointer"
-                      name="status"
-                      value={status} // Substitua 'status' com o valor adequado do estado
-                      onChange={(e) => setStatus(e.target.value)} // Função de manipulação de estado para 'status'
-                    >
-                      <option value="0">Selecione o Status</option>
-                      <option value="Realizado">Realizado</option>
-                      <option value="Não Realizado">Não Realizado</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-            ) : ''}
 
             {/* Medidas de Controle Aplicadas*/}
-            <div className="w-full md:w-2/4 px-3">
+            <div className="w-full md:w-3/4 px-3">
               <label className="tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="grid-raza_social">
                 Medidas Não Aplicadas:
               </label>

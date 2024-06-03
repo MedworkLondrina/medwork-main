@@ -90,7 +90,7 @@ export const AuthProvider = ({ children }) => {
     try {
       const code = await checkTenantCode();
       if (!code) return;
-      
+
 
       const queryParams = new URLSearchParams({ tenent_code: code }).toString();
       const response = await fetch(`${connect}/empresas?${queryParams}`)
@@ -505,6 +505,21 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const getRiscosExames = async () => {
+    try {
+      const response = await fetch(`${connect}/risco_exame`);
+
+      if (!response.ok) {
+        throw new Error(`Erro ao buscar vinculos entre riscos e exames. Status: ${response.status}`)
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error(`Erro ao buscar vinculos entre riscos e exames! ${error}`)
+    }
+  }
+
   const fetchProcessoCnae = async () => {
     try {
       const response = await fetch(`${connect}/processo_cnae`);
@@ -656,6 +671,16 @@ export const AuthProvider = ({ children }) => {
       console.log(`Erro ao buscar conclusões. ${error}`);
     }
   };
+
+  const getExames = async () => {
+    try {
+      const res = await fetch(`${connect}/exames`);
+      const data = await res.json();
+      return data
+    } catch (error) {
+      console.error(`Erro ao buscar exames! Status: ${error}`)
+    }
+  }
 
   const getTenant = async (tenant) => {
     try {
@@ -866,6 +891,8 @@ export const AuthProvider = ({ children }) => {
         fetchCnae,
         fetchProcessoCnae,
         checkTenant,
+        getExames,
+        getRiscosExames,
       }}>
       {children}
     </AuthContext.Provider>

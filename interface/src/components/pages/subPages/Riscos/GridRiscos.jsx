@@ -3,10 +3,13 @@ import React, { useState } from "react";
 import { BsFillPencilFill } from 'react-icons/bs';
 import { FiLink } from "react-icons/fi";
 import ModalRiscoMedidas from "../components/Modal/ModalRiscoMedidas";
+import ModalRiscoExames from "../components/Modal/ModalRiscoExames";
+import { FaFileMedical } from "react-icons/fa";
 
-function GridRiscos({ riscos, setOnEdit }) {
+function GridRiscos({ riscos, setOnEdit, exames }) {
 
   const [showModal, setShowModal] = useState(false);
+  const [showModalExames, setShowModalExames] = useState(false);
   const [riscoName, setRiscoName] = useState();
   const [riscoId, setRiscoId] = useState();
 
@@ -21,13 +24,21 @@ function GridRiscos({ riscos, setOnEdit }) {
   //Funções do Modal
   //Função para abrir o Modal
   const openModal = () => setShowModal(true);
+  const openModalExames = () => setShowModalExames(true);
   //Função para fechar o Modal
   const closeModal = () => setShowModal(false);
+  const closeModalExames = () => setShowModalExames(false);
 
   const handleSetModal = (item) => {
     setRiscoId(item.id_risco)
     setRiscoName(item.nome_risco)
     openModal();
+  };
+
+  const handleSetModalExames = (item) => {
+    setRiscoId(item.id_risco)
+    setRiscoName(item.nome_risco)
+    openModalExames();
   };
 
   const filterSeverity = (item) => {
@@ -120,6 +131,9 @@ function GridRiscos({ riscos, setOnEdit }) {
                     <a className={`cursor-pointer text-yellow-500 text-lg`} onClick={() => handleSetModal(item)}>
                       <FiLink />
                     </a>
+                    <a className={`cursor-pointer text-green-500 text-lg`} onClick={() => handleSetModalExames(item)}>
+                      <FaFileMedical />
+                    </a>
                   </div>
                 </td>
               </tr>
@@ -133,6 +147,14 @@ function GridRiscos({ riscos, setOnEdit }) {
         childId={riscoId}
         childName={riscoName}
         children={riscos}
+      />
+      <ModalRiscoExames
+        onCancel={closeModalExames}
+        isOpen={showModalExames}
+        childId={riscoId}
+        childName={riscoName}
+        children={riscos}
+        exames={exames}
       />
     </>
   );

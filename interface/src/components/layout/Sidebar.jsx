@@ -29,6 +29,7 @@ import icon_controle_risco from '../media/menu/icon_controle_risco.svg';
 import icon_processos from '../media/menu/icon_processo.svg';
 import icon_riscos from '../media/menu/icon_risco.svg';
 import icon_medidas from '../media/menu/icon_medidas.svg';
+import icon_exame from '../media/menu/icon_exame.svg';
 // Gestão do Sistema
 import icon_gestao from '../media/menu/icon_gestao.svg';
 import icon_usuario from '../media/menu/icon_usuario.svg';
@@ -538,6 +539,16 @@ function Sidebar() {
                                   <div className={`flex items-center py-2 px-6`}>
                                     <img src={icon_medidas} alt="icon_cargo" />
                                     <span className="ms-3 font-normal">Medidas</span>
+                                  </div>
+                                </li>
+                              </Link>
+
+                              {/* Exames */}
+                              <Link to="/cadastro_exames" onClick={() => setShowMenu(!showMenu)}>
+                                <li className="hover:bg-sky-100">
+                                  <div className={`flex items-center py-2 px-6`}>
+                                    <img src={icon_exame} alt="icon_exame" />
+                                    <span className="ms-3 font-normal">Exames</span>
                                   </div>
                                 </li>
                               </Link>
