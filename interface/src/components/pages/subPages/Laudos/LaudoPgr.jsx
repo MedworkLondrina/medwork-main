@@ -54,10 +54,8 @@ function LaudoPgr() {
   const [elaboradorId, setElaboradorId] = useState('');
   const [elaboradorNome, setElaboradorNome] = useState('');
 
-  const [laudos, setLaudos] = useState([]);
   const [globalSprm, setGlobalSprm] = useState([]);
 
-  const [exists, setExists] = useState(false);
   const [pdfGrid, setPdfGrid] = useState(false);
 
   const [visible, setVisible] = useState(false);
@@ -65,7 +63,6 @@ function LaudoPgr() {
 
   // Form
   const [data, setData] = useState('');
-  const [versao, setVersao] = useState('');
   const [comentario, setComentario] = useState('');
 
   const [generatedPdf, setGeneratedPdf] = useState(null);
@@ -101,18 +98,7 @@ function LaudoPgr() {
     handleGet();
   }, [companyId]);
 
-  // useEffect(() => {
-  //   const pdfExists = laudoVersion.filter((i) => i.fk_empresa_id === companyId && i.laudo === 'pgr');
-  //   setLaudos(pdfExists);
-  //   if (pdfExists) {
-  //     setVersao(pdfExists.length + 1);
-  //     setExists(true);
-  //   } else {
-  //     setVersao(1);
-  //     setExists(false);
-  //   }
-  // }, [laudoVersion]);
-
+ 
   useEffect(() => {
     try {
       // Filtrando o inventario pelo id da Empresa
@@ -155,47 +141,7 @@ function LaudoPgr() {
   const closeModalSetor = () => setShowModalSetor(false);
   const closeModalElaborador = () => setShowModalElaborador(false);
 
-  const handleSubmit = async () => {
-    if (!comentario) {
-      toast.warn("Campo comentário em branco!");
-      return;
-    } else {
-      try {
-        const pdfVersionData = {
-          data: data,
-          fk_empresa_id: companyId,
-          laudo: 'pgr',
-          versao: versao,
-          comentario: comentario,
-        }
-
-        const response = await fetch(`${connect}/laudo_version`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify(pdfVersionData),
-        });
-
-
-        if (!response.ok) {
-          throw new Error(`Erro ao gerar versão do PGR`);
-        };
-
-        toast.success(`PGR Gerado com sucesso, Versão: ${versao}`);
-        // getLaudoVersion();
-        setNomeUnidade('');
-        setUnidadeId('');
-        setSetorNome('');
-        setSetorId('');
-        setComentario('');
-      } catch (error) {
-        console.error("Erro ao adicionar versão do pdf!", error)
-      }
-    }
-
-  };
-
+  
   const handleClear = () => {
     setGeneratedPdf(null);
     setPdfComponent(null);
@@ -305,15 +251,6 @@ function LaudoPgr() {
     return `${ano}-${mes}-${dia}`;
   };
 
-  const handleComentarioChange = (e) => {
-    setComentario(e.target.value);
-  };
-
-  useEffect(() => {
-    obterDataFormatada().then((dataFormatada) => {
-      setData(dataFormatada);
-    });
-  }, []);
 
   // Função para atualizar a Unidade
   const handleUnidadeSelect = (unidadeId, nomeUnidade) => {
@@ -396,7 +333,7 @@ function LaudoPgr() {
           </Link>
         </div>
         <div className="col-span-3 flex justify-center">
-          <h1 className="text-3xl font-extrabold text-sky-700">PGR - Pograma de Gerenciamento de Riscos</h1>
+          <h1 className="text-3xl font-extrabold text-sky-700">PGR - Programa de Gerenciamento de Riscos</h1>
         </div>
         <div className="col-span-1 flex justify-center items-center">
           <div onMouseEnter={() => setVisible(true)}>
@@ -570,37 +507,6 @@ function LaudoPgr() {
               />
             </div>
 
-            {/* Versão */}
-            {/* <div className="w-full md:w-1/12 px-3">
-              <label className="tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="versao">
-                Versão:
-              </label>
-              <input
-                className={`appearence-none block w-full bg-gray-100 rounded py-3 px-4 mb-3 mt-1 leading-tight focus:outline-gray-100 `}
-                type="text"
-                id="versao"
-                name="versao"
-                value={versao}
-                placeholder="Versão do Laudo"
-                disabled
-              />
-            </div> */}
-
-            {/* Comentário */}
-            {/* <div className="w-full md:w-7/12 px-3">
-              <label className="tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="comentario">
-                Comentário:
-              </label>
-              <textarea
-                className={`resize-none appearence-none block w-full bg-gray-100 rounded py-3 px-4 mb-3 mt-1 leading-tight focus:outline-gray-100 `}
-                type="text"
-                id="comentario"
-                name="comentario"
-                value={comentario}
-                placeholder="Descreva as atualizações"
-                onChange={handleComentarioChange}
-              />
-            </div> */}
 
 
           </div>
@@ -640,13 +546,6 @@ function LaudoPgr() {
       </div >
 
 
-      {/* Grid */}
-      {/* < GridLaudo
-        children={laudos}
-        empresas={empresas}
-        pdf={pdfGrid}
-        companyId={companyId}
-      /> */}
 
     </>
   )

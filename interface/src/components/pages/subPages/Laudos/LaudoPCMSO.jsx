@@ -2,20 +2,20 @@ import React, { useEffect, useState } from "react";
 import useAuth from "../../../../hooks/useAuth";
 import { toast } from "react-toastify";
 import ReactDOM from 'react-dom';
-import { Link } from "react-router-dom";
-import { PDFDownloadLink, PDFViewer } from "@react-pdf/renderer";
 
-import LtcatGenerate from "../components/LaudoGenerate/LtcatGenerate";
-import ModalSearchSetor from "../../subPages/components/Modal/ModalSearchSetor";
-import ModalSearchUnidade from "../../subPages/components/Modal/ModalSearchUnidade"
-import GridLaudo from "./Grids/GridLaudo";
+import ModalSearchSetor from "../components/Modal/ModalSearchSetor";
+import ModalSearchUnidade from "../components/Modal/ModalSearchUnidade";
 import ModalSearchElaborador from "../components/Modal/ModalSearchElaborador";
 
-import Back from '../../../layout/Back';
-import { IoInformationCircleSharp } from "react-icons/io5";
 import icon_sair from '../../../media/icon_sair.svg'
 import icon_lupa from '../../../media/icon_lupa.svg'
+import { PDFDownloadLink, PDFViewer } from "@react-pdf/renderer";
 import { connect } from "../../../../services/api";
+import Back from '../../../layout/Back'
+import { Link } from "react-router-dom";
+import { IoInformationCircleSharp } from "react-icons/io5";
+import PcsmoGenerate from "../components/LaudoGenerate/PcmsoGenerate";
+
 
 function LaudoPgr() {
 
@@ -26,9 +26,8 @@ function LaudoPgr() {
     fetchSetores,
     getGlobalSprm,
     getPlano, plano,
-    getTable,user
+    getTable,
   } = useAuth(null);
-
 
   const [companyId, setCompanyId] = useState(null);
   const [nameCompany, setNameCompany] = useState('');
@@ -45,8 +44,8 @@ function LaudoPgr() {
   const [setores, setSetores] = useState([]);
   const [filteredSetores, setFilteredSetores] = useState([]);
   const [setorId, setSetorId] = useState('');
-  const [setorNome, setSetorNome] = useState('')
-  
+  const [setorNome, setSetorNome] = useState('');
+
   const [showModalElaborador, setShowModalElaborador] = useState(false);
   const [elaboradores, setElaboradores] = useState([]);
   const [filteredElaborador, setFilteredElaborador] = useState([]);
@@ -62,12 +61,10 @@ function LaudoPgr() {
 
   // Form
   const [data, setData] = useState('');
-  const [versao, setVersao] = useState('');
   const [comentario, setComentario] = useState('');
 
   const [generatedPdf, setGeneratedPdf] = useState(null);
   const [pdfComponent, setPdfComponent] = useState(null);
-
 
   const getCompany = async () => {
     const selectCompany = await loadSelectedCompanyFromLocalStorage();
@@ -91,7 +88,6 @@ function LaudoPgr() {
 
     const sprm = await getGlobalSprm();
     setGlobalSprm(sprm);
-
     const authors = await getTable('elaboradores');
     setElaboradores(authors);
   };
@@ -100,67 +96,8 @@ function LaudoPgr() {
     handleGet();
   }, [companyId]);
 
-
-  // useEffect(() => {
-  //   if (laudoVersion) {
-  //     const pdfExists = laudoVersion.filter((i) => i.fk_empresa_id === companyId && i.laudo === 'ltcat');
-  //     setLaudos(pdfExists);
-  //     if (pdfExists) {
-  //       setVersao(pdfExists.length + 1);
-  //       setExists(true);
-  //     } else {
-  //       setVersao(1);
-  //       setExists(false);
-  //     }
-  //   }
-  // }, [laudoVersion])
-
-
-  //Funções do Modal
-  //Função para abrir o Modal
-  const openModalUnidade = () => setShowModalUnidade(true);
-  const openModalSetor = () => setShowModalSetor(true);
-  const openModalElaborador = () => setShowModalElaborador(true);
-
-  //Função para fechar o Modal
-  const closeModalUnidade = () => setShowModalUnidade(false);
-  const closeModalSetor = () => setShowModalSetor(false);
-  const closeModalElaborador = () => setShowModalElaborador(false);
-
-  // Função para atualizar a Unidade
  
-
   useEffect(() => {
-    if (showModalSetor && unidadeId) {
-      const filtered = setores.filter((i) => i.fk_unidade_id === unidadeId);
-      setFilteredSetores(filtered);
-    }
-  }, [showModalSetor, unidadeId, setores]);
-
-  const handleGerarRelatorio = async () => {
-    if (!elaboradorId) {
-      return toast.warn("Selecione um elaborador!");
-    }
-
-    setLoading(true);
-    const res = await fetch(`${connect}/relatorio_pgr`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ companyId: companyId , unidadeId: unidadeId, setorId: setorId}),
-    });
-
-    const data = await res.json();
-    const setoresMap = data.setores.map((i) => i.id_setor);
-    const filterSprm = globalSprm.filter((i) => setoresMap.includes(i.fk_setor_id));
-
-    const resRelatorio = await generatePdf(data, filterSprm);
-    setGeneratedPdf(resRelatorio);
-    handleDownloadLtcat(resRelatorio);
-    setLoading(false);
-  }
-   useEffect(() => {
     try {
       // Filtrando o inventario pelo id da Empresa
       if(companyId && !unidadeId && !setorId) {
@@ -184,25 +121,87 @@ function LaudoPgr() {
       console.log("Erro ao filtrar dados!", error);
     }
   }, [companyId, inventario, plano, setorId, unidadeId]);
-  const generatePdf = async ( dados, sprm) => {
-    return (
-      <LtcatGenerate
+
+  useEffect(() => {
+    if (showModalSetor && unidadeId) {
+      const filtered = setores.filter((i) => i.fk_unidade_id === unidadeId);
+      setFilteredSetores(filtered);
+    }
+  }, [showModalSetor, unidadeId, setores]);
+
+  //Funções do Modal
+  //Função para abrir o Modal
+  const openModalUnidade = () => setShowModalUnidade(true);
+  const openModalSetor = () => setShowModalSetor(true);
+  const openModalElaborador = () => setShowModalElaborador(true);
+  //Função para fechar o Modal
+  const closeModalUnidade = () => setShowModalUnidade(false);
+  const closeModalSetor = () => setShowModalSetor(false);
+  const closeModalElaborador = () => setShowModalElaborador(false);
+
+  
+  const handleClear = () => {
+    setGeneratedPdf(null);
+    setPdfComponent(null);
+    setPdfGrid(null);
+    setData(obterDataFormatada());
+    setComentario('');
+    handleClearUnidade();
+    handleClearSetor();
+    handleClearElaborador();
+  };
+
+  const handleGerarRelatorio = async () => {
+
+    if (!elaboradorId) {
+      return toast.warn("Selecione um elaborador!");
+    }
+
+    setLoading(true);
+    const res = await fetch(`${connect}/relatorio_pgr`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ companyId: companyId , unidadeId: unidadeId, setorId: setorId}),
+    });
+
+    const data = await res.json();
+    const setoresMap = data.setores.map((i) => i.id_setor);
+    const filterSprm = globalSprm.filter((i) => setoresMap.includes(i.fk_setor_id));
+
+    if (!data || !filterSprm || !filteredInventario.length > 0 || !filteredPlano.length > 0) {
+      setLoading(false);
+      return toast.error("Erro ao gerar relatório!");
+    }
+
+    const resRelatorio = await pcsmoGenerate(data, filterSprm);
+    setGeneratedPdf(resRelatorio);
+    await handleDownloadPGR(resRelatorio);
+    setLoading(false);
+  };
+  const pcsmoGenerate = async (dados, sprm) => {
+    try {
+      return <PcsmoGenerate
         inventario={filteredInventario}
         plano={filteredPlano}
         data={data}
         dados={dados}
-        sprm={sprm}
         elaborador={filteredElaborador}
-        user={user}
+        sprm={sprm}
       />
-    );
+    } catch (error) {
+      console.error("Erro ao gerar relatório!", error)
+      return toast.error("Erro ao gerar relatório!");
+    }
+
   };
 
-  const handleDownloadLtcat = async (ltcat) => {
+  const handleDownloadPGR = async (pgr) => {
     const { blob } = await new Promise((resolve, reject) => {
       const pdfGenerated = (
         <PDFDownloadLink
-          document={ltcat}
+          document={pgr}
           fileName={`PGR - ${nameCompany}` || 'Programa de Gerenciamento de Riscos'}
         >
           {({ blob, url, loading, error }) => (
@@ -211,21 +210,14 @@ function LaudoPgr() {
               disabled={loading}
               className={`${loading ? 'bg-gray-200 hover:bg-gray-200 text-gray-700' : 'bg-green-600'
                 } py-2 px-8 font-bold text-lg text-white rounded cursor-pointer hover:bg-green-700`}>
-              {loading ? 'Gerando PDF...' : 'Baixar PDF'}
+              {loading ? 'Gerando Download...' : 'Baixar PGR'}
             </button>
           )}
         </PDFDownloadLink>
       );
       setPdfComponent(pdfGenerated)
+      setLoading(false);
     })
-  };
-
-  // Clear
-  const handleClear = () => {
-    setPdfComponent(null);
-    setPdfGrid(null);
-    window.location.reload();
-    handleClearElaborador();
   };
 
   const openPdfInNewTab = (pdfComponent) => {
@@ -239,8 +231,6 @@ function LaudoPgr() {
     );
   };
 
-
-  // Data
   const handleChangeData = async (event) => {
     const date = new Date(event.target.value);
     const year = date.getFullYear();
@@ -258,25 +248,14 @@ function LaudoPgr() {
     return `${ano}-${mes}-${dia}`;
   };
 
-  useEffect(() => {
-    obterDataFormatada().then((dataFormatada) => {
-      setData(dataFormatada);
-    });
-  }, []);
 
-  // 
-
-  const handleComentarioChange = (e) => {
-    setComentario(e.target.value);
-  };
-
+  // Função para atualizar a Unidade
   const handleUnidadeSelect = (unidadeId, nomeUnidade) => {
     closeModalUnidade();
     setUnidadeId(unidadeId)
     setNomeUnidade(nomeUnidade)
     handleClearSetor();
     const inventarioFilter = inventario.filter((i) => i.fk_unidade_id === unidadeId);
-    console.log(inventarioFilter)
     setFilteredInventario(inventarioFilter);
     const planoFilter = plano.filter((i) => i.fk_unidade_id === unidadeId);
     setFilteredPlano(planoFilter);
@@ -289,7 +268,6 @@ function LaudoPgr() {
     setNomeUnidade(null);
     handleClearSetor();
     setFilteredSetores([]);
-    
   };
 
   const handleSetorSelect = (SetorId, SetorName) => {
@@ -329,13 +307,13 @@ function LaudoPgr() {
       <div className="flex w-full" onMouseLeave={() => setVisible(false)}>
         <div className="fixed z-50 m-2">
           <div className={`bg-gray-700 rounded-lg px-6 py-2 ${visible ? 'block' : 'hidden'} text-white`}>
-            <h2 className="font-bold text-xl mb-2 text-gray-100 mt-2">Página para Gerar LTCAT</h2>
+            <h2 className="font-bold text-xl mb-2 text-gray-100 mt-2">Página para Gerar PGR</h2>
             <div>
               <p className="mb-2 text-justify font-light text-gray-300 flex">
-                A página Laudo Técnico das Condições do Ambiente de Trabalho foi meticulosamente projetada para oferecer uma forma eficiente e organizada de gerar o LTCAT.
+                A página Programa de Gerenciamento de Riscos foi meticulosamente projetada para oferecer uma forma eficiente e organizada de gerar o PGR.
               </p>
               <p className="mb-2 text-justify font-light text-gray-300 flex">
-                No canto superior esquerdo da tela, destaca-se um botão que proporciona a facilidade de retorno à página principal de Laudos, esse recurso visa garantir uma navegação ágil e intuitiva para os usuários. No centro da tela, apresentamos um formulário claro e de fácil compreensão para o definir como deseja gerar o relatório, tem a opção de gerar com todos os dados, tem a opção de gerar apenas de uma unidade e tambem a opção de gerar apenas um setor. Além disso, apresentamos uma tabela organizada abaixo, contendo as versões do LTCAT. Em uma coluna dedicada é disponibilizado um botão utilizado para gerar e baixar aquela versão especifica. Ao gerar um relatório novo ou uma versão ficam disponibilizadas duas opções, uma para abrir o laudo em uma nova aba e outra para baixar o laudo. Para abrir em uma nova aba basta clicar no botao que surge ao gerar um laudo, localizado em cima da tabela no canto direito, e para baixar voce utiliza o mesmo botão que geroum, tanto um novo quanto uma versão.
+                No canto superior esquerdo da tela, destaca-se um botão que proporciona a facilidade de retorno à página principal de Laudos, esse recurso visa garantir uma navegação ágil e intuitiva para os usuários. No centro da tela, apresentamos um formulário claro e de fácil compreensão para o definir como deseja gerar o relatório, tem a opção de gerar com todos os dados, tem a opção de gerar apenas de uma unidade e tambem a opção de gerar apenas um setor. Além disso, apresentamos uma tabela organizada abaixo, contendo as versões do PGR. Em uma coluna dedicada é disponibilizado um botão utilizado para gerar e baixar aquela versão especifica. Ao gerar um relatório novo ou uma versão ficam disponibilizadas duas opções, uma para abrir o laudo em uma nova aba e outra para baixar o laudo. Para abrir em uma nova aba basta clicar no botao que surge ao gerar um laudo, localizado em cima da tabela no canto direito, e para baixar voce utiliza o mesmo botão que geroum, tanto um novo quanto uma versão.
               </p>
             </div>
           </div>
@@ -351,10 +329,10 @@ function LaudoPgr() {
             <Back />
           </Link>
         </div>
-        <div className="col-span-3 flex justify-center text-center">
-          <h1 className="text-3xl font-extrabold text-sky-700">LTCAT - Laudo Técnico das Condições do Ambiente de Trabalho</h1>
+        <div className="col-span-3 flex justify-center">
+          <h1 className="text-3xl font-extrabold text-sky-700">PCMSO - Programa de Controle Médico de Saúde Ocupacional</h1>
         </div>
-        <div className="col-span-1 flex justify-center pt-3">
+        <div className="col-span-1 flex justify-center items-center">
           <div onMouseEnter={() => setVisible(true)}>
             <IoInformationCircleSharp className='text-sky-700' />
           </div>
@@ -368,14 +346,13 @@ function LaudoPgr() {
 
             {/* Data */}
             <div className="w-full md:w-1/3 px-3">
-              <label className="tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="data">
+              <label className="tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="grid-raza_social">
                 Data:
               </label>
               <input
                 className={`appearence-none block w-full bg-gray-100 rounded py-3 px-4 mb-3 mt-1 leading-tight focus:outline-gray-100 `}
                 type="date"
-                name="data_ltcat"
-                id="data"
+                name="data_inventario"
                 value={data}
                 onChange={handleChangeData}
               />
@@ -391,23 +368,22 @@ function LaudoPgr() {
                   <>
                     <button
                       className="flex appearance-none w-full hover:shadow-sm text-sky-600 bg-gray-100 border-gray-200 mt-1 py-3 px-4 rounded leading-tight focus:outline-none with-text"
-                      onClick={openModalUnidade}
                       type="button"
+                      onClick={openModalUnidade}
                     >
                       <p className="font-bold w-full">
                         {nomeUnidade}
                       </p>
                     </button>
-                    <button className="ml-4" onClick={handleClearUnidade}
-                    type="button">
+                    <button className="ml-4" onClick={handleClearUnidade} type="button">
                       <img src={icon_sair} alt="" className="h-9" />
                     </button>
                   </>
                 ) : (
                   <button
                     className="flex w-full appearance-none text-gray-400 bg-gray-100 border-gray-200 justify-center mt-1 py-3 px-4 rounded leading-tight focus:outline-none with-text"
-                    onClick={openModalUnidade}
                     type="button"
+                    onClick={openModalUnidade}
                   >
                     <p className="text-sm font-medium w-full">
                       Nenhuma Unidade Selecionado
@@ -417,7 +393,6 @@ function LaudoPgr() {
                 <button
                   type="button"
                   onClick={openModalUnidade}
-                  
                   className={`flex cursor-pointer ml-4 `}
                 >
                   <img src={icon_lupa} className="h-9 cursor-pointer" alt="Icone adicionar unidade"></img>
@@ -441,8 +416,8 @@ function LaudoPgr() {
                   <>
                     <button
                       className="flex w-full appearance-none hover:shadow-sm text-sky-600 bg-gray-100 border-gray-200 justify-center mt-1 py-3 px-4 rounded leading-tight focus:outline-none with-text"
-                      onClick={openModalSetor}
                       type="button"
+                      onClick={openModalSetor}
                     >
                       <p className="font-bold w-full">
                         {setorNome}
@@ -455,8 +430,8 @@ function LaudoPgr() {
                 ) : (
                   <button
                     className="flex w-full appearance-none text-gray-400 bg-gray-100 border-gray-200 justify-center mt-1 py-3 px-4 rounded leading-tight focus:outline-none with-text"
-                    onClick={openModalSetor}
                     type="button"
+                    onClick={openModalSetor}
                   >
                     <p className="px-2 text-sm font-medium w-full">
                       Nenhum Setor Selecionado
@@ -479,8 +454,9 @@ function LaudoPgr() {
                 onContactSelect={handleSetorSelect}
               />
             </div>
-  {/* ELaborador */}
-  <div className="w-full md:w-4/12 px-3">
+
+            {/* ELaborador */}
+            <div className="w-full md:w-4/12 px-3">
               <label className="tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="elaborador">
                 Elaborador:
               </label>
@@ -527,39 +503,12 @@ function LaudoPgr() {
                 onSelect={handleElaboradorSelect}
               />
             </div>
-            {/* Versão */}
-            <div className="w-full md:w-1/12 px-3">
-              <label className="tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="versao">
-                Versão:
-              </label>
-              <input
-                className={`appearence-none block w-full bg-gray-100 rounded py-3 px-4 mb-3 mt-1 leading-tight focus:outline-gray-100 `}
-                type="text"
-                id="versao"
-                name="versao"
-                value= {1.0}
-                placeholder="Versão do Laudo"
-                disabled
-              />
-            </div>
 
-            {/* Comentário */}
-            <div className="w-full md:w-11/12 px-3">
-              <label className="tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="comentario">
-                Comentário:
-              </label>
-              <textarea
-                className={`resize-none appearence-none block w-full bg-gray-100 rounded py-3 px-4 mb-3 mt-1 leading-tight focus:outline-gray-100 `}
-                type="text"
-                id="comentario"
-                name="comentario"
-                value={comentario}
-                placeholder="Descreva as atualizações"
-                onChange={handleComentarioChange}
-              />
-            </div>
+
 
           </div>
+
+          {/* Botões */}
           <div className="flex justify-end mt-10 gap-4">
             < button type="button" className="bg-red-600 py-2 px-8 font-bold text-lg text-white rounded cursor-pointer hover:bg-red-700" onClick={handleClear}>
               Limpar
@@ -594,14 +543,6 @@ function LaudoPgr() {
       </div >
 
 
-      {/* Grid */}
-      {/* <GridLaudo
-        children={laudos}
-        empresas={empresas}
-        handleGenerate={handleGenerate}
-        pdf={pdfGrid}
-        companyId={companyId}
-      /> */}
 
     </>
   )

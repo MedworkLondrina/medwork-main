@@ -10,7 +10,6 @@ import InsalubridadeGenerate from "../components/LaudoGenerate/InsalubridadeGene
 import PericulosidadeGenerate from "../components/LaudoGenerate/PericulosidadeGenerate";
 import ModalSearchSetor from "../../subPages/components/Modal/ModalSearchSetor";
 import ModalSearchUnidade from "../../subPages/components/Modal/ModalSearchUnidade"
-import GridLaudo from "./Grids/GridLaudo";
 import ModalSearchElaborador from "../components/Modal/ModalSearchElaborador";
 
 import Back from '../../../layout/Back';
@@ -135,20 +134,6 @@ function LaudoLip() {
     }
   }, [showModalSetor, unidadeId, setores]);
 
-  // useEffect(() => {
-  //   if (laudoVersion) {
-  //     const pdfExists = laudoVersion.filter((i) => i.fk_empresa_id === companyId && i.laudo === 'lip');
-  //     setLaudos(pdfExists);
-  //     if (pdfExists) {
-  //       setVersao(pdfExists.length + 1);
-  //       setExists(true);
-  //     } else {
-  //       setVersao(1);
-  //       setExists(false);
-  //     }
-  //   }
-  // }, [laudoVersion]);
-
 
   //Funções do Modal
   //Função para abrir o Modal
@@ -234,10 +219,6 @@ function LaudoLip() {
     const setoresMap = data.setores.map((i) => i.id_setor);
     const filterSprm = globalSprm.filter((i) => setoresMap.includes(i.fk_setor_id));
 
-    // if (!data || !filterSprm || !filteredInventario.length > 0 || !filteredPlano.length > 0) {
-    //   setLoading(false);
-    //   return toast.error("Erro ao gerar relatório!");
-    // }
 
     const resRelatorio = await generatePdf(data, filterSprm);
     setGeneratedPdf(resRelatorio);
@@ -260,28 +241,7 @@ function LaudoLip() {
     );
   };
 
-  const generateLI = async (filterInventario, dados, user, data) => {
-    return (
-      <InsalubridadeGenerate
-       inventario={filterInventario}
-        dados={dados}
-        user={user}
-        data={data}
-      />
-    );
-  };
-
-  const generateLP = async (filterInventario, dados, user, data) => {
-    return (
-      <PericulosidadeGenerate
-        inventario={filterInventario}
-        dados={dados}
-        user={user}
-        data={data}
-      />
-    );
-  };
-
+ 
   const handleDownloadLip = async (pgr) => {
     const { blob } = await new Promise((resolve, reject) => {
       const pdfGenerated = (
@@ -613,46 +573,40 @@ function LaudoLip() {
 
           </div>
 
-          {/* Botões */}
-          <div className="flex justify-end mb-20 mt-10 gap-4">
-            <button type="button" className="bg-red-600 py-2 px-8 font-bold text-lg text-white rounded cursor-pointer hover:bg-red-700" onClick={handleClear}>
+          {/* Botões */} <div className="flex justify-end mt-10 gap-4">
+            < button type="button" className="bg-red-600 py-2 px-8 font-bold text-lg text-white rounded cursor-pointer hover:bg-red-700" onClick={handleClear}>
               Limpar
             </button>
-            {pdfComponent ? (
-              pdfComponent
+            {generatedPdf ? (
+              <>
+                <button
+                  className="bg-yellow-500 py-2 px-4 rounded font-bold text-white hover:bg-yellow-600 cursor-pointer"
+                  onClick={() => openPdfInNewTab(generatedPdf)}
+                  type="button"
+                >
+                  Abrir em Nova Aba
+                </button>
+                {pdfComponent && (
+                  pdfComponent
+                )}
+              </>
             ) : (
-              <button type="button" className="bg-green-600 py-2 px-8 font-bold text-lg text-white rounded cursor-pointer hover:bg-green-700" onClick={handleGerarRelatorio}>
-                Gerar PDF
+              <button
+                type="button"
+                disabled={loading}
+                className={`${loading ? 'bg-gray-200 hover:bg-gray-200 text-white cursor-not-allowed' : 'bg-green-600 hover:bg-green-700 text-white cursor-pointer'} py-2 px-8 font-bold text-lg rounded `}
+                onClick={handleGerarRelatorio}
+              >
+                {loading ? 'Gerando PGR...' : 'Gerar PGR'}
               </button>
             )}
+
           </div>
 
-        </form>
-      </div>
+        </form >
+      </div >
 
-      {/* Botão Abrir em nova aba */}
-      {generatedPdf && (
-        <div className="w-full flex justify-center">
-          <div className="flex justify-end items-center mt-4 w-5/6">
-            <button
-              className="bg-teal-600 py-2 px-4 rounded font-bold text-white hover:bg-teal-700 cursor-pointer"
-              onClick={() => openPdfInNewTab(generatedPdf)}
-            >
-              Abrir em Nova Aba
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Grid */}
-      {/* <GridLaudo
-        children={laudo}
-        dados={dados}
-        handleGenerate={handleGenerate}
-        pdf={pdfGrid}
-        companyId={companyId}
-      /> */}
-
+     
     </>
   )
 }

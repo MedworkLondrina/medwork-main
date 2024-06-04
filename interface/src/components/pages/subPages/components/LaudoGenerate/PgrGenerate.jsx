@@ -141,44 +141,7 @@ function PgrGenerate({
     }
   };
 
-  const convertProbSev = (item) => {
-    try {
-      switch (item) {
-        case 1:
-          return "Muito Baixa";
-        case 2:
-          return "Baixa";
-        case 3:
-          return "Média";
-        case 4:
-          return "Alta";
-        case 5:
-          return "Muito Alta";
-        default:
-          return "N/A";
-      }
-    } catch (error) {
-      console.log("Erro ao converter Probabilidade/Severidade!", error);
-    }
-  };
-
-  const convertNivel = (item) => {
-    try {
-      if (item >= 1 && item <= 6) {
-        return "Baixo";
-      } else if (item >= 8 && item <= 12) {
-        return "Moderado"
-      } else if (item >= 15 && item <= 16) {
-        return "Alto"
-      } else if (item >= 19) {
-        return "Crítico"
-      } else {
-        return "N/A"
-      }
-    } catch (error) {
-      console.log("Erro ao converter Nível!", error);
-    }
-  };
+  
 
   const findMedidas = (medida) => {
     try {
@@ -189,29 +152,7 @@ function PgrGenerate({
     }
   };
 
-  const getColor = (item) => {
-    try {
-      switch (item) {
-        case 1:
-          return '#d8f3dc'
-        case 2:
-          return '#caf0f8'
-        case 3:
-          return '#fff6cc'
-        case 4:
-          return '#ffc971'
-        case 5:
-          return '#fcb9b2'
-        case 0:
-          return '#e9ecef'
-        default:
-          return '#e9ecef'
-      }
-    } catch (error) {
-      console.log("Erro ao modificar cor de fundo!", error)
-    }
-  };
-
+  
   const getColorStatus = (item) => {
     try {
       switch (item) {
@@ -225,23 +166,7 @@ function PgrGenerate({
     }
   };
 
-  const getColorNivel = (item) => {
-    try {
-      if (item >= 1 && item <= 6) {
-        return "#d8f3dc";
-      } else if (item >= 8 && item <= 12) {
-        return "#fff6cc"
-      } else if (item >= 15 && item <= 16) {
-        return "#ffc971"
-      } else if (item >= 19) {
-        return "#fcb9b2"
-      } else {
-        return "#e9ecef"
-      }
-    } catch (error) {
-      console.log("Erro ao converter Nível!", error);
-    }
-  };
+  
 
   const setVigencia = (item) => {
     try {
@@ -275,11 +200,7 @@ function PgrGenerate({
     return item.charAt(0);
   };
 
-  const getNomeEmpresa = () => {
-    console.log(dados.empresas);
-  };
-
-
+  
   Font.register({ family: 'OpenSansLight', src: OpenSansLight });
   Font.register({ family: 'OpenSansRegular', src: OpenSansRegular });
   Font.register({ family: 'OpenSansMedium', src: OpenSansMedium });
