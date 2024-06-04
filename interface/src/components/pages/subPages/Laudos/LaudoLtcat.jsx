@@ -115,12 +115,6 @@ function LaudoPgr() {
   //   }
   // }, [laudoVersion])
 
-  useEffect(() => {
-    if (showModalSetor && unidadeId) {
-      const filtered = setores.filter((i) => i.fk_unidade_id === unidadeId);
-      setFilteredSetores(filtered);
-    }
-  }, [showModalSetor, unidadeId, setores]);
 
   //Funções do Modal
   //Função para abrir o Modal
@@ -134,22 +128,7 @@ function LaudoPgr() {
   const closeModalElaborador = () => setShowModalElaborador(false);
 
   // Função para atualizar a Unidade
-  // Função para atualizar a Unidade
-  useEffect(() => {
-    try {
-      // Filtrando o inventario pelo id da Empresa
-      const inventarioFilter = inventario.filter((i) => i.fk_empresa_id === companyId);
-      setFilteredInventario(inventarioFilter);
-
-      // Filtrando o plano de ação pelo id da Empresa 
-      const planoFilter = plano.filter((i) => i.fk_empresa_id === companyId);
-      setFilteredPlano(planoFilter);
-
-    } catch (error) {
-      toast.warn("Erro ao filtrar dados!")
-      console.log("Erro ao filtrar dados!", error);
-    }
-  }, [companyId, inventario, plano]);
+ 
 
   useEffect(() => {
     if (showModalSetor && unidadeId) {
@@ -169,7 +148,7 @@ function LaudoPgr() {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ companyId: companyId }),
+      body: JSON.stringify({ companyId: companyId , unidadeId: unidadeId, setorId: setorId}),
     });
 
     const data = await res.json();
@@ -186,7 +165,30 @@ function LaudoPgr() {
     handleDownloadLtcat(resRelatorio);
     setLoading(false);
   }
-  
+   useEffect(() => {
+    try {
+      // Filtrando o inventario pelo id da Empresa
+      if(companyId && !unidadeId && !setorId) {
+        const inventarioFilter = inventario.filter((i) => i.fk_empresa_id === companyId);
+        setFilteredInventario(inventarioFilter);
+      }
+      if(companyId && unidadeId && !setorId) {
+        const inventarioFilter = inventario.filter((i) => i.fk_unidade_id === unidadeId);
+        setFilteredInventario(inventarioFilter);
+      }
+      if(companyId && unidadeId &&  setorId) {
+        const inventarioFilter = inventario.filter((i) => i.fk_setor_id === setorId);
+        setFilteredInventario(inventarioFilter);
+      }
+      // Filtrando o plano de ação pelo id da Empresa 
+      const planoFilter = plano.filter((i) => i.fk_empresa_id === companyId);
+      setFilteredPlano(planoFilter);
+
+    } catch (error) {
+      toast.warn("Erro ao filtrar dados!")
+      console.log("Erro ao filtrar dados!", error);
+    }
+  }, [companyId, inventario, plano, setorId, unidadeId]);
   const generatePdf = async ( dados, sprm) => {
     return (
       <LtcatGenerate
@@ -279,6 +281,7 @@ function LaudoPgr() {
     setNomeUnidade(nomeUnidade)
     handleClearSetor();
     const inventarioFilter = inventario.filter((i) => i.fk_unidade_id === unidadeId);
+    console.log(inventarioFilter)
     setFilteredInventario(inventarioFilter);
     const planoFilter = plano.filter((i) => i.fk_unidade_id === unidadeId);
     setFilteredPlano(planoFilter);

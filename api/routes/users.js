@@ -3146,6 +3146,8 @@ router.post("/relatorio_cnae", (req, res, next) => {
 // PGR
 router.post("/relatorio_pgr", (req, res, next) => {
   const companyId = req.body.companyId;
+  const unidadeId = req.body.unidadeId;
+  const setorId = req.body.setorId;
 
   pool.getConnection((err, connection) => {
     if (err) {
@@ -3154,32 +3156,37 @@ router.post("/relatorio_pgr", (req, res, next) => {
     }
 
     const query = `
-      SELECT
-        e.*,
-        u.*,
-        s.*,
-        c.* ,
-        p.*,
-        r.*,
-        m.*,
-        ct.*,
-        a.*
-      FROM empresas e
-      LEFT JOIN contatos ct ON e.id_empresa = ct.fk_empresa_id
-      LEFT JOIN unidades u ON e.id_empresa = u.fk_empresa_id
-      LEFT JOIN setores s ON u.id_unidade = s.fk_unidade_id
-      LEFT JOIN cargos c ON s.id_setor = c.fk_setor_id
-      LEFT JOIN setores_processos sp ON sp.fk_setor_id = s.id_setor
-      LEFT JOIN processos p ON sp.fk_processo_id = p.id_processo
-      LEFT JOIN processos_riscos pr ON p.id_processo = pr.fk_processo_id
-      LEFT JOIN riscos r ON pr.fk_risco_id = r.id_risco
-      LEFT JOIN riscos_medidas rm ON r.id_risco = rm.fk_risco_id
-      LEFT  JOIN medidas m ON rm.fk_medida_id = m.id_medida
-      LEFT JOIN aparelhos a ON e.fk_tenant_code = a.fk_tenant_code
-      WHERE e.id_empresa IN (${companyId})
+    SELECT
+    e.*,
+    u.*,
+    s.*,
+    c.* ,
+    p.*,
+    r.*,
+    m.*,
+    ct.*,
+    a.*
+FROM empresas e
+LEFT JOIN contatos ct ON e.id_empresa = ct.fk_empresa_id
+LEFT JOIN unidades u ON e.id_empresa = u.fk_empresa_id
+LEFT JOIN setores s ON u.id_unidade = s.fk_unidade_id
+LEFT JOIN cargos c ON s.id_setor = c.fk_setor_id
+LEFT JOIN setores_processos sp ON sp.fk_setor_id = s.id_setor
+LEFT JOIN processos p ON sp.fk_processo_id = p.id_processo
+LEFT JOIN processos_riscos pr ON p.id_processo = pr.fk_processo_id
+LEFT JOIN riscos r ON pr.fk_risco_id = r.id_risco
+LEFT JOIN riscos_medidas rm ON r.id_risco = rm.fk_risco_id
+LEFT JOIN medidas m ON rm.fk_medida_id = m.id_medida
+LEFT JOIN aparelhos a ON e.fk_tenant_code = a.fk_tenant_code
+WHERE 
+    e.id_empresa = ${companyId}
+    ${unidadeId ? 'AND u.id_unidade = ' + unidadeId : ''}
+    ${setorId ? 'AND s.id_setor = ' + setorId : ''}
     `;
 
-    connection.query(query, companyId, (err, results) => {
+    const params = [companyId, unidadeId, setorId]
+
+    connection.query(query, params, (err, results) => {
       connection.release();
       if (err) {
         console.error('Erro na consulta SQL:', err);
