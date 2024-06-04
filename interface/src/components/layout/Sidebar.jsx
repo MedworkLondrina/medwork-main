@@ -258,6 +258,7 @@ function Sidebar() {
     setShowSistemaSubMenu(!showSistemaSubMenu);
   };
 
+
   const openLaudosMenu = () => {
     closeSubMenus();
     setShowLaudosSubMenu(!showLaudosSubMenu);
@@ -701,12 +702,14 @@ function Sidebar() {
                                 </Link>
 
                                 {/* PCMSO */}
-                                <li className="opacity-25 cursor-not-allowed">
+                                <Link to="/gerar_pcmso" onClick={() => setShowMenu(!showMenu)}>
+                                <li className="hover:bg-sky-100">
                                   <div className={`flex items-center py-2 px-6`}>
                                     <img src={icon_laudo} alt="icon_pcmso" />
                                     <span className="ms-3 font-normal">PCMSO</span>
                                   </div>
                                 </li>
+                                </Link>
 
                                 {/* Relatório por CNAE */}
                                 <li className="hover:bg-sky-100" onClick={() => setShowMenu(!showMenu)}>
