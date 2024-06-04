@@ -116,9 +116,18 @@ function LaudoPgr() {
   useEffect(() => {
     try {
       // Filtrando o inventario pelo id da Empresa
-      const inventarioFilter = inventario.filter((i) => i.fk_empresa_id === companyId);
-      setFilteredInventario(inventarioFilter);
-
+      if(companyId && !unidadeId && !setorId) {
+        const inventarioFilter = inventario.filter((i) => i.fk_empresa_id === companyId);
+        setFilteredInventario(inventarioFilter);
+      }
+      if(companyId && unidadeId && !setorId) {
+        const inventarioFilter = inventario.filter((i) => i.fk_unidade_id === unidadeId);
+        setFilteredInventario(inventarioFilter);
+      }
+      if(companyId && unidadeId &&  setorId) {
+        const inventarioFilter = inventario.filter((i) => i.fk_setor_id === setorId);
+        setFilteredInventario(inventarioFilter);
+      }
       // Filtrando o plano de ação pelo id da Empresa 
       const planoFilter = plano.filter((i) => i.fk_empresa_id === companyId);
       setFilteredPlano(planoFilter);
@@ -127,7 +136,7 @@ function LaudoPgr() {
       toast.warn("Erro ao filtrar dados!")
       console.log("Erro ao filtrar dados!", error);
     }
-  }, [companyId, inventario, plano]);
+  }, [companyId, inventario, plano, setorId, unidadeId]);
 
   useEffect(() => {
     if (showModalSetor && unidadeId) {
@@ -210,7 +219,7 @@ function LaudoPgr() {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ companyId: companyId }),
+      body: JSON.stringify({ companyId: companyId , unidadeId: unidadeId, setorId: setorId}),
     });
 
     const data = await res.json();

@@ -19,7 +19,7 @@ import icon_sair from '../../../media/icon_sair.svg'
 import icon_lupa from '../../../media/icon_lupa.svg'
 import { connect } from "../../../../services/api";
 
-function LaudoPgr() {
+function LaudoLip() {
 
   const {
     loadSelectedCompanyFromLocalStorage,
@@ -103,6 +103,30 @@ function LaudoPgr() {
     handleGet();
   }, [companyId]);
 
+  useEffect(() => {
+    try {
+      // Filtrando o inventario pelo id da Empresa
+      if(companyId && !unidadeId && !setorId) {
+        const inventarioFilter = inventario.filter((i) => i.fk_empresa_id === companyId);
+        setFilteredInventario(inventarioFilter);
+      }
+      if(companyId && unidadeId && !setorId) {
+        const inventarioFilter = inventario.filter((i) => i.fk_unidade_id === unidadeId);
+        setFilteredInventario(inventarioFilter);
+      }
+      if(companyId && unidadeId &&  setorId) {
+        const inventarioFilter = inventario.filter((i) => i.fk_setor_id === setorId);
+        setFilteredInventario(inventarioFilter);
+      }
+      // Filtrando o plano de ação pelo id da Empresa 
+      const planoFilter = plano.filter((i) => i.fk_empresa_id === companyId);
+      setFilteredPlano(planoFilter);
+
+    } catch (error) {
+      toast.warn("Erro ao filtrar dados!")
+      console.log("Erro ao filtrar dados!", error);
+    }
+  }, [companyId, inventario, plano, setorId, unidadeId]);
 
   useEffect(() => {
     if (showModalSetor && unidadeId) {
@@ -145,7 +169,6 @@ function LaudoPgr() {
     setNomeUnidade(nomeUnidade)
     handleClearSetor();
     const inventarioFilter = inventario.filter((i) => i.fk_unidade_id === unidadeId);
-    console.log(inventarioFilter)
     setFilteredInventario(inventarioFilter);
     const planoFilter = plano.filter((i) => i.fk_unidade_id === unidadeId);
     setFilteredPlano(planoFilter);
@@ -204,7 +227,7 @@ function LaudoPgr() {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ companyId: companyId }),
+      body: JSON.stringify({ companyId: companyId, unidadeId: unidadeId, setorId: setorId }),
     });
 
     const data = await res.json();
@@ -634,4 +657,4 @@ function LaudoPgr() {
   )
 }
 
-export default LaudoPgr;
+export default LaudoLip;
