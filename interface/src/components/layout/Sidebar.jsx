@@ -308,11 +308,13 @@ function Sidebar() {
                     <div className="cursor-pointer" onClick={menuOpen}>
                       <img src={logo} className="h-10" alt="logo_system" />
                     </div>
+                    {tenantName ? (
+                      <div className={`rounded py-1 px-2 w-5/6 cursor-pointer hidden lg:block ${showProfileTenant ? 'bg-gray-100 hover:bg-gray-100' : 'hover:bg-gray-100 hover:shadow-sm'}`} onClick={tenantOpen}>
+                        <h1 className="text-center text-sky-700 font-bold truncate cursor-pointer">{tenantName}</h1>
+                      </div>
+                    ) : null}
 
                     {/* Inquilino */}
-                    <div className={`rounded py-1 px-2 w-5/6 cursor-pointer hidden lg:block ${showProfileTenant ? 'bg-gray-100 hover:bg-gray-100' : 'hover:bg-gray-100 hover:shadow-sm'}`} onClick={tenantOpen}>
-                      <h1 className="text-center text-sky-700 font-bold truncate cursor-pointer">{tenantName}</h1>
-                    </div>
 
                   </div>
                 </div>
@@ -703,12 +705,12 @@ function Sidebar() {
 
                                 {/* PCMSO */}
                                 <Link to="/gerar_pcmso" onClick={() => setShowMenu(!showMenu)}>
-                                <li className="hover:bg-sky-100">
-                                  <div className={`flex items-center py-2 px-6`}>
-                                    <img src={icon_laudo} alt="icon_pcmso" />
-                                    <span className="ms-3 font-normal">PCMSO</span>
-                                  </div>
-                                </li>
+                                  <li className="hover:bg-sky-100">
+                                    <div className={`flex items-center py-2 px-6`}>
+                                      <img src={icon_laudo} alt="icon_pcmso" />
+                                      <span className="ms-3 font-normal">PCMSO</span>
+                                    </div>
+                                  </li>
                                 </Link>
 
                                 {/* Relatório por CNAE */}

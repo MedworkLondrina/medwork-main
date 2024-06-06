@@ -361,8 +361,7 @@ function ProfileCompany({ companyId, empresas, contatos }) {
 
   const closeModalSetorExame = async () => {
     setShowModalSetorExame(false);
-    await carregarRiscos();
-    await carregarInformações(selectedSetor.id_setor);
+    await carregarExames();
   };
 
   const closeModalProcessoRisco = async () => {
@@ -1193,7 +1192,7 @@ function ProfileCompany({ companyId, empresas, contatos }) {
         setorName={selectedSetor.nome_setor}
         childId={exames.id_exame}
         childName={exames.nome_exame}
-        children={filteredExames}
+        children={exames}
       />
     </>
   );
