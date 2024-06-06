@@ -708,7 +708,7 @@ export const AuthProvider = ({ children }) => {
   
   const getRiscosExamesSemVinculo = async (riscoId) => {
     try {
-      const res = await fetch(`${connect}/risco_exames_nao_vinculados/${riscoId}`);
+      const res = await fetch(`${connect}/risco_exame_nao_vinculados/${riscoId}`);
       const data = await res.json();
       return data;
     } catch (error) {
