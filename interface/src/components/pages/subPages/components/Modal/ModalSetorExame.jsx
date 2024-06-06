@@ -14,8 +14,6 @@ const {getExames} = useAuth();
   const [showModal, setShowModal] = useState(false);
 
  
-  
-
   const fetchExameFiltrado = async () => {
     try {
       const res = await getExames();
@@ -29,7 +27,6 @@ const {getExames} = useAuth();
   useEffect(() => {
     fetchExameFiltrado();
   }, [isOpen]);
-
 
   const openModal = () => setShowModal(true);
   //Função para fechar o Modal

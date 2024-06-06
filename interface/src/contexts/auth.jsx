@@ -507,7 +507,7 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  
+
 
   const getRiscosExames = async () => {
     try {
@@ -707,7 +707,7 @@ export const AuthProvider = ({ children }) => {
       throw error;
     }
   };
-  
+
   const getRiscosExamesSemVinculo = async (riscoId) => {
     try {
       const res = await fetch(`${connect}/risco_exame_nao_vinculados/${riscoId}`);
@@ -717,6 +717,7 @@ export const AuthProvider = ({ children }) => {
       console.error(`Erro ao buscar exames! Status: ${error}`);
       throw error;
     }
+  };
 
   const getRiscosExamesComVinculo = async (riscoId) => {
     try {
@@ -727,9 +728,9 @@ export const AuthProvider = ({ children }) => {
       console.error(`Erro ao buscar exames! Status: ${error}`);
       throw error;
     }
-  }
+  };
 
-  
+
   const getTenant = async (tenant) => {
     try {
       const code = tenant;
@@ -945,7 +946,7 @@ export const AuthProvider = ({ children }) => {
         getExamesSemVinculo,
         getRiscosExamesSemVinculo,
         getRiscosExamesComVinculo,
-        
+
       }}>
       {children}
     </AuthContext.Provider>
