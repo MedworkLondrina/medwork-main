@@ -1,13 +1,28 @@
 import React, { useEffect, useState } from 'react';
 import SearchInput from '../SearchInput';
+import { connect } from '../../../../../services/api';
+import useAuth from '../../../../../hooks/useAuth';
 
-const ModalSearchExames = ({ onCancel, isOpen, children, onSelect }) => {
+const ModalSearchExames = ({ onCancel, isOpen, children,  setorId }) => {
 
   const [searchTerm, setSearchTerm] = useState('');
+  const [naoVinculados, setNaoVinculados] = useState([]);
+  const {getExamesSemVinculo} = useAuth(null);
 
   const handleSearch = (term) => {
     setSearchTerm(term);
-  };
+  }
+
+  const handleNaovinculados = async () => {
+    const naoVinculados = await getExamesSemVinculo(setorId);
+    console.log(naoVinculados)
+    setNaoVinculados(naoVinculados)
+    return naoVinculados
+  }
+
+  useEffect(() => {
+    handleNaovinculados();
+  }, [children, setorId])
 
   const findTipo = (admissional, periodico, retorno, mudanca, demissional) => {
     const tipos = [];
@@ -19,6 +34,32 @@ const ModalSearchExames = ({ onCancel, isOpen, children, onSelect }) => {
     if (demissional === 1) tipos.push('Demissional');
 
     return tipos.join(', ');
+  };
+
+  const handleItemClick = async (item) => {
+    try {
+      const userData = JSON.parse(localStorage.getItem("user"));
+    const tenant = userData.tenant_code;
+    const nome = userData.nome_usuario;
+    const queryParams = new URLSearchParams({ tenant_code: tenant, nome_usuario: nome }).toString();
+      const response = await fetch(`${connect}/exames_setores?${queryParams}`,  {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          setorId: setorId,
+          exameId: item.id_exame, 
+        }),
+      });
+      
+      if (response.ok) {
+      } else {
+        console.error('Falha ao vincular exame ao setor.');
+      }
+    } catch (error) {
+      console.error('Erro ao enviar requisição POST:', error);
+    }
   };
 
   if (!isOpen) {
@@ -51,44 +92,37 @@ const ModalSearchExames = ({ onCancel, isOpen, children, onSelect }) => {
           </div>
         </div>
         <ul className='space-y-3 py-3'>
-          {children.length > 0 ? (
+          {naoVinculados.length > 0 ? (
             <>
-              {children.filter((children) =>
-                children.nome_exame.toLowerCase().includes(searchTerm.toLowerCase())
-              )
-                .map((children, i) => (
-                  <li
-                    key={i}
-                    className="py-3 hover:bg-gray-100 hover:shadow-sm shadow-sm bg-gray-50 cursor-pointer px-4 rounded-md"
-                    onClick={() => onSelect(children)}
-                  >
-                    <div className="flex items-center gap-12">
-                      <div className="flex-1 min-w-0">
-                        <p className="font-bold text-gray-700">
-                          {children.nome_exame}
-                        </p>
-                      </div>
-                      <div className="inline-flex items-center text-base font-semibold text-gray-900">
-                        {children.periodicidade_exame}
-                      </div>
+              {naoVinculados.map((item, i) => (
+                <li
+                  key={i}
+                  className="py-3 hover:bg-gray-100 hover:shadow-sm shadow-sm bg-gray-50 cursor-pointer px-4 rounded-md"
+                  onClick={() => handleItemClick(item)}
+                >
+                  <div className="flex items-center gap-12">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-bold text-gray-700">
+                        {item.nome_exame}
+                      </p>
                     </div>
-                    <p className='text-sm text-gray-600'>{findTipo(children.admissional, children.periodico, children.retorno, children.mudanca, children.demissional)}</p>
-                  </li>
-                ))}
-
+                    <div className="inline-flex items-center text-base font-semibold text-gray-900">
+                      {item.periodicidade_exame}
+                    </div>
+                  </div>
+                  <p className='text-sm text-gray-600'>{findTipo(item.admissional, item.periodico, item.retorno, item.mudanca, item.demissional)}</p>
+                </li>
+              ))}
             </>
           ) : (
-            <>
-              <li className='py-3 hover:bg-gray-100 hover:shadow-sm shadow-sm bg-gray-50 cursor-pointer px-4 rounded-md'>
-                <p>Nenhum exame encontrado</p>
-              </li>
-            </>
+            <li className='py-3 hover:bg-gray-100 hover:shadow-sm shadow-sm bg-gray-50 cursor-pointer px-4 rounded-md'>
+              <p>Nenhum exame encontrado</p>
+            </li>
           )}
         </ul>
       </div>
     </div>
   );
 };
-
 
 export default ModalSearchExames;

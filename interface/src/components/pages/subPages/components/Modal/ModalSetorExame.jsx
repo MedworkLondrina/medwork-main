@@ -3,85 +3,82 @@ import { connect } from '../../../../../services/api';
 import { IoAddCircle } from "react-icons/io5";
 import { toast } from 'react-toastify';
 import useAuth from '../../../../../hooks/useAuth';
-
 import ModalSearchExames from './ModalSearchExames';
 
-const ModalRiscoExames = ({ onCancel, isOpen, childName, childId, children, exames }) => {
+const ModalExame = ({ onCancel, isOpen, setorName, setorId , children}) => {
 
-  const { getRiscosExames, getRiscosExamesSemVinculo } = useAuth(null);
-  const [riscosExames, setRiscosExames] = useState([]);
+const {getExames} = useAuth();
+
+  const [exames, setExames] = useState([]);
+  const [examesFiltrados, setExamesFiltrados] = useState([]);
   const [showModal, setShowModal] = useState(false);
 
-  const fetchRiscosExames = async () => {
+ 
+  
+
+  const fetchExameFiltrado = async () => {
     try {
-      const response = await getRiscosExamesSemVinculo(childId);
-      setRiscosExames(response);
+      const res = await getExames();
+      setExames(res)
+      setExamesFiltrados(children);
     } catch (error) {
-      console.log("Erro ao buscar vinculos entre riscos e exames!", error);
+      console.log("Erro ao buscar Exames!", error)
     }
   };
 
   useEffect(() => {
-    fetchRiscosExames();
-  }, [isOpen])
+    fetchExameFiltrado();
+  }, [isOpen]);
 
 
-  if (!isOpen) {
-    return null;
-  };
-
-  const findExame = (exameId) => {
-    const filterExame = riscosExames.find((i) => i.id_exame === exameId);
-    return filterExame ? filterExame.nome_exame : 'N/A';
-  };
-
-  //Funções do Modal
-  //Função para abrir o Modal
   const openModal = () => setShowModal(true);
   //Função para fechar o Modal
   const closeModal = () => setShowModal(false);
 
-  const selectedExame = async (item) => {
+  const selectedSetor = async (item) => {
     try {
-      const filteredriscosExames = riscosExames.filter((i) => i.fk_risco_id === childId && i.fk_exame_id === item.id_exame);
-      console.log(filteredriscosExames)
 
-      if (filteredriscosExames.length > 0) {
-        toast.warn(`Exame já vinculado ao risco.`);
+      const filteredSetorExames = examesFiltrados.filter((i) => i.id_exame === item);
+
+      if (filteredSetorExames.length > 0) {
+        toast.warn("Exame ja vinculado ao setor");
         return;
-      }
+      };
 
-      const response = await fetch(`${connect}/risco_exame`, {
+      const response = await fetch(`${connect}/setores_Exames`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify([{
-          fk_risco_id: childId,
-          fk_exame_id: item.id_exame,
+          id_exame: item,
+          fk_setor_id: setorId
         }])
       });
 
       if (!response.ok) {
-        throw new Error(`Erro ao vincular exame ao risco. Status: ${response.status}`);
+        throw new Error(`Erro ao vincular Exame ao setor. Status: ${response.status}`);
       }
+
       const responseData = await response.json();
 
       closeModal();
-      fetchRiscosExames();
       toast.success(responseData);
     } catch (error) {
-      console.log("Erro ao vincular exameao risco", error);
-      toast.warn("Erro ao vincular exame");
+      toast.warn("Erro ao vincular Exame")
     }
+  };
+
+  if (!isOpen) {
+    return null;
   };
 
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50">
       <div className="modal-overlay absolute inset-0 backdrop-blur-[1px] bg-black bg-opacity-10" onClick={onCancel}></div>
-      <div className="modal-container w-5/6 bg-white mx-auto rounded-xl z-50 overflow-y-auto px-8 py-4 max-h-[80vh]">
+      <div className="modal-container w-3/6 bg-white mx-auto rounded-xl z-50 overflow-y-auto px-8 py-4 max-h-[80vh]">
         <div className='flex justify-between items-center py-2'>
-          <h1 className='text-xl font-bold text-sky-700'>Adicione Exames ao risco: <span className='text-xl text-gray-700 font-bold'>{childName}</span></h1>
+          <h1 className='text-xl font-bold text-sky-700'>Adicione Exames ao setor: <span className='text-xl text-gray-700 font-bold'>{setorName}</span></h1>
           <div className="flex justify-end">
             <button
               type="button"
@@ -96,33 +93,33 @@ const ModalRiscoExames = ({ onCancel, isOpen, childName, childId, children, exam
         <div className='border-b border-gray-200'></div>
         <div className='py-2'>
           <p className='text-sm text-gray-600 mb-1'>
-            Para vincular um exame, clique no botão abaixo e selecione o exame na lista:
+            Para vincular um Exame, clique no botão abaixo e selecione o Exame na lista:
           </p>
 
-          {/* Botão Vincular Processo */}
+          {/* Botão Vincular Exame */}
           <div
             className='bg-gray-100 hover:bg-gray-200 text-sky-700 py-3 px-4 rounded-md flex items-center gap-1 justify-center cursor-pointer'
             onClick={openModal}
           >
             <IoAddCircle />
             <p className=' font-bold'>
-              Vincular Exames
+              Vincular Exame
             </p>
           </div>
         </div>
         <hr />
 
-        {/* Lista de Processos */}
-        {riscosExames.length > 0 ? (
+        {/* Lista de Exames */}
+        {examesFiltrados.length > 0 ? (
           <>
             <div className='w-full mt-1'>
               <h1 className='mb-2'>Exames Vinculados</h1>
               <div className='flex flex-wrap items-center gap-2'>
-                {riscosExames.map((item) => (
-                  <div key={item.fk_processo_id}>
+                {examesFiltrados.map((item) => (
+                  <div key={item.id_exame}>
                     <div className='flex items-center bg-gray-100 rounded px-4 py-2 hover:bg-gray-200'>
                       <p className='font-bold text-sky-700 truncate'>
-                        {findExame(item.fk_exame_id)}
+                        {item.nome_exame}
                       </p>
                     </div>
                   </div>
@@ -132,20 +129,21 @@ const ModalRiscoExames = ({ onCancel, isOpen, childName, childId, children, exam
           </>
         ) : (
           <>
-            <div className='w-full text-center text-lg text-sky-700 font-bold mt-4'>Nenhum exame vinculado ao risco</div>
+            <div className='w-full text-center text-lg text-sky-700 font-bold mt-4'>Nenhum Exame vinculado ao setor</div>
           </>
         )}
       </div>
-
       <ModalSearchExames
         isOpen={showModal}
         onCancel={closeModal}
-        onSelect={selectedExame}
-        children={exames}
+        children={children}
+        setorName={setorName}
+        setorId = {setorId}
+        onSetorSelect={selectedSetor}
       />
     </div>
   );
 };
 
 
-export default ModalRiscoExames;
+export default ModalExame;
