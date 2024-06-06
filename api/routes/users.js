@@ -1428,7 +1428,7 @@ router.get("/exames_sem_vinculo/:setorId", (req, res) => {
     WHERE exames.id_exame NOT IN (
     SELECT fk_exame_id
 
-    FROM setor_exames
+    FROM setor_exame
 
     WHERE fk_setor_id = ? 
 );
