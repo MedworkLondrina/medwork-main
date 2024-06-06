@@ -1427,7 +1427,9 @@ router.get("/exames_sem_vinculo/:setorId", (req, res) => {
     FROM exames
     WHERE exames.id_exame NOT IN (
     SELECT fk_exame_id
+
     FROM setor_exames
+
     WHERE fk_setor_id = ? 
 );
 
@@ -1445,6 +1447,33 @@ router.get("/exames_sem_vinculo/:setorId", (req, res) => {
     con.release();
   });
 });
+
+router.get("/exames_por_risco/:risco_id", (req, res, next) => {
+  const risco_id = req.params.risco_id;
+
+  const query = `
+    SELECT e.*
+    FROM exames AS e
+    INNER JOIN risco_exame AS re ON e.id_exame = re.fk_exame_id
+    WHERE re.fk_risco_id = ?
+  `;
+
+  pool.getConnection((err, con) => {
+    if (err) return next(err);
+
+    con.query(query, [risco_id], (err, results) => {
+      if (err) {
+        console.error("Erro ao buscar exames por risco:", err);
+        return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
+      }
+
+      return res.status(200).json(results);
+    });
+
+    con.release();
+  });
+});
+
 
 router.get("/setor_exame/:setorId", (req, res) => {
   const setorId = req.params.setorId;
@@ -1471,7 +1500,6 @@ router.get("/setor_exame/:setorId", (req, res) => {
 
 router.get("/risco_exame_nao_vinculados/:id_risco", (req, res) => {
   const idRisco = req.params.id_risco;
-  console.log(idRisco)
 
   // Consulta para obter os fk_exame_id vinculados ao id_risco
   const getExamesQuery = `
