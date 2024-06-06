@@ -4,77 +4,48 @@ import { IoAddCircle } from "react-icons/io5";
 import { toast } from 'react-toastify';
 import useAuth from '../../../../../hooks/useAuth';
 
-import ModalSearchExames from './ModalSearchExames';
+import ModalSearchExamesRiscos from './ModalSearchExamesRiscos';
 
 const ModalRiscoExames = ({ onCancel, isOpen, childName, childId, children, exames }) => {
 
-  const { getRiscosExames, getRiscosExamesSemVinculo } = useAuth(null);
+  const {getRiscosExamesComVinculo } = useAuth(null);
   const [riscosExames, setRiscosExames] = useState([]);
   const [showModal, setShowModal] = useState(false);
 
   const fetchRiscosExames = async () => {
-    try {
-      const response = await getRiscosExamesSemVinculo(childId);
+    try { 
+      const response = await getRiscosExamesComVinculo(childId);
       setRiscosExames(response);
     } catch (error) {
       console.log("Erro ao buscar vinculos entre riscos e exames!", error);
     }
   };
 
+  const atualizarDados  = async () => {
+    fetchRiscosExames();
+  }
+
   useEffect(() => {
     fetchRiscosExames();
-  }, [isOpen])
+  }, [childId])
 
 
   if (!isOpen) {
     return null;
   };
 
-  const findExame = (exameId) => {
-    const filterExame = riscosExames.find((i) => i.id_exame === exameId);
-    return filterExame ? filterExame.nome_exame : 'N/A';
-  };
-
+  
   //Funções do Modal
   //Função para abrir o Modal
   const openModal = () => setShowModal(true);
   //Função para fechar o Modal
-  const closeModal = () => setShowModal(false);
+  const closeModal = () => {
+    setShowModal(false)
+    atualizarDados();
+  }
+  
 
-  const selectedExame = async (item) => {
-    try {
-      const filteredriscosExames = riscosExames.filter((i) => i.fk_risco_id === childId && i.fk_exame_id === item.id_exame);
-      console.log(filteredriscosExames)
-
-      if (filteredriscosExames.length > 0) {
-        toast.warn(`Exame já vinculado ao risco.`);
-        return;
-      }
-
-      const response = await fetch(`${connect}/risco_exame`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify([{
-          fk_risco_id: childId,
-          fk_exame_id: item.id_exame,
-        }])
-      });
-
-      if (!response.ok) {
-        throw new Error(`Erro ao vincular exame ao risco. Status: ${response.status}`);
-      }
-      const responseData = await response.json();
-
-      closeModal();
-      fetchRiscosExames();
-      toast.success(responseData);
-    } catch (error) {
-      console.log("Erro ao vincular exameao risco", error);
-      toast.warn("Erro ao vincular exame");
-    }
-  };
+ 
 
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50">
@@ -111,7 +82,7 @@ const ModalRiscoExames = ({ onCancel, isOpen, childName, childId, children, exam
           </div>
         </div>
         <hr />
-
+      
         {/* Lista de Processos */}
         {riscosExames.length > 0 ? (
           <>
@@ -119,10 +90,10 @@ const ModalRiscoExames = ({ onCancel, isOpen, childName, childId, children, exam
               <h1 className='mb-2'>Exames Vinculados</h1>
               <div className='flex flex-wrap items-center gap-2'>
                 {riscosExames.map((item) => (
-                  <div key={item.fk_processo_id}>
+                  <div key={item.id_exame}>
                     <div className='flex items-center bg-gray-100 rounded px-4 py-2 hover:bg-gray-200'>
                       <p className='font-bold text-sky-700 truncate'>
-                        {findExame(item.fk_exame_id)}
+                        {item.nome_exame}
                       </p>
                     </div>
                   </div>
@@ -137,11 +108,10 @@ const ModalRiscoExames = ({ onCancel, isOpen, childName, childId, children, exam
         )}
       </div>
 
-      <ModalSearchExames
+      <ModalSearchExamesRiscos
         isOpen={showModal}
         onCancel={closeModal}
-        onSelect={selectedExame}
-        children={exames}
+        childId={childId}
       />
     </div>
   );
