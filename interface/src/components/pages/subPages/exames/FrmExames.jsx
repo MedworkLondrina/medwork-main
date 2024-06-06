@@ -93,7 +93,7 @@ function FrmExames({ onEdit, getExames, setOnEdit, setSearchTerm, exames, setVer
               className="appearence-none block w-full bg-gray-100 rounded py-3 px-4 mb-3 mt-1 leading-tight focus:outline-gray-100 focus:bg-white"
               type="text"
               name="nome_processo"
-              placeholder="Nome do Processo"
+              placeholder="Nome do Exame"
               onChange={(e) => setNomeExame(e.target.value)}
               value={nomeExame}
             />

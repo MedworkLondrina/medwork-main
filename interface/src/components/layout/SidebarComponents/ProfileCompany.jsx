@@ -716,17 +716,17 @@ function ProfileCompany({ companyId, empresas, contatos }) {
                       <div class="text-sm font-medium text-center text-gray-500 border-b border-gray-200">
                         <ul class="flex">
                           <li class="me-2" onClick={() => renderContent(1)}>
-                            <div class={`inline-block px-4 py-1 border-b-2 border-transparent rounded-t-lg ${activeTab === 1 ? 'text-sky-700 border-sky-500' : 'hover:text-sky-700 hover:border-sky-500'}  cursor-pointer`}>
+                            <div class={`inline-block px-4 py-1 border-b-2 rounded-t-lg ${activeTab === 1 ? 'text-sky-700 border-sky-600' : 'hover:text-sky-700 hover:border-sky-600 border-transparent'}  cursor-pointer`}>
                               <p className="cursor-pointer">Processos</p>
                             </div>
                           </li>
                           <li class="me-2" onClick={() => renderContent(2)}>
-                            <div class={`inline-block px-4 py-1 border-b-2 border-transparent rounded-t-lg ${activeTab === 2 ? 'text-sky-700 border-sky-500' : 'hover:text-sky-700 hover:border-sky-500'}  cursor-pointer`}>
+                            <div class={`inline-block px-4 py-1 border-b-2 rounded-t-lg ${activeTab === 2 ? 'text-sky-700 border-sky-600' : 'hover:text-sky-700 hover:border-sky-600 border-transparent'}  cursor-pointer`}>
                               <p className="cursor-pointer">Exames</p>
                             </div>
                           </li>
                           <li class="me-2" onClick={() => renderContent(3)}>
-                            <div class={`inline-block px-4 py-1 border-b-2 border-transparent rounded-t-lg ${activeTab === 3 ? 'text-sky-700 border-sky-500' : 'hover:text-sky-700 hover:border-sky-500'}  cursor-pointer`}>
+                            <div class={`inline-block px-4 py-1 border-b-2 rounded-t-lg ${activeTab === 3 ? 'text-sky-700 border-sky-600' : 'hover:text-sky-700 hover:border-sky-600 border-transparent'}  cursor-pointer`}>
                               <p className="cursor-pointer">Cargos</p>
                             </div>
                           </li>
@@ -1193,7 +1193,7 @@ function ProfileCompany({ companyId, empresas, contatos }) {
         setorName={selectedSetor.nome_setor}
         childId={exames.id_exame}
         childName={exames.nome_exame}
-        children={exames}
+        children={filteredExames}
       />
     </>
   );
