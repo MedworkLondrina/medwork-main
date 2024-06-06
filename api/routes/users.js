@@ -1417,14 +1417,19 @@ router.put("/conclusoes/:id_conclusao", (req, res) => {
 
 });
 
+
+
+
 router.get("/exames_sem_vinculo/:setorId", (req, res) => {
   const setorId = req.params.setorId;
   const q = `
-  SELECT *
-FROM exames
-WHERE exames.id_exame NOT IN (
+    SELECT *
+    FROM exames
+    WHERE exames.id_exame NOT IN (
     SELECT fk_exame_id
-    FROM setor_exame
+
+    FROM setor_exames
+
     WHERE fk_setor_id = ? 
 );
 
@@ -1482,18 +1487,18 @@ router.get("/setor_exame/:setorId", (req, res) => {
 
   pool.getConnection((err, con) => {
     if (err) return next(err);
-  
+
     con.query(q, [setorId], (err, data) => {
       if (err) return res.status(500).json(err);
-  
+
       return res.status(200).json(data);
     });
-  
+
     con.release();
   });
 });
 
-router.get("/risco_exames_nao_vinculados/:id_risco", (req, res) => {
+router.get("/risco_exame_nao_vinculados/:id_risco", (req, res) => {
   const idRisco = req.params.id_risco;
 
   // Consulta para obter os fk_exame_id vinculados ao id_risco
@@ -1534,19 +1539,18 @@ router.post("/setor_exame/", (req, res) => {
 
   pool.getConnection((err, con) => {
     if (err) return next(err);
-  
+
     con.query(q, [exameId, setorId], (err, data) => {
       if (err) return res.status(500).json(err);
-  
+
       return res.status(200).json(data);
     });
-  
+
     con.release();
   });
 });
 
-
-router.post("/exames_setores_from_riscos/", (req, res) => { 
+router.post("/setor_exame_from_riscos/", (req, res) => {
   const { setorId, riscoIds } = req.body;
   if (!setorId || !Array.isArray(riscoIds) || riscoIds.length === 0) {
     return res.status(400).json({ error: "setorId and riscoIds are required" });
@@ -1625,6 +1629,32 @@ router.post("/exames_setores_from_riscos/", (req, res) => {
           });
       });
     });
+  });
+});
+
+//Delete rows in table
+router.delete("/setor_exame", (req, res) => {
+  const id_setor = req.query.id_setor;
+  const id_exame = req.query.id_exame;
+
+  const sql = "DELETE FROM setor_exame WHERE fk_setor_id = ? AND fk_exame_id = ?";
+
+  pool.getConnection((err, con) => {
+    if (err) {
+      console.error("Erro ao obter conexão do pool", err);
+      return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
+    }
+
+    con.query(sql, [id_setor, id_exame], (err, result) => {
+      if (err) {
+        console.error("Erro ao deletar o vínculo", err);
+        return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
+      }
+
+      return res.status(200).json({ message: "Vínculo excluido com sucesso" });
+    });
+    con.release();
+
   });
 });
 

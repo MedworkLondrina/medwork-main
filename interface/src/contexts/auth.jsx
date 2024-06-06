@@ -684,7 +684,7 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       console.error(`Erro ao buscar exames! Status: ${error}`)
     }
-  }
+  };
 
   const getSetoresExames = async (setorId) => {
     try {
@@ -695,7 +695,8 @@ export const AuthProvider = ({ children }) => {
       console.error(`Erro ao buscar exames! Status: ${error}`);
       throw error;
     }
-  }
+  };
+
   const getExamesSemVinculo = async (setorId) => {
     try {
       const res = await fetch(`${connect}/exames_sem_vinculo/${setorId}`);
@@ -705,7 +706,7 @@ export const AuthProvider = ({ children }) => {
       console.error(`Erro ao buscar exames! Status: ${error}`);
       throw error;
     }
-  }
+  };
   
   const getRiscosExamesSemVinculo = async (riscoId) => {
     try {
@@ -716,7 +717,7 @@ export const AuthProvider = ({ children }) => {
       console.error(`Erro ao buscar exames! Status: ${error}`);
       throw error;
     }
-  }
+
   const getRiscosExamesComVinculo = async (riscoId) => {
     try {
       const res = await fetch(`${connect}/exames_por_risco/${riscoId}`);
@@ -727,9 +728,8 @@ export const AuthProvider = ({ children }) => {
       throw error;
     }
   }
+
   
-
-
   const getTenant = async (tenant) => {
     try {
       const code = tenant;
