@@ -1424,7 +1424,7 @@ router.get("/exames_sem_vinculo/:setorId", (req, res) => {
 FROM exames
 WHERE exames.id_exame NOT IN (
     SELECT fk_exame_id
-    FROM exames_setores
+    FROM setor_exame
     WHERE fk_setor_id = ? 
 );
 
@@ -1443,13 +1443,40 @@ WHERE exames.id_exame NOT IN (
   });
 });
 
-router.get("/exames_setores/:setorId", (req, res) => {
+router.get("/exames_por_risco/:risco_id", (req, res, next) => {
+  const risco_id = req.params.risco_id;
+
+  const query = `
+    SELECT e.*
+    FROM exames AS e
+    INNER JOIN risco_exame AS re ON e.id_exame = re.fk_exame_id
+    WHERE re.fk_risco_id = ?
+  `;
+
+  pool.getConnection((err, con) => {
+    if (err) return next(err);
+
+    con.query(query, [risco_id], (err, results) => {
+      if (err) {
+        console.error("Erro ao buscar exames por risco:", err);
+        return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
+      }
+
+      return res.status(200).json(results);
+    });
+
+    con.release();
+  });
+});
+
+
+router.get("/setor_exame/:setorId", (req, res) => {
   const setorId = req.params.setorId;
   const q = `
   SELECT exames.*
-  FROM exames_setores
-  INNER JOIN exames ON exames.id_exame = exames_setores.fk_exame_id
-  WHERE exames_setores.fk_setor_id = ?
+  FROM setor_exame
+  INNER JOIN exames ON exames.id_exame = setor_exame.fk_exame_id
+  WHERE setor_exame.fk_setor_id = ?
   
   `;
 
@@ -1468,7 +1495,6 @@ router.get("/exames_setores/:setorId", (req, res) => {
 
 router.get("/risco_exames_nao_vinculados/:id_risco", (req, res) => {
   const idRisco = req.params.id_risco;
-  console.log(idRisco)
 
   // Consulta para obter os fk_exame_id vinculados ao id_risco
   const getExamesQuery = `
@@ -1499,11 +1525,11 @@ router.get("/risco_exames_nao_vinculados/:id_risco", (req, res) => {
 });
 
 
-router.post("/exames_setores/", (req, res) => {
+router.post("/setor_exame/", (req, res) => {
   const setorId = req.body.setorId;
   const exameId = req.body.exameId;
   const q = `
-    INSERT IGNORE INTO exames_setores (fk_exame_id, fk_setor_id) VALUES (?, ?)
+    INSERT IGNORE INTO setor_exame (fk_exame_id, fk_setor_id) VALUES (?, ?)
   `;
 
   pool.getConnection((err, con) => {
@@ -1534,12 +1560,12 @@ router.post("/exames_setores_from_riscos/", (req, res) => {
 
   const checkExistenceQuery = `
     SELECT fk_exame_id
-    FROM exames_setores
+    FROM setor_exame
     WHERE fk_setor_id = ? AND fk_exame_id = ?
   `;
 
   const insertExameSetorQuery = `
-    INSERT INTO exames_setores (fk_exame_id, fk_setor_id)
+    INSERT INTO setor_exame (fk_exame_id, fk_setor_id)
     VALUES (?, ?)
   `;
 

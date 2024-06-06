@@ -507,6 +507,8 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  
+
   const getRiscosExames = async () => {
     try {
       const response = await fetch(`${connect}/risco_exame`);
@@ -686,7 +688,7 @@ export const AuthProvider = ({ children }) => {
 
   const getSetoresExames = async (setorId) => {
     try {
-      const res = await fetch(`${connect}/exames_setores/${setorId}`);
+      const res = await fetch(`${connect}/setor_exame/${setorId}`);
       const data = await res.json();
       return data;
     } catch (error) {
@@ -708,6 +710,16 @@ export const AuthProvider = ({ children }) => {
   const getRiscosExamesSemVinculo = async (riscoId) => {
     try {
       const res = await fetch(`${connect}/risco_exames_nao_vinculados/${riscoId}`);
+      const data = await res.json();
+      return data;
+    } catch (error) {
+      console.error(`Erro ao buscar exames! Status: ${error}`);
+      throw error;
+    }
+  }
+  const getRiscosExamesComVinculo = async (riscoId) => {
+    try {
+      const res = await fetch(`${connect}/exames_por_risco/${riscoId}`);
       const data = await res.json();
       return data;
     } catch (error) {
@@ -931,7 +943,9 @@ export const AuthProvider = ({ children }) => {
         getSetoresExames,
         getRiscosExames,
         getExamesSemVinculo,
-        getRiscosExamesSemVinculo
+        getRiscosExamesSemVinculo,
+        getRiscosExamesComVinculo,
+        
       }}>
       {children}
     </AuthContext.Provider>
