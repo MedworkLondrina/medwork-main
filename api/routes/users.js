@@ -56,10 +56,8 @@ router.get("/empresas", (req, res) => {
 //Add rows in table
 router.post("/empresas", (req, res) => {
   const { empresa_data, contato_data } = req.body;
-  console.log('teste')
   const nomeUsuario = req.query.nome_usuario;
   const tenant = empresa_data.fk_tenant_code;
-  console.log(tenant)
   const qEmpresa = "INSERT INTO empresas SET ?";
   const qContato = "INSERT INTO contatos SET ?";
   const qUpdate = `UPDATE empresas SET fk_contato_id = ? WHERE id_empresa = ?`;
@@ -91,7 +89,6 @@ router.post("/empresas", (req, res) => {
         const requisicao = [
           contato_data
         ]
-        console.log(requisicao)
 
         con.query(qContato, contato_data, (err, contatoResult) => {
           if (err) {
@@ -243,7 +240,6 @@ router.put("/empresas/:id_empresa", (req, res, next) => {
           if (err) return con.rollback(() => next(err));
 
           const fkContatoId = result[0].fk_contato_id;
-          console.log(fkContatoId)
 
           if (!fkContatoId) {
             return res.status(404).json({ error: 'Contato não encontrado para a empresa' });
@@ -569,7 +565,6 @@ router.put("/unidades/:id_unidade", (req, res, next) => {
           if (err) return con.rollback(() => next(err));
 
           const fkContatoId = resultContatoId[0].fk_contato_id;
-          console.log(`fkContatoId: ${fkContatoId}`);
           // Agora, atualize a tabela de contatos usando o fk_empresa_id obtido
           con.query(qContato, [...contatoValues, fkContatoId], (err, resultContato) => {
             if (err) return con.rollback(() => next(err));
@@ -1020,7 +1015,6 @@ router.get("/processos", async (req, res) => {
 
 router.post("/processos", (req, res) => {
   const data = req.body;
-  console.log("Data recebida:", data); // Verifique a estrutura de data aqui
   const nome = req.query.nome_usuario;
   const tenant = req.query.tenant_code;
   const q = "INSERT INTO processos SET?";
@@ -1423,6 +1417,190 @@ router.put("/conclusoes/:id_conclusao", (req, res) => {
 
 });
 
+router.get("/exames_sem_vinculo/:setorId", (req, res) => {
+  const setorId = req.params.setorId;
+  const q = `
+  SELECT *
+FROM exames
+WHERE exames.id_exame NOT IN (
+    SELECT fk_exame_id
+    FROM exames_setores
+    WHERE fk_setor_id = ? 
+);
+
+  `;
+
+  pool.getConnection((err, con) => {
+    if (err) return next(err);
+
+    con.query(q, [setorId], (err, data) => {
+      if (err) return res.status(500).json(err);
+
+      return res.status(200).json(data);
+    });
+
+    con.release();
+  });
+});
+
+router.get("/exames_setores/:setorId", (req, res) => {
+  const setorId = req.params.setorId;
+  const q = `
+  SELECT exames.*
+  FROM exames_setores
+  INNER JOIN exames ON exames.id_exame = exames_setores.fk_exame_id
+  WHERE exames_setores.fk_setor_id = ?
+  
+  `;
+
+  pool.getConnection((err, con) => {
+    if (err) return next(err);
+  
+    con.query(q, [setorId], (err, data) => {
+      if (err) return res.status(500).json(err);
+  
+      return res.status(200).json(data);
+    });
+  
+    con.release();
+  });
+});
+
+router.get("/risco_exames_nao_vinculados/:id_risco", (req, res) => {
+  const idRisco = req.params.id_risco;
+  console.log(idRisco)
+
+  // Consulta para obter os fk_exame_id vinculados ao id_risco
+  const getExamesQuery = `
+    SELECT DISTINCT fk_exame_id
+    FROM risco_exame
+    WHERE fk_risco_id = ?
+  `;
+
+  // Consulta para obter os exames não vinculados ao id_risco
+  const getExamesNaoVinculadosQuery = `
+    SELECT *
+    FROM exames
+    WHERE id_exame NOT IN (
+      ${getExamesQuery}
+    )
+  `;
+
+  pool.getConnection((err, con) => {
+    if (err) return res.status(500).json(err);
+
+    con.query(getExamesNaoVinculadosQuery, [idRisco], (err, examesNaoVinculados) => {
+      con.release();
+      if (err) return res.status(500).json(err);
+
+      return res.status(200).json({ examesNaoVinculados });
+    });
+  });
+});
+
+
+router.post("/exames_setores/", (req, res) => {
+  const setorId = req.body.setorId;
+  const exameId = req.body.exameId;
+  const q = `
+    INSERT IGNORE INTO exames_setores (fk_exame_id, fk_setor_id) VALUES (?, ?)
+  `;
+
+  pool.getConnection((err, con) => {
+    if (err) return next(err);
+  
+    con.query(q, [exameId, setorId], (err, data) => {
+      if (err) return res.status(500).json(err);
+  
+      return res.status(200).json(data);
+    });
+  
+    con.release();
+  });
+});
+
+
+router.post("/exames_setores_from_riscos/", (req, res) => { 
+  const { setorId, riscoIds } = req.body;
+  if (!setorId || !Array.isArray(riscoIds) || riscoIds.length === 0) {
+    return res.status(400).json({ error: "setorId and riscoIds are required" });
+  }
+
+  const getExamesQuery = `
+    SELECT DISTINCT fk_exame_id
+    FROM risco_exame
+    WHERE fk_risco_id IN (?)
+  `;
+
+  const checkExistenceQuery = `
+    SELECT fk_exame_id
+    FROM exames_setores
+    WHERE fk_setor_id = ? AND fk_exame_id = ?
+  `;
+
+  const insertExameSetorQuery = `
+    INSERT INTO exames_setores (fk_exame_id, fk_setor_id)
+    VALUES (?, ?)
+  `;
+
+  pool.getConnection((err, con) => {
+    if (err) return res.status(500).json(err);
+
+    con.beginTransaction(err => {
+      if (err) {
+        con.release();
+        return res.status(500).json(err);
+      }
+
+      con.query(getExamesQuery, [riscoIds], (err, examesData) => {
+        if (err) {
+          con.rollback(() => con.release());
+          return res.status(500).json(err);
+        }
+
+        const examesIds = examesData.map(row => row.fk_exame_id);
+        if (examesIds.length === 0) {
+          con.rollback(() => con.release());
+          return res.status(200).json({ message: "No exames found for the given riscos" });
+        }
+
+        const insertPromises = examesIds.map(exameId => {
+          return new Promise((resolve, reject) => {
+            con.query(checkExistenceQuery, [setorId, exameId], (err, result) => {
+              if (err) return reject(err);
+
+              if (result.length === 0) {
+                con.query(insertExameSetorQuery, [exameId, setorId], (err, result) => {
+                  if (err) return reject(err);
+                  resolve(result);
+                });
+              } else {
+                resolve(null); // Já existe, não precisa inserir
+              }
+            });
+          });
+        });
+
+        Promise.all(insertPromises)
+          .then(results => {
+            con.commit(err => {
+              if (err) {
+                con.rollback(() => con.release());
+                return res.status(500).json(err);
+              }
+
+              con.release();
+              return res.status(200).json({ message: "Exames processed successfully", results });
+            });
+          })
+          .catch(err => {
+            con.rollback(() => con.release());
+            return res.status(500).json(err);
+          });
+      });
+    });
+  });
+});
 
 
 //Tabela de Exames
@@ -2757,7 +2935,6 @@ router.put("/inventario/:id_inventario", (req, res) => {
     conclusao_lp,
   } = req.body;
 
-  console.log(req.body)
 
   const q = `
     UPDATE inventario

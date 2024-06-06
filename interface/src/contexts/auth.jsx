@@ -13,12 +13,14 @@ export const AuthProvider = ({ children }) => {
   const [setores, setSetores] = useState([]);
   const [cargos, setCargos] = useState([]);
   const [processos, setProcessos] = useState([]);
+  const [exames, setExames] = useState([]);
   const [riscos, setRiscos] = useState([]);
   const [medidas, setMedidas] = useState([]);
   const [medidasAdm, setMedidasAdm] = useState([]);
   const [medidasEpi, setMedidasEpi] = useState([]);
   const [medidasEpc, setMedidasEpc] = useState([]);
   const [setoresProcessos, setSetoresProcessos] = useState([]);
+  const [setoresExames, setSetoresExames] = useState([]);
   const [processosRiscos, setProcessosRiscos] = useState([]);
   const [riscosMedidas, setRiscosMedidas] = useState([]);
   const [inventario, setInventario] = useState([]);
@@ -682,6 +684,40 @@ export const AuthProvider = ({ children }) => {
     }
   }
 
+  const getSetoresExames = async (setorId) => {
+    try {
+      const res = await fetch(`${connect}/exames_setores/${setorId}`);
+      const data = await res.json();
+      return data;
+    } catch (error) {
+      console.error(`Erro ao buscar exames! Status: ${error}`);
+      throw error;
+    }
+  }
+  const getExamesSemVinculo = async (setorId) => {
+    try {
+      const res = await fetch(`${connect}/exames_sem_vinculo/${setorId}`);
+      const data = await res.json();
+      return data;
+    } catch (error) {
+      console.error(`Erro ao buscar exames! Status: ${error}`);
+      throw error;
+    }
+  }
+  
+  const getRiscosExamesSemVinculo = async (riscoId) => {
+    try {
+      const res = await fetch(`${connect}/risco_exames_nao_vinculados/${riscoId}`);
+      const data = await res.json();
+      return data;
+    } catch (error) {
+      console.error(`Erro ao buscar exames! Status: ${error}`);
+      throw error;
+    }
+  }
+  
+
+
   const getTenant = async (tenant) => {
     try {
       const code = tenant;
@@ -892,7 +928,10 @@ export const AuthProvider = ({ children }) => {
         fetchProcessoCnae,
         checkTenant,
         getExames,
+        getSetoresExames,
         getRiscosExames,
+        getExamesSemVinculo,
+        getRiscosExamesSemVinculo
       }}>
       {children}
     </AuthContext.Provider>

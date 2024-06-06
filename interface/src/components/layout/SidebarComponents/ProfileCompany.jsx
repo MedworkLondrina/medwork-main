@@ -1,23 +1,22 @@
 import React, { useEffect, useState } from "react";
 import useAuth from "../../../hooks/useAuth";
-import Swal from 'sweetalert2';
+import Swal from "sweetalert2";
 
-import icon_alerta from '../../media/icons_sup/icon_alerta.png';
-import icon_perigo from '../../media/icons_sup/icon_perigo.png';
+import icon_alerta from "../../media/icons_sup/icon_alerta.png";
+import icon_perigo from "../../media/icons_sup/icon_perigo.png";
 import LoadingScreen from "../../pages/subPages/components/LoadingScreen";
 import { IoIosArrowDown } from "react-icons/io";
 import { IoIosArrowUp } from "react-icons/io";
 import { IoAddCircle } from "react-icons/io5";
 import { BsTrash3Fill } from "react-icons/bs";
-
-import ModalSetorProcesso from '../../pages/subPages/components/Modal/ModalSetorProcesso';
-import ModalProcessoRisco from '../../pages/subPages/components/Modal/ModalProcessoRisco';
-import ModalRiscoMedida from '../../pages/subPages/components/Modal/ModalRiscoMedidas';
+import ModalSetorExame from "../../pages/subPages/components/Modal/ModalSetorExame";
+import ModalSetorProcesso from "../../pages/subPages/components/Modal/ModalSetorProcesso";
+import ModalProcessoRisco from "../../pages/subPages/components/Modal/ModalProcessoRisco";
+import ModalRiscoMedida from "../../pages/subPages/components/Modal/ModalRiscoMedidas";
 import { toast } from "react-toastify";
 import { connect } from "../../../services/api";
 
 function ProfileCompany({ companyId, empresas, contatos }) {
-
   const {
     fetchUnidades,
     fetchSetores,
@@ -28,7 +27,10 @@ function ProfileCompany({ companyId, empresas, contatos }) {
     getRiscos,
     getRiscosMedidas,
     fetchMedidas,
-    fetchCnae, fetchProcessoCnae,
+    fetchCnae,
+    getExames,
+    getSetoresExames,
+    fetchProcessoCnae,
   } = useAuth(null);
 
   const [company, setCompany] = useState([]);
@@ -47,7 +49,7 @@ function ProfileCompany({ companyId, empresas, contatos }) {
   const [processosData, setProcessosData] = useState([]);
   const [riscosData, setRiscosData] = useState([]);
   const [medidasData, setMedidasData] = useState([]);
-  const [setorSelecionado, setSetorSelecionado] = useState('');
+  const [setorSelecionado, setSetorSelecionado] = useState("");
   const [loading, setLoading] = useState(false);
   const [loadingRisco, setLoadingRisco] = useState(false);
   const [loadingMedida, setLoadingMedida] = useState(false);
@@ -57,13 +59,18 @@ function ProfileCompany({ companyId, empresas, contatos }) {
   const [selectedRiscoId, setSelectedRiscoId] = useState(null);
   const [cnaes, setCnaes] = useState([]);
 
+  const [exames, setExames] = useState([]);
+
   const [showModalSetorProcesso, setShowModalSetorProcesso] = useState(false);
+  const [showModalSetorExame, setShowModalSetorExame] = useState(false);
   const [showModalProcessoRisco, setShowModalProcessoRisco] = useState(false);
   const [showModalRiscoMedida, setShowModalRiscoMedida] = useState(false);
 
   const filter = () => {
     const findCompany = empresas.find((item) => item.id_empresa === companyId);
-    const findContato = contatos.find((item) => item.id_contato === findCompany.fk_contato_id);
+    const findContato = contatos.find(
+      (item) => item.id_contato === findCompany.fk_contato_id
+    );
     setCompany(findCompany);
     setContact(findContato);
   };
@@ -84,7 +91,9 @@ function ProfileCompany({ companyId, empresas, contatos }) {
 
       const und = unidades.find((i) => i.id_unidade === item);
       if (und) {
-        const filterContato = contatos.find((i) => i.id_contato === und.fk_contato_id);
+        const filterContato = contatos.find(
+          (i) => i.id_contato === und.fk_contato_id
+        );
         setContatoUnidade(filterContato);
         setShowUnidadeData(und);
         setShowUnidade(true);
@@ -117,7 +126,7 @@ function ProfileCompany({ companyId, empresas, contatos }) {
       await carregarInformações(idSetor);
       setLoading(false);
     } else {
-      setSetorSelecionado('');
+      setSetorSelecionado("");
       setShowSetorData(false);
     }
   };
@@ -125,24 +134,35 @@ function ProfileCompany({ companyId, empresas, contatos }) {
   const carregarInformações = async (item) => {
     try {
       setLoading(true);
+
+      const filteredExames = await getSetoresExames(item)
+      setExames(filteredExames)      
+      
       const sector = setoresData.find((i) => i.id_setor === item);
       setSelectedSetor(sector);
       if (sector) {
         const offices = await fetchCargos();
         const filteredCargos = offices.filter((i) => i.fk_setor_id === item);
-        const orderCargos = filteredCargos.sort((a, b) => b.id_cargo - a.id_cargo);
+        const orderCargos = filteredCargos.sort(
+          (a, b) => b.id_cargo - a.id_cargo
+        );
         setCargosData(orderCargos);
 
         const setProc = await getSetoresProcessos();
         const proc = await getProcessos();
-        const filterSetProc = setProc.filter((i) => i.fk_setor_id === sector.id_setor);
+        const filterSetProc = setProc.filter(
+          (i) => i.fk_setor_id === sector.id_setor
+        );
         const procMap = filterSetProc.map((i) => i.fk_processo_id);
-        const filteredProcessos = proc.filter((i) => procMap.includes(i.id_processo));
-        const orderProcessos = filteredProcessos.sort((a, b) => b.id_processo - a.id_processo);
+        const filteredProcessos = proc.filter((i) =>
+          procMap.includes(i.id_processo)
+        );
+        const orderProcessos = filteredProcessos.sort(
+          (a, b) => b.id_processo - a.id_processo
+        );
         setProcessosData(orderProcessos);
 
         findCnaes(procMap);
-
       } else {
         setSelectedSetor(null);
         setShowSetorData(false);
@@ -153,22 +173,48 @@ function ProfileCompany({ companyId, empresas, contatos }) {
     }
   };
 
-  const carregarRiscos = async (idProcesso) => {
+  const carregarRiscos = async (idProcesso, setorId) => {
     try {
       setLoadingRisco(true);
       const procRisc = await getProcessosRiscos();
       const risc = await getRiscos();
-
+  
       // Filtrar os riscos apenas para o processo específico
-      const filterProcRisco = procRisc.filter((i) => i.fk_processo_id === idProcesso);
+      const filterProcRisco = procRisc.filter(
+        (i) => i.fk_processo_id === idProcesso
+      );
       const riscIds = filterProcRisco.map((i) => i.fk_risco_id);
-      const filteredRiscos = risc.filter((i) => riscIds.includes(i.id_risco));
 
+      const testeRisc =   procRisc.map(i => i.fk_risco_id);
+  
+      // Construir o corpo da requisição
+      const requestBody = {
+        setorId: selectedSetor.id_setor,
+        riscoIds: testeRisc
+      };
+  
+      // Fazer a requisição POST usando fetch
+      const response = await fetch(`${connect}/exames_setores_from_riscos`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody),
+      });
+  
+      if (response.ok) {
+        console.log('Exames vinculados ao setor com sucesso');
+      } else {
+        console.error('Falha ao vincular exames ao setor.');
+      }
+  
+      const filteredRiscos = risc.filter((i) => riscIds.includes(i.id_risco));
       const orderRiscos = filteredRiscos.sort((a, b) => b.id_risco - a.id_risco);
       setRiscosData(orderRiscos);
       setLoadingRisco(false);
     } catch (error) {
-      console.error(`Erro ao carregar riscos. Status: ${error}`);
+      console.error('Erro ao enviar requisição POST:', error);
+      setLoadingRisco(false);
     }
   };
 
@@ -176,14 +222,16 @@ function ProfileCompany({ companyId, empresas, contatos }) {
     try {
       setLoadingMedida(true);
       const riscMed = await getRiscosMedidas();
-      const med = await fetchMedidas('all');
+      const med = await fetchMedidas("all");
 
       // Filtrar as medidas apenas para o risco específico
       const filterRiscMed = riscMed.filter((i) => i.fk_risco_id === idRisco);
       const medIds = filterRiscMed.map((i) => i.fk_medida_id);
       const filteredMedidas = med.filter((i) => medIds.includes(i.id_medida));
 
-      const orderMedidas = filteredMedidas.sort((a, b) => b.id_medida - a.id_medida);
+      const orderMedidas = filteredMedidas.sort(
+        (a, b) => b.id_medida - a.id_medida
+      );
       setMedidasData(orderMedidas);
       setLoadingMedida(false);
     } catch (error) {
@@ -198,7 +246,7 @@ function ProfileCompany({ companyId, empresas, contatos }) {
       setSelectedProcessoId(idProcesso);
     } else {
       setShowRiscosProc(false);
-      setSelectedProcessoId('');
+      setSelectedProcessoId("");
     }
   };
 
@@ -209,32 +257,36 @@ function ProfileCompany({ companyId, empresas, contatos }) {
       setSelectedRiscoId(idRisco);
     } else {
       setShowMedidasRisk(false);
-      setSelectedRiscoId('');
+      setSelectedRiscoId("");
     }
   };
 
   const typeMedida = (item) => {
     switch (item) {
-      case 'MI':
+      case "MI":
         return "Individual";
-      case 'MA':
-        return 'Administrativa';
-      case 'MC':
-        return 'Coletiva';
-      case 'TR':
-        return 'Treinamento';
-      case 'IN':
-        return 'Inspeção';
-      case 'MG':
-        return 'Geral';
+      case "MA":
+        return "Administrativa";
+      case "MC":
+        return "Coletiva";
+      case "TR":
+        return "Treinamento";
+      case "IN":
+        return "Inspeção";
+      case "MG":
+        return "Geral";
 
       default:
-        return 'N/A'
+        return "N/A";
     }
   };
 
   const handleAdicionarProcesso = () => {
     openModalSetorProcesso();
+  };
+
+  const handleAdicionarExame = () => {
+    openModalSetorExame();
   };
 
   const handleAdicionarRisco = (processo) => {
@@ -252,13 +304,15 @@ function ProfileCompany({ companyId, empresas, contatos }) {
       const cnaes = await fetchCnae();
       const procCnae = await fetchProcessoCnae();
 
-      const filteredProcCnaes = procCnae.filter((i) => processosIds.includes(i.fk_processo_id));
+      const filteredProcCnaes = procCnae.filter((i) =>
+        processosIds.includes(i.fk_processo_id)
+      );
 
-      const cnaesComProcesso = filteredProcCnaes.map(item => {
-        const cnae = cnaes.find(cnae => cnae.id_cnae === item.fk_cnae_id);
+      const cnaesComProcesso = filteredProcCnaes.map((item) => {
+        const cnae = cnaes.find((cnae) => cnae.id_cnae === item.fk_cnae_id);
         return {
           ...cnae,
-          id_processo: item.fk_processo_id
+          id_processo: item.fk_processo_id,
         };
       });
 
@@ -271,12 +325,20 @@ function ProfileCompany({ companyId, empresas, contatos }) {
   // Controle Modais
   const openModalSetorProcesso = () => setShowModalSetorProcesso(true);
   const openModalProcessoRisco = () => setShowModalProcessoRisco(true);
+  const openModalSetorExame = () => setShowModalSetorExame(true);
   const openModalRiscoMedida = () => setShowModalRiscoMedida(true);
 
   const closeModalSetorProcesso = async () => {
     setShowModalSetorProcesso(false);
     await carregarInformações(selectedSetor.id_setor);
   };
+
+  const closeModalSetorExame = async () => {
+    setShowModalSetorExame(false);
+    await carregarRiscos();
+    await carregarInformações(selectedSetor.id_setor);
+  };
+
   const closeModalProcessoRisco = async () => {
     setShowModalProcessoRisco(false);
     await carregarRiscos(selectedProcesso.id_processo);
@@ -293,23 +355,32 @@ function ProfileCompany({ companyId, empresas, contatos }) {
   const handleDeleteProcesso = async (idProcesso) => {
     try {
       const result = await Swal.fire({
-        title: 'Tem certeza?',
-        text: 'Você está prestes a excluir este item!',
-        icon: 'warning',
+        title: "Tem certeza?",
+        text: "Você está prestes a excluir este item!",
+        icon: "warning",
         showCancelButton: true,
-        confirmButtonText: 'Sim, exclua!',
-        cancelButtonText: 'Cancelar',
+        confirmButtonText: "Sim, exclua!",
+        cancelButtonText: "Cancelar",
         reverseButtons: true,
       });
       if (result.isConfirmed) {
         const setProc = await getSetoresProcessos();
-        const filterProc = setProc.filter((item) => item.fk_setor_id === selectedSetor.id_setor && item.fk_processo_id === idProcesso);
-        const response = await fetch(`${connect}/setores_processos/${filterProc[0].id_setor_processo}`, {
-          method: 'DELETE',
-        });
+        const filterProc = setProc.filter(
+          (item) =>
+            item.fk_setor_id === selectedSetor.id_setor &&
+            item.fk_processo_id === idProcesso
+        );
+        const response = await fetch(
+          `${connect}/setores_processos/${filterProc[0].id_setor_processo}`,
+          {
+            method: "DELETE",
+          }
+        );
 
         if (!response.ok) {
-          throw new Error(`Erro ao deletar vinculo entre processo e setor. Status: ${response.status}`);
+          throw new Error(
+            `Erro ao deletar vinculo entre processo e setor. Status: ${response.status}`
+          );
         }
 
         const responseData = await response.json();
@@ -324,23 +395,32 @@ function ProfileCompany({ companyId, empresas, contatos }) {
   const handleDeleteRisco = async (idRisco) => {
     try {
       const result = await Swal.fire({
-        title: 'Tem certeza?',
-        text: 'Você está prestes a excluir este item!',
-        icon: 'warning',
+        title: "Tem certeza?",
+        text: "Você está prestes a excluir este item!",
+        icon: "warning",
         showCancelButton: true,
-        confirmButtonText: 'Sim, exclua!',
-        cancelButtonText: 'Cancelar',
+        confirmButtonText: "Sim, exclua!",
+        cancelButtonText: "Cancelar",
         reverseButtons: true,
       });
       if (result.isConfirmed) {
         const procRisc = await getProcessosRiscos();
-        const filterRisc = procRisc.filter((item) => item.fk_processo_id === selectedProcessoId && item.fk_risco_id === idRisco);
-        const response = await fetch(`${connect}/processos_riscos/${filterRisc[0].id_processo_risco}`, {
-          method: 'DELETE',
-        });
+        const filterRisc = procRisc.filter(
+          (item) =>
+            item.fk_processo_id === selectedProcessoId &&
+            item.fk_risco_id === idRisco
+        );
+        const response = await fetch(
+          `${connect}/processos_riscos/${filterRisc[0].id_processo_risco}`,
+          {
+            method: "DELETE",
+          }
+        );
 
         if (!response.ok) {
-          throw new Error(`Erro ao deletar vinculo entre risco e processo. Status: ${response.status}`);
+          throw new Error(
+            `Erro ao deletar vinculo entre risco e processo. Status: ${response.status}`
+          );
         }
 
         const responseData = await response.json();
@@ -348,30 +428,41 @@ function ProfileCompany({ companyId, empresas, contatos }) {
         carregarRiscos(selectedProcessoId);
       }
     } catch (error) {
-      console.error(`Erro ao deletar vinculo entre risco e processo. Status: ${error}`);
+      console.error(
+        `Erro ao deletar vinculo entre risco e processo. Status: ${error}`
+      );
     }
   };
 
   const handleDeleteMedida = async (idMedida) => {
     try {
       const result = await Swal.fire({
-        title: 'Tem certeza?',
-        text: 'Você está prestes a excluir este item!',
-        icon: 'warning',
+        title: "Tem certeza?",
+        text: "Você está prestes a excluir este item!",
+        icon: "warning",
         showCancelButton: true,
-        confirmButtonText: 'Sim, exclua!',
-        cancelButtonText: 'Cancelar',
+        confirmButtonText: "Sim, exclua!",
+        cancelButtonText: "Cancelar",
         reverseButtons: true,
       });
       if (result.isConfirmed) {
         const riscMed = await getRiscosMedidas();
-        const filterMed = riscMed.filter((item) => item.fk_risco_id === selectedRiscoId && item.fk_medida_id === idMedida);
-        const response = await fetch(`${connect}/riscos_medidas/${filterMed[0].id_risco_medida}`, {
-          method: 'DELETE',
-        });
+        const filterMed = riscMed.filter(
+          (item) =>
+            item.fk_risco_id === selectedRiscoId &&
+            item.fk_medida_id === idMedida
+        );
+        const response = await fetch(
+          `${connect}/riscos_medidas/${filterMed[0].id_risco_medida}`,
+          {
+            method: "DELETE",
+          }
+        );
 
         if (!response.ok) {
-          throw new Error(`Erro ao deletar vinculo entre medida e risco. Status: ${response.status}`);
+          throw new Error(
+            `Erro ao deletar vinculo entre medida e risco. Status: ${response.status}`
+          );
         }
 
         const responseData = await response.json();
@@ -379,33 +470,48 @@ function ProfileCompany({ companyId, empresas, contatos }) {
         carregarMedidas(selectedRiscoId);
       }
     } catch (error) {
-      console.error(`Erro ao deletar vinculo entre medida e risco. Status: ${error}`);
+      console.error(
+        `Erro ao deletar vinculo entre medida e risco. Status: ${error}`
+      );
     }
   };
 
   if (!companyId) {
     return;
-  };
-
+  }
 
   return (
     <>
       <div className="h-fit">
         {/* Company Card */}
-        <div className='w-full bg-sky-600 shadow-md px-4 py-4 rounded-xl'>
-          <div className='px-4 grid grid-cols-3'>
-            <div className='col-span-2'>
-              <h2 className='text-white font-extrabold text-2xl truncate'>{company.nome_empresa}</h2>
-              <p className='text-white font-light text-sm truncate -mt-1 mb-1'>Razão Social: <span className="text-lg font-medium truncate">{company.razao_social}</span></p>
-              <p className='text-white'>Contato:</p>
+        <div className="w-full bg-sky-600 shadow-md px-4 py-4 rounded-xl">
+          <div className="px-4 grid grid-cols-3">
+            <div className="col-span-2">
+              <h2 className="text-white font-extrabold text-2xl truncate">
+                {company.nome_empresa}
+              </h2>
+              <p className="text-white font-light text-sm truncate -mt-1 mb-1">
+                Razão Social:{" "}
+                <span className="text-lg font-medium truncate">
+                  {company.razao_social}
+                </span>
+              </p>
+              <p className="text-white">Contato:</p>
             </div>
-            <div className='col-span-1 text-right px-2'>
-              <h2 className='text-white font-extrabold text-2xl truncate'>{company.cnpj_empresa}</h2>
+            <div className="col-span-1 text-right px-2">
+              <h2 className="text-white font-extrabold text-2xl truncate">
+                {company.cnpj_empresa}
+              </h2>
             </div>
           </div>
           <div className="px-4">
-            <div className='bg-white rounded-sm px-3 inline-block'>
-              <p className='text-sky-600 font-semibold'>{contact ? contact.nome_contato : ''} - <span className='text-sm text-gray-700 font-light'>{contact ? contact.email_contato : ''}</span></p>
+            <div className="bg-white rounded-sm px-3 inline-block">
+              <p className="text-sky-600 font-semibold">
+                {contact ? contact.nome_contato : ""} -{" "}
+                <span className="text-sm text-gray-700 font-light">
+                  {contact ? contact.email_contato : ""}
+                </span>
+              </p>
             </div>
           </div>
         </div>
@@ -416,9 +522,20 @@ function ProfileCompany({ companyId, empresas, contatos }) {
             <div className=" border-b border-gray-300">
               <ul className="flex -mb-px">
                 {unidades.map((item) => (
-                  <li key={item.id_unidade} onClick={() => handleSelectUnidade(item.id_unidade)}>
-                    <div className={`inline-block py-3 px-4 border-b-2 border-transparent rounded-t-lg ${showUnidadeData.id_unidade === item.id_unidade ? 'text-sky-600 bg-gray-100' : 'hover:bg-gray-100 hover:text-sky-600 hover:border-b-2 hover:border-sky-600 cursor-pointer'}`}>
-                      <p className="text-sm font-medium text-center text-gray-500 cursor-pointer">{item.nome_unidade}</p>
+                  <li
+                    key={item.id_unidade}
+                    onClick={() => handleSelectUnidade(item.id_unidade)}
+                  >
+                    <div
+                      className={`inline-block py-3 px-4 border-b-2 border-transparent rounded-t-lg ${
+                        showUnidadeData.id_unidade === item.id_unidade
+                          ? "text-sky-600 bg-gray-100"
+                          : "hover:bg-gray-100 hover:text-sky-600 hover:border-b-2 hover:border-sky-600 cursor-pointer"
+                      }`}
+                    >
+                      <p className="text-sm font-medium text-center text-gray-500 cursor-pointer">
+                        {item.nome_unidade}
+                      </p>
                     </div>
                   </li>
                 ))}
@@ -429,41 +546,70 @@ function ProfileCompany({ companyId, empresas, contatos }) {
 
         {/* Setores */}
         {showSetores && (
-          <div className='w-full py-4 px-6 bg-gray-100'>
+          <div className="w-full py-4 px-6 bg-gray-100">
             {/* Card Unidades */}
             {showUnidade && (
               <>
-                <div className='w-full bg-white shadow px-4 py-2 rounded-md mb-4'>
-                  <div className='grid grid-cols-3'>
-                    <div className='col-span-2'>
-                      <h2 className='text-sky-700 font-bold text-xl truncate'>{showUnidadeData.nome_unidade}</h2>
-                      <p className='truncate text-gray-800 font-medium'>{showUnidadeData.endereco_unidade}, {showUnidadeData.numero_unidade} {showUnidadeData.complemento_unidade} - {showUnidadeData.cidade_unidade}/{showUnidadeData.uf_unidade}</p>
+                <div className="w-full bg-white shadow px-4 py-2 rounded-md mb-4">
+                  <div className="grid grid-cols-3">
+                    <div className="col-span-2">
+                      <h2 className="text-sky-700 font-bold text-xl truncate">
+                        {showUnidadeData.nome_unidade}
+                      </h2>
+                      <p className="truncate text-gray-800 font-medium">
+                        {showUnidadeData.endereco_unidade},{" "}
+                        {showUnidadeData.numero_unidade}{" "}
+                        {showUnidadeData.complemento_unidade} -{" "}
+                        {showUnidadeData.cidade_unidade}/
+                        {showUnidadeData.uf_unidade}
+                      </p>
                       <div className="flex items-center gap-1">
-                        <p className='text-gray-600 text-sm font-light'>Contato:</p>
-                        <p className='text-sky-700 font-semibold truncate'>{contatoUnidade ? contatoUnidade.nome_contato : ''}</p>
+                        <p className="text-gray-600 text-sm font-light">
+                          Contato:
+                        </p>
+                        <p className="text-sky-700 font-semibold truncate">
+                          {contatoUnidade ? contatoUnidade.nome_contato : ""}
+                        </p>
                       </div>
                     </div>
-                    <div className='col-span-1 text-right px-2'>
-                      <h2 className='text-sky-700 font-bold text-2xl truncate'>{showUnidadeData.cnpj_unidade}</h2>
+                    <div className="col-span-1 text-right px-2">
+                      <h2 className="text-sky-700 font-bold text-2xl truncate">
+                        {showUnidadeData.cnpj_unidade}
+                      </h2>
                     </div>
                   </div>
                 </div>
               </>
             )}
 
-
             {setoresData && (
-              <div className='w-full grid grid-cols-3'>
+              <div className="w-full grid grid-cols-3">
                 {/* Lista de Setores */}
-                <div className='col-span-1'>
-                  <h1 className="mb-1 ml-1 font-medium text-gray-600">Lista de Setores</h1>
-                  <ul className='space-y-4'>
+                <div className="col-span-1">
+                  <h1 className="mb-1 ml-1 font-medium text-gray-600">
+                    Lista de Setores
+                  </h1>
+                  <ul className="space-y-4">
                     {setoresData.map((item) => (
-                      <li className="cursor-pointer" key={item.id_setor} onClick={() => handleSelectSetor(item.id_setor)}>
-                        <div className={`bg-white px-4 py-2 ${showSetorData ? 'rounded-l-md' : 'rounded-md shadow hover:shadow-md'}`}>
-                          <h2 className='text-sky-700 font-bold text-lg truncate'>{item.nome_setor}</h2>
-                          <div className='border-b border-gray-200 mb-2'></div>
-                          <p className='truncate text-gray-700 text-sm'>{item.ambiente_setor}</p>
+                      <li
+                        className="cursor-pointer"
+                        key={item.id_setor}
+                        onClick={() => handleSelectSetor(item.id_setor)}
+                      >
+                        <div
+                          className={`bg-white px-4 py-2 ${
+                            showSetorData
+                              ? "rounded-l-md"
+                              : "rounded-md shadow hover:shadow-md"
+                          }`}
+                        >
+                          <h2 className="text-sky-700 font-bold text-lg truncate">
+                            {item.nome_setor}
+                          </h2>
+                          <div className="border-b border-gray-200 mb-2"></div>
+                          <p className="truncate text-gray-700 text-sm">
+                            {item.ambiente_setor}
+                          </p>
                         </div>
                       </li>
                     ))}
@@ -474,8 +620,10 @@ function ProfileCompany({ companyId, empresas, contatos }) {
                 <div className="col-span-2">
                   {showSetorData && (
                     <>
-                      <h1 className="mb-1 ml-1 font-medium text-gray-600">Setor {selectedSetor.nome_setor}</h1>
-                      <div className='bg-white rounded-r-md px-4 py-2 relative'>
+                      <h1 className="mb-1 ml-1 font-medium text-gray-600">
+                        Setor {selectedSetor.nome_setor}
+                      </h1>
+                      <div className="bg-white rounded-r-md px-4 py-2 relative">
                         {loading && <LoadingScreen />}
                         <div className="">
                           {/* Cargos */}
@@ -485,8 +633,12 @@ function ProfileCompany({ companyId, empresas, contatos }) {
                               <ul className="gap-2 flex flex-wrap items-center">
                                 {cargosData.map((item) => (
                                   <li key={item.id_cargo}>
-                                    <div className={`bg-gray-50 rounded px-4 py-2`}>
-                                      <h2 className="text-sky-700 font-medium truncate hover:whitespace-normal">{item.nome_cargo}</h2>
+                                    <div
+                                      className={`bg-gray-50 rounded px-4 py-2`}
+                                    >
+                                      <h2 className="text-sky-700 font-medium truncate hover:whitespace-normal">
+                                        {item.nome_cargo}
+                                      </h2>
                                     </div>
                                   </li>
                                 ))}
@@ -496,14 +648,64 @@ function ProfileCompany({ companyId, empresas, contatos }) {
                           <div className="my-2">
                             <hr />
                           </div>
+                          <div className="">
+                            <h2 className="mb-2">Exames</h2>
+                            <ul className="space-y-2 mb-2">
+                              {/* Adicionar Exame */}
+                              <li
+                                className="cursor-pointer"
+                                onClick={handleAdicionarExame}
+                              >
+                                <div className="bg-gray-50 rounded px-4 py-2 hover:bg-gray-100 hover:shadow">
+                                  <div className="flex justify-center items-center text-sky-700 font-bold text-center gap-1">
+                                    <IoAddCircle />
+                                    <p className="">Adicionar Exame</p>
+                                  </div>
+                                </div>
+                              </li>
+                              {/* Lista de Exames */}
+                              {exames && exames.map((item,i) => (
+                                <li key={i}>
+                                  <div className="bg-gray-50 rounded px-4 py-2">
+                                    <div>
+                                      <div className="flex justify-between items-center">
+                                        <p className="text-sm text-gray-700 font-light -mb-1">
+                                          Exame:
+                                        </p>
+                                        <div
+                                          className="text-sm text-red-600 hover:text-red-700 cursor-pointer"
+                                          onClick={() =>
+                                            handleDeleteProcesso(item.id_exame)
+                                          }
+                                        >
+                                          <BsTrash3Fill />
+                                        </div>
+                                      </div>
+                                      <h2 className="text-sky-700 font-medium truncate hover:whitespace-normal">
+                                        {item.nome_exame}
+                                      </h2>
+                                    </div>
+                                  </div>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                          <div className="my-2">
+                            <hr />
+                          </div>
 
                           {/* Processos */}
                           <div className="">
                             <h2 className="mb-2">Processos</h2>
                             <ul className="space-y-2 mb-2">
                               {/* Adicionar Processos */}
-                              <li className="cursor-pointer" onClick={handleAdicionarProcesso}>
-                                <div className={`bg-gray-50 rounded px-4 py-2 hover:bg-gray-100 hover:shadow`}>
+                              <li
+                                className="cursor-pointer"
+                                onClick={handleAdicionarProcesso}
+                              >
+                                <div
+                                  className={`bg-gray-50 rounded px-4 py-2 hover:bg-gray-100 hover:shadow`}
+                                >
                                   <div className="flex justify-center items-center text-sky-700 font-bold text-center gap-1">
                                     <IoAddCircle />
                                     <p className="">Adicionar Processos</p>
@@ -513,34 +715,74 @@ function ProfileCompany({ companyId, empresas, contatos }) {
                               {/* Lista de Processos */}
                               {processosData.map((item) => (
                                 <li key={item.id_processo}>
-                                  <div className={`bg-gray-50 rounded px-4 py-2`}>
+                                  <div
+                                    className={`bg-gray-50 rounded px-4 py-2`}
+                                  >
                                     <div>
                                       <div className="flex justify-between items-center">
-                                        <p className="text-sm text-gray-700 font-light -mb-1">Processo:</p>
-                                        <div className="text-sm text-red-600 hover:text-red-700 cursor-pointer" onClick={() => handleDeleteProcesso(item.id_processo)}>
+                                        <p className="text-sm text-gray-700 font-light -mb-1">
+                                          Processo:
+                                        </p>
+                                        <div
+                                          className="text-sm text-red-600 hover:text-red-700 cursor-pointer"
+                                          onClick={() =>
+                                            handleDeleteProcesso(
+                                              item.id_processo
+                                            )
+                                          }
+                                        >
                                           <BsTrash3Fill />
                                         </div>
                                       </div>
-                                      <h2 className="text-sky-700 font-medium truncate hover:whitespace-normal">{item.nome_processo}</h2>
+                                      <h2 className="text-sky-700 font-medium truncate hover:whitespace-normal">
+                                        {item.nome_processo}
+                                      </h2>
                                       <div>
-                                        <p className="text-sm text-gray-700 font-light">Cnae's:</p>
+                                        <p className="text-sm text-gray-700 font-light">
+                                          Cnae's:
+                                        </p>
                                         <div className="flex gap-2 mb-2">
-                                          {cnaes.filter((cnae) => cnae.id_processo === item.id_processo).map((cnae, i) => (
-                                            <div className="bg-white px-2 py-1 rounded">
-                                              <p key={i.id_cnae} className="text-sky-700 font-medium truncate hover:whitespace-normal">{cnae.subclasse_cnae}</p>
-                                            </div>
-                                          ))}
+                                          {cnaes
+                                            .filter(
+                                              (cnae) =>
+                                                cnae.id_processo ===
+                                                item.id_processo
+                                            )
+                                            .map((cnae, i) => (
+                                              <div className="bg-white px-2 py-1 rounded">
+                                                <p
+                                                  key={i.id_cnae}
+                                                  className="text-sky-700 font-medium truncate hover:whitespace-normal"
+                                                >
+                                                  {cnae.subclasse_cnae}
+                                                </p>
+                                              </div>
+                                            ))}
                                         </div>
                                       </div>
                                     </div>
                                     <div className="border-b border-sky-600"></div>
-                                    <div className={`relative cursor-pointer rounded px-2 bg-white hover:shadow py-1 mt-1 ${showRiscosProc && selectedProcessoId === item.id_processo ? 'shadow' : ''}`}>
+                                    <div
+                                      className={`relative cursor-pointer rounded px-2 bg-white hover:shadow py-1 mt-1 ${
+                                        showRiscosProc &&
+                                        selectedProcessoId === item.id_processo
+                                          ? "shadow"
+                                          : ""
+                                      }`}
+                                    >
                                       {loadingRisco && <LoadingScreen />}
-                                      <div className="flex items-center justify-between mt-1 mb-1" onClick={() => handleClickProcesso(item.id_processo)}>
+                                      <div
+                                        className="flex items-center justify-between mt-1 mb-1"
+                                        onClick={() =>
+                                          handleClickProcesso(item.id_processo)
+                                        }
+                                      >
                                         <p className="text-sm">Riscos</p>
                                         {/* Mostrar Riscos */}
                                         <div className="flex gap-2 items-center">
-                                          {showRiscosProc && selectedProcessoId === item.id_processo ? (
+                                          {showRiscosProc &&
+                                          selectedProcessoId ===
+                                            item.id_processo ? (
                                             <>
                                               <IoIosArrowUp />
                                             </>
@@ -554,124 +796,239 @@ function ProfileCompany({ companyId, empresas, contatos }) {
                                       <ul className="space-y-2 mb-2">
                                         {/* Adicionar Riscos */}
                                         {/* Lista de Riscos */}
-                                        {showRiscosProc && selectedProcessoId === item.id_processo && (
-                                          <>
-                                            <li className="cursor-pointer" onClick={() => handleAdicionarRisco(item)}>
-                                              <div className="bg-white border rounded px-3 py-1 hover:shadow">
-                                                <div className="flex justify-center items-center text-sky-700 font-bold gap-1">
-                                                  <IoAddCircle />
-                                                  <p>Adicionar Riscos</p>
-                                                </div>
-                                              </div>
-                                            </li>
-                                            {riscosData.map((risco) => (
-                                              <div key={risco.id_risco} className="bg-white border rounded px-3 py-2 mb-4">
-                                                <div className="grid grid-cols-3">
-                                                  <div className="col-span-2">
-                                                    <div>
-                                                      <p className="text-gray-600 font-thin text-xs -mb-1">Risco:</p>
-                                                      <p className="text-gray-600 font-bold text-lg">{risco.nome_risco}</p>
-                                                    </div>
-                                                  </div>
-                                                  <div className="col-span-1 flex justify-end items-center gap-2">
-                                                    <div className="text-end">
-                                                      <p className="text-xs font-thin -mb-1 text-left">E-social:</p>
-                                                      <p className="text-gray-600 font-bold text-lg">{risco.codigo_esocial_risco === "N/A" ? "-" : risco.codigo_esocial_risco}</p>
-                                                    </div>
-                                                    <div className="text-sm text-red-600 hover:text-red-700 cursor-pointer" onClick={() => handleDeleteRisco(risco.id_risco)}>
-                                                      <BsTrash3Fill />
-                                                    </div>
+                                        {showRiscosProc &&
+                                          selectedProcessoId ===
+                                            item.id_processo && (
+                                            <>
+                                              <li
+                                                className="cursor-pointer"
+                                                onClick={() =>
+                                                  handleAdicionarRisco(item)
+                                                }
+                                              >
+                                                <div className="bg-white border rounded px-3 py-1 hover:shadow">
+                                                  <div className="flex justify-center items-center text-sky-700 font-bold gap-1">
+                                                    <IoAddCircle />
+                                                    <p>Adicionar Riscos</p>
                                                   </div>
                                                 </div>
-                                                <hr />
-                                                <div className="grid grid-cols-4 gap-2 py-2 items-center">
-                                                  <div className="col-span-3">
-                                                    <div className="flex items-center gap-1">
-                                                      <p className="text-gray-600 text-sm">Grupo:</p>
-                                                      <p className="text-gray-600 font-bold text-sm">{risco.grupo_risco}</p>
+                                              </li>
+                                              {riscosData.map((risco) => (
+                                                <div
+                                                  key={risco.id_risco}
+                                                  className="bg-white border rounded px-3 py-2 mb-4"
+                                                >
+                                                  <div className="grid grid-cols-3">
+                                                    <div className="col-span-2">
+                                                      <div>
+                                                        <p className="text-gray-600 font-thin text-xs -mb-1">
+                                                          Risco:
+                                                        </p>
+                                                        <p className="text-gray-600 font-bold text-lg">
+                                                          {risco.nome_risco}
+                                                        </p>
+                                                      </div>
                                                     </div>
-                                                    <div className="flex items-center gap-1">
-                                                      <p className="text-gray-600 text-sm">Metodologia:</p>
-                                                      <p className="text-gray-600 font-bold text-sm">{risco.metodologia_risco}</p>
-                                                    </div>
-                                                  </div>
-                                                  <div className='inline-block space-y-1 mt-2 col-span-1'>
-                                                    <div className='flex justify-center items-center gap-1'>
-                                                      <img src={icon_alerta} className='h-4 w-4' />
-                                                      <p className='text-sm text-gray-500 truncate'>
-                                                        NA: <span className='text-sm font-medium text-gray-700'>{risco.nivel_acao_risco === 0 ? "-" : risco.nivel_acao_risco}</span>
-                                                      </p>
-                                                    </div>
-                                                    <div className='flex justify-center items-center gap-1'>
-                                                      <img src={icon_perigo} className='h-4 w-4' />
-                                                      <p className='text-sm text-gray-500 truncate'>
-                                                        LT: <span className='text-sm font-medium text-gray-700'>{risco.limite_tolerancia_risco === 0 ? "-" : risco.limite_tolerancia_risco}</span>
-                                                      </p>
-                                                    </div>
-                                                  </div>
-                                                </div>
-                                                <hr />
-                                                <div className={`relative cursor-pointer rounded px-2 bg-gray-100 hover:shadow py-1 mt-1 ${showMedidasRisk && selectedRiscoId === risco.id_risco ? '' : ''}`}>
-                                                  {loadingMedida && <LoadingScreen />}
-                                                  <div className="flex justify-between items-center text-sky-700 mb-1" onClick={() => handleClickMedidas(risco.id_risco)}>
-                                                    <h3 className="text-sm">Medidas</h3>
-                                                    <div className="flex items-center gap-2">
-                                                      {showMedidasRisk && selectedRiscoId === risco.id_risco ? (
-                                                        <>
-                                                          <IoIosArrowUp />
-                                                        </>
-                                                      ) : (
-                                                        <>
-                                                          <IoIosArrowDown />
-                                                        </>
-                                                      )}
+                                                    <div className="col-span-1 flex justify-end items-center gap-2">
+                                                      <div className="text-end">
+                                                        <p className="text-xs font-thin -mb-1 text-left">
+                                                          E-social:
+                                                        </p>
+                                                        <p className="text-gray-600 font-bold text-lg">
+                                                          {risco.codigo_esocial_risco ===
+                                                          "N/A"
+                                                            ? "-"
+                                                            : risco.codigo_esocial_risco}
+                                                        </p>
+                                                      </div>
+                                                      <div
+                                                        className="text-sm text-red-600 hover:text-red-700 cursor-pointer"
+                                                        onClick={() =>
+                                                          handleDeleteRisco(
+                                                            risco.id_risco
+                                                          )
+                                                        }
+                                                      >
+                                                        <BsTrash3Fill />
+                                                      </div>
                                                     </div>
                                                   </div>
-                                                  <ul className="space-y-2">
-                                                    {/* Adicionar Medidas */}
-                                                    {showMedidasRisk && selectedRiscoId === risco.id_risco && (
-                                                      <>
-                                                        <li className="cursor-pointer" onClick={() => handleAdicionarMedida(risco)}>
-                                                          <div className="bg-white border rounded px-2 py-1 mb-2 hover:shadow">
-                                                            <div className="flex justify-center items-center text-sky-700 font-bold gap-1">
-                                                              <IoAddCircle />
-                                                              <p>Adicionar Medidas</p>
-                                                            </div>
-                                                          </div>
-                                                        </li>
-                                                        {medidasData && medidasData.length > 0 ? (
+                                                  <hr />
+                                                  <div className="grid grid-cols-4 gap-2 py-2 items-center">
+                                                    <div className="col-span-3">
+                                                      <div className="flex items-center gap-1">
+                                                        <p className="text-gray-600 text-sm">
+                                                          Grupo:
+                                                        </p>
+                                                        <p className="text-gray-600 font-bold text-sm">
+                                                          {risco.grupo_risco}
+                                                        </p>
+                                                      </div>
+                                                      <div className="flex items-center gap-1">
+                                                        <p className="text-gray-600 text-sm">
+                                                          Metodologia:
+                                                        </p>
+                                                        <p className="text-gray-600 font-bold text-sm">
+                                                          {
+                                                            risco.metodologia_risco
+                                                          }
+                                                        </p>
+                                                      </div>
+                                                    </div>
+                                                    <div className="inline-block space-y-1 mt-2 col-span-1">
+                                                      <div className="flex justify-center items-center gap-1">
+                                                        <img
+                                                          src={icon_alerta}
+                                                          className="h-4 w-4"
+                                                        />
+                                                        <p className="text-sm text-gray-500 truncate">
+                                                          NA:{" "}
+                                                          <span className="text-sm font-medium text-gray-700">
+                                                            {risco.nivel_acao_risco ===
+                                                            0
+                                                              ? "-"
+                                                              : risco.nivel_acao_risco}
+                                                          </span>
+                                                        </p>
+                                                      </div>
+                                                      <div className="flex justify-center items-center gap-1">
+                                                        <img
+                                                          src={icon_perigo}
+                                                          className="h-4 w-4"
+                                                        />
+                                                        <p className="text-sm text-gray-500 truncate">
+                                                          LT:{" "}
+                                                          <span className="text-sm font-medium text-gray-700">
+                                                            {risco.limite_tolerancia_risco ===
+                                                            0
+                                                              ? "-"
+                                                              : risco.limite_tolerancia_risco}
+                                                          </span>
+                                                        </p>
+                                                      </div>
+                                                    </div>
+                                                  </div>
+                                                  <hr />
+                                                  <div
+                                                    className={`relative cursor-pointer rounded px-2 bg-gray-100 hover:shadow py-1 mt-1 ${
+                                                      showMedidasRisk &&
+                                                      selectedRiscoId ===
+                                                        risco.id_risco
+                                                        ? ""
+                                                        : ""
+                                                    }`}
+                                                  >
+                                                    {loadingMedida && (
+                                                      <LoadingScreen />
+                                                    )}
+                                                    <div
+                                                      className="flex justify-between items-center text-sky-700 mb-1"
+                                                      onClick={() =>
+                                                        handleClickMedidas(
+                                                          risco.id_risco
+                                                        )
+                                                      }
+                                                    >
+                                                      <h3 className="text-sm">
+                                                        Medidas
+                                                      </h3>
+                                                      <div className="flex items-center gap-2">
+                                                        {showMedidasRisk &&
+                                                        selectedRiscoId ===
+                                                          risco.id_risco ? (
                                                           <>
-                                                            {medidasData.map((medida) => (
-                                                              <li key={medida.id_medida}>
-                                                                <div className="bg-white border rounded py-1 px-2">
-                                                                  <div className="grid grid-cols-4 items-center">
-                                                                    <div className="col-span-3">
-                                                                      <p className="text-sky-700 font-medium truncate">{medida.descricao_medida}</p>
-                                                                    </div>
-                                                                    <div className="col-span-1 flex justify-end pr-2 items-center gap-3">
-                                                                      <p className="text-sky-700 text-sm">{typeMedida(medida.grupo_medida)}</p>
-                                                                      <div className="text-sm text-red-600 hover:text-red-700 cursor-pointer" onClick={() => handleDeleteMedida(medida.id_medida)}>
-                                                                        <BsTrash3Fill />
-                                                                      </div>
-                                                                    </div>
-                                                                  </div>
-                                                                </div>
-                                                              </li>
-                                                            ))}
+                                                            <IoIosArrowUp />
                                                           </>
                                                         ) : (
-                                                          <li>
-                                                            <p className="text-gray-600 text-sm font-medium text-center">Nenhuma medida cadastrada.</p>
-                                                          </li>
+                                                          <>
+                                                            <IoIosArrowDown />
+                                                          </>
                                                         )}
-                                                      </>
-                                                    )}
-                                                  </ul>
+                                                      </div>
+                                                    </div>
+                                                    <ul className="space-y-2">
+                                                      {/* Adicionar Medidas */}
+                                                      {showMedidasRisk &&
+                                                        selectedRiscoId ===
+                                                          risco.id_risco && (
+                                                          <>
+                                                            <li
+                                                              className="cursor-pointer"
+                                                              onClick={() =>
+                                                                handleAdicionarMedida(
+                                                                  risco
+                                                                )
+                                                              }
+                                                            >
+                                                              <div className="bg-white border rounded px-2 py-1 mb-2 hover:shadow">
+                                                                <div className="flex justify-center items-center text-sky-700 font-bold gap-1">
+                                                                  <IoAddCircle />
+                                                                  <p>
+                                                                    Adicionar
+                                                                    Medidas
+                                                                  </p>
+                                                                </div>
+                                                              </div>
+                                                            </li>
+                                                            {medidasData &&
+                                                            medidasData.length >
+                                                              0 ? (
+                                                              <>
+                                                                {medidasData.map(
+                                                                  (medida) => (
+                                                                    <li
+                                                                      key={
+                                                                        medida.id_medida
+                                                                      }
+                                                                    >
+                                                                      <div className="bg-white border rounded py-1 px-2">
+                                                                        <div className="grid grid-cols-4 items-center">
+                                                                          <div className="col-span-3">
+                                                                            <p className="text-sky-700 font-medium truncate">
+                                                                              {
+                                                                                medida.descricao_medida
+                                                                              }
+                                                                            </p>
+                                                                          </div>
+                                                                          <div className="col-span-1 flex justify-end pr-2 items-center gap-3">
+                                                                            <p className="text-sky-700 text-sm">
+                                                                              {typeMedida(
+                                                                                medida.grupo_medida
+                                                                              )}
+                                                                            </p>
+                                                                            <div
+                                                                              className="text-sm text-red-600 hover:text-red-700 cursor-pointer"
+                                                                              onClick={() =>
+                                                                                handleDeleteMedida(
+                                                                                  medida.id_medida
+                                                                                )
+                                                                              }
+                                                                            >
+                                                                              <BsTrash3Fill />
+                                                                            </div>
+                                                                          </div>
+                                                                        </div>
+                                                                      </div>
+                                                                    </li>
+                                                                  )
+                                                                )}
+                                                              </>
+                                                            ) : (
+                                                              <li>
+                                                                <p className="text-gray-600 text-sm font-medium text-center">
+                                                                  Nenhuma medida
+                                                                  cadastrada.
+                                                                </p>
+                                                              </li>
+                                                            )}
+                                                          </>
+                                                        )}
+                                                    </ul>
+                                                  </div>
                                                 </div>
-                                              </div>
-                                            ))}
-                                          </>
-                                        )}
+                                              ))}
+                                            </>
+                                          )}
                                       </ul>
                                     </div>
                                   </div>
@@ -686,10 +1043,9 @@ function ProfileCompany({ companyId, empresas, contatos }) {
                 </div>
               </div>
             )}
-
           </div>
         )}
-      </div >
+      </div>
 
       {/* Modais */}
       <ModalSetorProcesso
@@ -714,6 +1070,16 @@ function ProfileCompany({ companyId, empresas, contatos }) {
         childId={selectedRisco.id_risco}
         childName={selectedRisco.nome_risco}
         children={riscosData}
+      />
+
+      <ModalSetorExame
+        isOpen={showModalSetorExame}
+        onCancel={closeModalSetorExame}
+        setorId={selectedSetor.id_setor}
+        setorName={selectedSetor.nome_setor}
+        childId={exames.id_exame}
+        childName={exames.nome_exame}
+        children={exames}
       />
     </>
   );
