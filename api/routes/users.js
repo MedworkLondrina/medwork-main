@@ -1546,7 +1546,7 @@ router.post("/setor_exame/", (req, res, next) => {
       console.error("Error getting database connection:", err);
       return next(err); // Propague o erro para o próximo middleware
     }
-  
+
     con.query(q, [exameId, setorId], (err, data) => {
       con.release(); // Assegure-se de que a conexão seja liberada após a consulta
 
@@ -1554,25 +1554,94 @@ router.post("/setor_exame/", (req, res, next) => {
         console.error("Error executing query:", err);
         return res.status(500).json(err);
       }
-  
+
       return res.status(200).json(data);
     });
   });
 });
 
 
+router.post("/exames_setores_from_riscos/", (req, res) => {
+  const { setorId, riscoIds } = req.body;
+  if (!setorId || !Array.isArray(riscoIds) || riscoIds.length === 0) {
+    return res.status(400).json({ error: "setorId and riscoIds are required" });
+  }
 
-router.post("/exames_setores_from_riscos/", (req, res) => { 
-    if (err) return next(err);
+  const getExamesQuery = `
+    SELECT DISTINCT fk_exame_id
+    FROM risco_exame
+    WHERE fk_risco_id IN (?)
+  `;
 
-    con.query(q, [exameId, setorId], (err, data) => {
-      if (err) return res.status(500).json(err);
+  const checkExistenceQuery = `
+    SELECT fk_exame_id
+    FROM setor_exame
+    WHERE fk_setor_id = ? AND fk_exame_id = ?
+  `;
 
-      return res.status(200).json(data);
+  const insertExameSetorQuery = `
+    INSERT INTO setor_exame (fk_exame_id, fk_setor_id)
+    VALUES (?, ?)
+  `;
+
+  pool.getConnection((err, con) => {
+    if (err) return res.status(500).json(err);
+
+    con.beginTransaction(err => {
+      if (err) {
+        con.release();
+        return res.status(500).json(err);
+      }
+
+      con.query(getExamesQuery, [riscoIds], (err, examesData) => {
+        if (err) {
+          con.rollback(() => con.release());
+          return res.status(500).json(err);
+        }
+
+        const examesIds = examesData.map(row => row.fk_exame_id);
+        if (examesIds.length === 0) {
+          con.rollback(() => con.release());
+          return res.status(200).json({ message: "No exames found for the given riscos" });
+        }
+
+        const insertPromises = examesIds.map(exameId => {
+          return new Promise((resolve, reject) => {
+            con.query(checkExistenceQuery, [setorId, exameId], (err, result) => {
+              if (err) return reject(err);
+
+              if (result.length === 0) {
+                con.query(insertExameSetorQuery, [exameId, setorId], (err, result) => {
+                  if (err) return reject(err);
+                  resolve(result);
+                });
+              } else {
+                resolve(null); // Já existe, não precisa inserir
+              }
+            });
+          });
+        });
+
+        Promise.all(insertPromises)
+          .then(results => {
+            con.commit(err => {
+              if (err) {
+                con.rollback(() => con.release());
+                return res.status(500).json(err);
+              }
+
+              con.release();
+              return res.status(200).json({ message: "Exames processed successfully", results });
+            });
+          })
+          .catch(err => {
+            con.rollback(() => con.release());
+            return res.status(500).json(err);
+          });
+      });
     });
-
-    con.release();
   });
+});
 
 
 router.post("/setor_exame_from_riscos/", (req, res) => {
