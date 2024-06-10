@@ -722,7 +722,6 @@ export const AuthProvider = ({ children }) => {
       throw error;
     }
   };
-<<<<<<< HEAD
   
   
   const getRiscosExamesSemVinculo = async (riscoId) => {
@@ -731,12 +730,6 @@ export const AuthProvider = ({ children }) => {
       if (!code) return;
       const queryParams = new URLSearchParams({ tenant_code: code }).toString();
       const res = await fetch(`${connect}/risco_exames_nao_vinculados/${riscoId}?${queryParams}`);
-=======
-
-  const getRiscosExamesSemVinculo = async (riscoId) => {
-    try {
-      const res = await fetch(`${connect}/risco_exame_nao_vinculados/${riscoId}`);
->>>>>>> a4851ca1524e0d545f8d2899ee5928e26014bf4a
       const data = await res.json();
       return data;
     } catch (error) {
