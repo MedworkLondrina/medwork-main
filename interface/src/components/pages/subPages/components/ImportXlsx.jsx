@@ -11,232 +11,157 @@ const ImportXlsx = () => {
 
   const handleOnChange = (e) => {
     const selectedFile = e.target.files[0];
-
     if (selectedFile) {
       setFile(selectedFile);
-      xlsxFileToArray(selectedFile);
+      processFile(selectedFile);
     }
-
     setImportSuccess(false);
   };
 
   const readFileAsync = (file) => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
-
-      reader.onload = (e) => {
-        resolve(e.target.result);
-      };
-
-      reader.onerror = (error) => {
-        reject(error);
-      };
-
+      reader.onload = (e) => resolve(e.target.result);
+      reader.onerror = (error) => reject(error);
       reader.readAsBinaryString(file);
     });
   };
 
-  const xlsxFileToArray = async (file) => {
-    try {
-      const empresa = localStorage.getItem("selectedCompanyData");
-      const empresaObj = JSON.parse(empresa);
-      const empresa_id = empresaObj.id_empresa;
 
+  
+  const processFile = async (file) => {
+    // Função para calcular a idade a partir da data de nascimento
+    const calcularIdade = (dataNascimento) => {
+      const dataAtual = new Date();
+      const dataNascimentoLimpa = dataNascimento.trim(); // Remove espaços em branco
+      const partesData = dataNascimentoLimpa.split("/");
+      const diaNascimento = parseInt(partesData[0]);
+      const mesNascimento = parseInt(partesData[1]) - 1; // Mês começa do zero
+      const anoNascimento = parseInt(partesData[2]);
+      const idade = dataAtual.getFullYear() - anoNascimento;
+    
+      // Verifica se já fez aniversário este ano
+      if (
+        dataAtual.getMonth() < mesNascimento ||
+        (dataAtual.getMonth() === mesNascimento && dataAtual.getDate() < diaNascimento)
+      ) {
+        return idade - 1;
+      }
+    
+      return idade;
+    };
+    
+  
+    try {
+      const empresa = JSON.parse(localStorage.getItem("selectedCompanyData"));
+      const empresa_id = empresa.id_empresa;
+  
       const data = await readFileAsync(file);
       const workbook = XLSX.read(data, { type: "binary" });
-      const sheetName = workbook.SheetNames[0];
-      const sheet = workbook.Sheets[sheetName];
-      const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
-
+      const sheet = workbook.Sheets[workbook.SheetNames[0]];
+      const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1});
+  
       const headers = jsonData[0];
-      const rows = jsonData.slice(1);
-
-      const contato_data = [];
-      const elaboradoresData = [];
-      const empresa_data = [];
-      const unidade_data = [];
-
-      const user = localStorage.getItem("user");
-      const userObj = JSON.parse(user);
-
-      const tenant = userObj.tenant_code;
-
+      const rows = jsonData.slice(2);
+  
+      const unidades = {};
+  
       rows.forEach((row) => {
-        const usuario = {};
-        const elaborador = {};
-        const empresa = {};
-        const unidade = {};
-
-        // Colunas 1-5 para /usuarios
-        headers.slice(0, 4).forEach((header, index) => {
-          usuario[header] = row[index];
-        });
-        usuario.fk_empresa_id = empresa_id;
-        contato_data.push(usuario);
-
-        // Colunas 6-10 para /elaboradores
-        headers.slice(5, 12).forEach((header, index) => {
-          elaborador[header] = row[index + 5];
-        });
-        elaborador.fk_tenant_code = tenant;
-        elaboradoresData.push(elaborador);
-
-        // Colunas 11-15 para /empresas
-        headers.slice(13, 22).forEach((header, index) => {
-          empresa[header] = row[index + 13];
-        });
-        empresa.fk_contato_id = 1;
-        empresa.fk_tenant_code = tenant;
-        empresa_data.push(empresa);
-
-        // Colunas 16-20 para /unidades
-        headers.slice(22, 34).forEach((header, index) => {
-          unidade[header] = row[index + 22];
-        });
-        unidade.fk_contato_id = 1;
-        unidade.fk_empresa_id = empresa_id;
-        unidade_data.push(unidade);
+        const unidadeKey = row[1]; // Coluna 0: id_unidade
+        const setorNome = row[3]; // Coluna 3: nome_setor
+  
+        // Verifica se a unidade já foi criada, se não, cria
+        if (!unidades[unidadeKey]) {
+          unidades[unidadeKey] = {
+            nome_unidade: row[1],
+            cnpj_unidade: row[38],
+            cep_unidade: row[37],
+            endereco_unidade: row[33],
+            numero_unidade: row[66],
+            complemento: row[47],
+            bairro_unidade: row[34],
+            cidade_unidade: row[35],
+            uf_unidade: row[36],
+            fk_contato_id: 1,
+            fk_empresa_id: empresa_id,
+            ativo: 1,
+            setores: {}
+          };
+        }
+  
+        // Verifica se o setor já foi criado na unidade atual, se não, cria
+        if (!Object.values(unidades[unidadeKey].setores).some(setor => setor.nome_setor === setorNome)) {
+          const setorKey = row[3]; // Coluna 3: id_setor
+  
+          unidades[unidadeKey].setores[setorKey] = {
+            nome_setor: setorNome,
+            ambiente_setor: "N/A",
+            observacao_setor: "N/A",
+            fk_unidade_id: unidadeKey,
+            ativo: 1,
+            fk_empresa_id: empresa_id,
+            cargos: {}
+          };
+        }
+  
+        // Adiciona o cargo ao setor existente com o mesmo nome
+        const setorKey = Object.keys(unidades[unidadeKey].setores).find(key => unidades[unidadeKey].setores[key].nome_setor === setorNome);
+  
+        const cargoNome = row[5]; // Coluna 5: nome_cargo
+        const sexo = row[10]; // Coluna 10: Sexo
+        const dataNascimento = row[9]; // Coluna 9: Dt.Nascimento
+        console.log(dataNascimento)
+        const idadeFuncionario = calcularIdade(dataNascimento);
+        const menorDeIdade = idadeFuncionario < 18;
+  
+        // Verifica se o cargo já existe no setor atual
+        if (unidades[unidadeKey].setores[setorKey].cargos[cargoNome]) {
+          // Se o cargo já existe, acumula as contagens de funcionários por sexo
+          if (sexo === 'M') {
+            unidades[unidadeKey].setores[setorKey].cargos[cargoNome].func_masc++;
+          } else if (sexo === 'F') {
+            unidades[unidadeKey].setores[setorKey].cargos[cargoNome].func_fem++;
+          }
+  
+          if (menorDeIdade) {
+            unidades[unidadeKey].setores[setorKey].cargos[cargoNome].func_menor++;
+          }
+        } else {
+          // Se o cargo não existe, cria um novo com as contagens correspondentes
+          unidades[unidadeKey].setores[setorKey].cargos[cargoNome] = {
+            nome_cargo: cargoNome,
+            descricao: row[65],
+            func_masc: sexo === 'M' ? 1 : 0,
+            func_fem: sexo === 'F' ? 1 : 0,
+            func_menor: menorDeIdade ? 1 : 0,
+            fk_setor_id: setorKey,
+            ativo: 1,
+            fk_empresa_id: empresa_id
+          };
+        }
       });
-
-      setAllDataArray(
-        rows.map((row) =>
-          Object.fromEntries(headers.map((header, i) => [header, row[i]]))
-        )
-      );
-      setGroupedData({
-        contato_data,
-        elaboradoresData,
-        empresa_data,
-        unidade_data,
+  
+      const unidadeData = Object.values(unidades).map((unidade) => {
+        unidade.setores = Object.values(unidade.setores).map((setor) => {
+          setor.cargos = Object.values(setor.cargos);
+          return setor;
+        });
+        return unidade;
       });
+  
+      setGroupedData({ unidadeData });
       setImportSuccess(true);
-
-      console.log("Dados Agrupados:");
-      console.log({
-        contato_data,
-        elaboradoresData,
-        empresa_data,
-        unidade_data,
-      });
-
-      const usuariosBlob = new Blob([JSON.stringify(contato_data, null, 2)], {
-        type: "application/json",
-      });
-      const elaboradoresBlob = new Blob(
-        [JSON.stringify(elaboradoresData, null, 2)],
-        { type: "application/json" }
-      );
-      const empresasBlob = new Blob([JSON.stringify(empresa_data, null, 2)], {
-        type: "application/json",
-      });
-
-      saveAs(usuariosBlob, "usuarios.json");
-      saveAs(elaboradoresBlob, "elaboradores.json");
-      saveAs(empresasBlob, "empresas.json");
     } catch (error) {
       console.error("Erro ao processar o arquivo:", error);
     }
   };
-
+  
+  
+  
   const handleSendData = async () => {
     try {
-      const user = localStorage.getItem("user");
-      const userObj = JSON.parse(user);
-      const tenant = userObj.tenant_code;
-      const nome = userObj.nome_usuario;
-      const dataToSend = {
-        empresa_data: groupedData.empresa_data,
-        contato_data: groupedData.contato_data,
-      };
-      const unidadeToSend = {
-        unidade_data: groupedData.unidade_data,
-        contato_data: groupedData.contato_data,
-      };
-      const queryParams = new URLSearchParams({
-        tenant_code: tenant,
-        nome_usuario: nome,
-      }).toString();
-      console.log(JSON.stringify(groupedData.empresa_data));
-      // Enviar dados para /usuarios
-      // const usuariosResponse = await fetch(`${connect}/contatos?${queryParams}`, {
-      //   method: "POST",
-      //   headers: {
-      //     "Content-Type": "application/json",
-      //   },
-      //   body: JSON.stringify(groupedData.contato_data
-
-      //   ),
-      // });
-      // if (usuariosResponse.ok) {
-      //   console.log("Dados de usuários enviados com sucesso!");
-      // } else {
-      //   console.error("Erro ao enviar dados de usuários:", usuariosResponse.statusText);
-      // }
-
-      // Enviar dados para /elaboradores
-      const elaboradoresResponse = await fetch(
-        `${connect}/elaboradores?${queryParams}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(groupedData.elaboradoresData),
-        }
-      );
-      if (elaboradoresResponse.ok) {
-        console.log("Dados de elaboradores enviados com sucesso!");
-      } else {
-        console.error(
-          "Erro ao enviar dados de elaboradores:",
-          elaboradoresResponse.statusText
-        );
-      }
-
-      // Enviar dados para /empresas
-      const empresasResponse = await fetch(
-        `${connect}/empresas?${queryParams}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(dataToSend),
-        }
-      );
-      const responseData = await empresasResponse.json();
-      console.log("Resposta da rota '/empresas':", responseData);
-
-      if (empresasResponse.ok) {
-        console.log("Dados de empresas enviados com sucesso!");
-      } else {
-        console.error(
-          "Erro ao enviar dados de empresas:",
-          responseData.error || empresasResponse.statusText
-        );
-      }
-
-      const unidadesResponse = await fetch(
-        `${connect}/unidades?${queryParams}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(unidadeToSend),
-        }
-      );
-      const responseData2 = await unidadesResponse.json();
-      console.log("Resposta da rota '/unidades':", responseData2);
-
-      if (unidadesResponse.ok) {
-        console.log("Dados de unidades enviados com sucesso!");
-      } else {
-        console.error(
-          "Erro ao enviar dados de unidades:",
-          responseData2.error || unidadesResponse.statusText
-        );
-      }
+      // 
+      console.log(groupedData.unidadeData);
     } catch (error) {
       console.error("Erro ao enviar os dados:", error);
     }

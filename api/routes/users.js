@@ -1664,7 +1664,7 @@ router.post("/setor_exame/", (req, res, next) => {
       console.error("Error getting database connection:", err);
       return next(err); // Propague o erro para o próximo middleware
     }
-
+  
     con.query(q, [exameId, setorId], (err, data) => {
       con.release(); // Assegure-se de que a conexão seja liberada após a consulta
 
@@ -1672,18 +1672,12 @@ router.post("/setor_exame/", (req, res, next) => {
         console.error("Error executing query:", err);
         return res.status(500).json(err);
       }
-
+  
       return res.status(200).json(data);
     });
   });
 });
 
-
-router.post("/exames_setores_from_riscos/", (req, res) => {
-  const { setorId, riscoIds } = req.body;
-  if (!setorId || !Array.isArray(riscoIds) || riscoIds.length === 0) {
-    return res.status(400).json({ error: "setorId and riscoIds are required" });
-  }
 
 
 router.post("/exames_setores_from_riscos/", (req, res) => { 
@@ -1708,7 +1702,6 @@ router.post("/exames_setores_from_riscos/", (req, res) => {
     INSERT DISTINCT INTO setor_exame (fk_exame_id, fk_setor_id, status)
     VALUES (?, ?, 1)
   `;
-
 
   pool.getConnection((err, con) => {
     if (err) return res.status(500).json(err);
@@ -1735,41 +1728,6 @@ router.post("/exames_setores_from_riscos/", (req, res) => {
           return new Promise((resolve, reject) => {
             con.query(checkExistenceQuery, [setorId, exameId], (err, result) => {
               if (err) return reject(err);
-
-
-              if (result.length === 0) {
-                con.query(insertExameSetorQuery, [exameId, setorId], (err, result) => {
-                  if (err) return reject(err);
-                  resolve(result);
-                });
-              } else {
-                resolve(null); // Já existe, não precisa inserir
-              }
-            });
-          });
-        });
-
-        Promise.all(insertPromises)
-          .then(results => {
-            con.commit(err => {
-              if (err) {
-                con.rollback(() => con.release());
-                return res.status(500).json(err);
-              }
-
-              con.release();
-              return res.status(200).json({ message: "Exames processed successfully", results });
-            });
-          })
-          .catch(err => {
-            con.rollback(() => con.release());
-            return res.status(500).json(err);
-          });
-      });
-    });
-  });
-});
-
 
               if (result.length === 0) {
                 con.query(insertExameSetorQuery, [exameId, setorId], (err, result) => {
