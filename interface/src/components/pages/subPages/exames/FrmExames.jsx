@@ -18,6 +18,7 @@ function FrmExames({ onEdit, getExames, setOnEdit, setSearchTerm, exames, setVer
   const [retorno, setRetorno] = useState(false);
   const [mudanca, setMudanca] = useState(false);
   const [demissional, setDemissional] = useState(false);
+  
 
   useEffect(() => {
     if (onEdit) {
@@ -33,6 +34,10 @@ function FrmExames({ onEdit, getExames, setOnEdit, setSearchTerm, exames, setVer
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    const userData = JSON.parse(localStorage.getItem("user"));
+    const tenant = userData.tenant_code;
+    const nome = userData.nome_usuario;
+    const queryParams = new URLSearchParams({ tenant_code: tenant, nome_usuario: nome }).toString();
     try {
       if (!nomeExame || !periodicidade || !admissional && !periodico && !retorno && !mudanca && !demissional) {
         return toast.warn('Preencha todos os campos!');
@@ -46,8 +51,8 @@ function FrmExames({ onEdit, getExames, setOnEdit, setSearchTerm, exames, setVer
         retorno: retorno ? 1 : 0,
         mudanca: mudanca ? 1 : 0,
         demissional: demissional ? 1 : 0,
+        fk_tenant_code: tenant
       }
-      console.log(exameData)
 
       const res = await fetch(`${connect}/exames`, {
         method: "POST",
@@ -62,13 +67,13 @@ function FrmExames({ onEdit, getExames, setOnEdit, setSearchTerm, exames, setVer
       }
 
       const data = await res.json();
-      getExames();
       toast.success(data);
       handleClear();
     } catch (error) {
       console.error(`Erro ao inserir exame. Status${error}`);
     }
   }
+
 
   const handleClear = () => {
     setNomeExame('');

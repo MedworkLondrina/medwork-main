@@ -45,7 +45,7 @@ const {getExames} = useAuth();
         return;
       };
 
-      const response = await fetch(`${connect}/setores_Exames`, {
+      const response = await fetch(`${connect}/setor_exame`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -136,7 +136,7 @@ const {getExames} = useAuth();
       <ModalSearchExames
         isOpen={showModal}
         onCancel={closeModal}
-        children={children}
+        children={examesFiltrados}
         setorName={setorName}
         setorId = {setorId}
         onSetorSelect={selectedSetor}

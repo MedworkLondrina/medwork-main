@@ -58,9 +58,7 @@ function ProfileCompany({ companyId, empresas, contatos }) {
   const [selectedProcessoId, setSelectedProcessoId] = useState(null);
   const [selectedRiscoId, setSelectedRiscoId] = useState(null);
   const [cnaes, setCnaes] = useState([]);
-
   const [exames, setExames] = useState([]);
-
   const [showModalSetorProcesso, setShowModalSetorProcesso] = useState(false);
   const [showModalSetorExame, setShowModalSetorExame] = useState(false);
   const [showModalProcessoRisco, setShowModalProcessoRisco] = useState(false);
@@ -123,6 +121,7 @@ function ProfileCompany({ companyId, empresas, contatos }) {
       setSelectedSetor([]);
       setShowSetorData(true);
       setSetorSelecionado(idSetor);
+      await handleAdicionarExameAutomaticamente();
       await carregarInformações(idSetor);
       setLoading(false);
     } else {
@@ -137,6 +136,7 @@ function ProfileCompany({ companyId, empresas, contatos }) {
 
       const filteredExames = await getSetoresExames(item)
       setExames(filteredExames)      
+
       
       const sector = setoresData.find((i) => i.id_setor === item);
       setSelectedSetor(sector);
@@ -173,6 +173,33 @@ function ProfileCompany({ companyId, empresas, contatos }) {
     }
   };
 
+  const handleAdicionarExameAutomaticamente = async () => {
+       // Construir o corpo da requisição
+       const procRisc = await getProcessosRiscos();
+       const testeRisc =   procRisc.map(i => i.fk_risco_id);
+
+       const requestBody = {
+        setorId: selectedSetor.id_setor,
+        riscoIds: testeRisc
+      };
+  
+    const response = await fetch(`${connect}/exames_setores_from_riscos`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(requestBody),
+    });
+
+    if (response.ok) {
+      carregarInformações(selectedSetor.id_setor)
+      console.log('Exames vinculados ao setor com sucesso');
+    } else {
+      console.error('Falha ao vincular exames ao setor.');
+    }
+
+  };
+
   const carregarRiscos = async (idProcesso, setorId) => {
     try {
       setLoadingRisco(true);
@@ -187,27 +214,9 @@ function ProfileCompany({ companyId, empresas, contatos }) {
 
       const testeRisc =   procRisc.map(i => i.fk_risco_id);
   
-      // Construir o corpo da requisição
-      const requestBody = {
-        setorId: selectedSetor.id_setor,
-        riscoIds: testeRisc
-      };
-  
+   
       // Fazer a requisição POST usando fetch
-      const response = await fetch(`${connect}/exames_setores_from_riscos`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestBody),
-      });
-  
-      if (response.ok) {
-        console.log('Exames vinculados ao setor com sucesso');
-      } else {
-        console.error('Falha ao vincular exames ao setor.');
-      }
-  
+      
       const filteredRiscos = risc.filter((i) => riscIds.includes(i.id_risco));
       const orderRiscos = filteredRiscos.sort((a, b) => b.id_risco - a.id_risco);
       setRiscosData(orderRiscos);

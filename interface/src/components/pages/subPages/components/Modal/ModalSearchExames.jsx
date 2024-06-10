@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import SearchInput from '../SearchInput';
 import { connect } from '../../../../../services/api';
 import useAuth from '../../../../../hooks/useAuth';
+import { toast } from 'react-toastify';
 
 const ModalSearchExames = ({ onCancel, isOpen, children,  setorId }) => {
 
@@ -22,7 +23,7 @@ const ModalSearchExames = ({ onCancel, isOpen, children,  setorId }) => {
 
   useEffect(() => {
     handleNaovinculados();
-  }, [children, setorId])
+  }, [])
 
   const findTipo = (admissional, periodico, retorno, mudanca, demissional) => {
     const tipos = [];
@@ -42,7 +43,7 @@ const ModalSearchExames = ({ onCancel, isOpen, children,  setorId }) => {
     const tenant = userData.tenant_code;
     const nome = userData.nome_usuario;
     const queryParams = new URLSearchParams({ tenant_code: tenant, nome_usuario: nome }).toString();
-      const response = await fetch(`${connect}/exames_setores?${queryParams}`,  {
+      const response = await fetch(`${connect}/setor_exame?${queryParams}`,  {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -54,6 +55,8 @@ const ModalSearchExames = ({ onCancel, isOpen, children,  setorId }) => {
       });
       
       if (response.ok) {
+        handleNaovinculados();
+        toast.success(response.message);
       } else {
         console.error('Falha ao vincular exame ao setor.');
       }
