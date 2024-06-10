@@ -5,22 +5,18 @@ import { toast } from 'react-toastify';
 import useAuth from '../../../../../hooks/useAuth';
 import ModalSearchExames from './ModalSearchExames';
 
-const ModalExame = ({ onCancel, isOpen, setorName, setorId , children}) => {
+const ModalExame = ({ onCancel, isOpen, setorName, setorId, children }) => {
 
-const {getExames} = useAuth();
+  const { getSetoresExames } = useAuth();
 
   const [exames, setExames] = useState([]);
   const [examesFiltrados, setExamesFiltrados] = useState([]);
   const [showModal, setShowModal] = useState(false);
 
- 
-  
-
   const fetchExameFiltrado = async () => {
     try {
-      const res = await getExames();
-      setExames(res)
-      setExamesFiltrados(children);
+      const setorExames = await getSetoresExames(setorId);
+      setExamesFiltrados(setorExames);
     } catch (error) {
       console.log("Erro ao buscar Exames!", error)
     }
@@ -28,14 +24,13 @@ const {getExames} = useAuth();
 
   useEffect(() => {
     fetchExameFiltrado();
-  }, [isOpen]);
-
+  }, [isOpen, children, showModal === false]);
 
   const openModal = () => setShowModal(true);
   //Função para fechar o Modal
   const closeModal = () => setShowModal(false);
 
-  const selectedSetor = async (item) => {
+  const selectedExame = async (item) => {
     try {
 
       const filteredSetorExames = examesFiltrados.filter((i) => i.id_exame === item);
@@ -138,8 +133,8 @@ const {getExames} = useAuth();
         onCancel={closeModal}
         children={examesFiltrados}
         setorName={setorName}
-        setorId = {setorId}
-        onSetorSelect={selectedSetor}
+        setorId={setorId}
+        onSetorSelect={selectedExame}
       />
     </div>
   );

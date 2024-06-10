@@ -507,7 +507,7 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  
+
 
   const getRiscosExames = async () => {
     try {
@@ -687,7 +687,7 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       console.error(`Erro ao buscar exames! Status: ${error}`)
     }
-  }
+  };
 
   const getSetoresExames = async (setorId) => {
     try {
@@ -701,7 +701,8 @@ export const AuthProvider = ({ children }) => {
       console.error(`Erro ao buscar exames! Status: ${error}`);
       throw error;
     }
-  }
+  };
+
   const getExamesSemVinculo = async (setorId) => {
     try {
       const code = await checkTenantCode();
@@ -721,6 +722,7 @@ export const AuthProvider = ({ children }) => {
       throw error;
     }
   };
+<<<<<<< HEAD
   
   
   const getRiscosExamesSemVinculo = async (riscoId) => {
@@ -729,13 +731,20 @@ export const AuthProvider = ({ children }) => {
       if (!code) return;
       const queryParams = new URLSearchParams({ tenant_code: code }).toString();
       const res = await fetch(`${connect}/risco_exames_nao_vinculados/${riscoId}?${queryParams}`);
+=======
+
+  const getRiscosExamesSemVinculo = async (riscoId) => {
+    try {
+      const res = await fetch(`${connect}/risco_exame_nao_vinculados/${riscoId}`);
+>>>>>>> a4851ca1524e0d545f8d2899ee5928e26014bf4a
       const data = await res.json();
       return data;
     } catch (error) {
       console.error(`Erro ao buscar exames! Status: ${error}`);
       throw error;
     }
-  }
+  };
+
   const getRiscosExamesComVinculo = async (riscoId) => {
     try {
       const code = await checkTenantCode();
@@ -748,8 +757,7 @@ export const AuthProvider = ({ children }) => {
       console.error(`Erro ao buscar exames! Status: ${error}`);
       throw error;
     }
-  }
-  
+  };
 
 
   const getTenant = async (tenant) => {

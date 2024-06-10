@@ -8,8 +8,8 @@ import ModalSearchSetor from "../../subPages/components/Modal/ModalSearchSetor";
 import ModalSearchUnidade from "../../subPages/components/Modal/ModalSearchUnidade";
 import ModalSearchElaborador from "../components/Modal/ModalSearchElaborador";
 
-import icon_sair from '../../../media/icon_sair.svg'
-import icon_lupa from '../../../media/icon_lupa.svg'
+import icon_sair from '../../../media/icon_sair.svg';
+import icon_lupa from '../../../media/icon_lupa.svg';
 import { PDFDownloadLink, PDFViewer } from "@react-pdf/renderer";
 import { connect } from "../../../../services/api";
 import GridLaudo from "./Grids/GridLaudo";

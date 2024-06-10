@@ -4,11 +4,11 @@ import { connect } from '../../../../../services/api';
 import useAuth from '../../../../../hooks/useAuth';
 import { toast } from 'react-toastify';
 
-const ModalSearchExames = ({ onCancel, isOpen, children,  setorId }) => {
+const ModalSearchExames = ({ onCancel, isOpen, children, setorId }) => {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [naoVinculados, setNaoVinculados] = useState([]);
-  const {getExamesSemVinculo} = useAuth(null);
+  const { getExamesSemVinculo } = useAuth(null);
 
   const handleSearch = (term) => {
     setSearchTerm(term);
@@ -18,7 +18,6 @@ const ModalSearchExames = ({ onCancel, isOpen, children,  setorId }) => {
     const naoVinculados = await getExamesSemVinculo(setorId);
     console.log(naoVinculados)
     setNaoVinculados(naoVinculados)
-    return naoVinculados
   }
 
   useEffect(() => {
@@ -40,23 +39,34 @@ const ModalSearchExames = ({ onCancel, isOpen, children,  setorId }) => {
   const handleItemClick = async (item) => {
     try {
       const userData = JSON.parse(localStorage.getItem("user"));
+<<<<<<< HEAD
     const tenant = userData.tenant_code;
     const nome = userData.nome_usuario;
     const queryParams = new URLSearchParams({ tenant_code: tenant, nome_usuario: nome }).toString();
       const response = await fetch(`${connect}/setor_exame?${queryParams}`,  {
+=======
+      const tenant = userData.tenant_code;
+      const nome = userData.nome_usuario;
+      const queryParams = new URLSearchParams({ tenant_code: tenant, nome_usuario: nome }).toString();
+      const response = await fetch(`${connect}/setor_exame?${queryParams}`, {
+>>>>>>> a4851ca1524e0d545f8d2899ee5928e26014bf4a
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           setorId: setorId,
-          exameId: item.id_exame, 
+          exameId: item.id_exame,
         }),
       });
-      
+
       if (response.ok) {
+<<<<<<< HEAD
         handleNaovinculados();
         toast.success(response.message);
+=======
+        onCancel();
+>>>>>>> a4851ca1524e0d545f8d2899ee5928e26014bf4a
       } else {
         console.error('Falha ao vincular exame ao setor.');
       }
@@ -119,7 +129,7 @@ const ModalSearchExames = ({ onCancel, isOpen, children,  setorId }) => {
             </>
           ) : (
             <li className='py-3 hover:bg-gray-100 hover:shadow-sm shadow-sm bg-gray-50 cursor-pointer px-4 rounded-md'>
-              <p>Nenhum exame encontrado</p>
+              <p className='font-semibold text-red-800 text-center'>Nenhum exame encontrado!</p>
             </li>
           )}
         </ul>

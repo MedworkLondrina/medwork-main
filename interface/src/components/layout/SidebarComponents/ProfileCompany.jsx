@@ -1,20 +1,24 @@
 import React, { useEffect, useState } from "react";
 import useAuth from "../../../hooks/useAuth";
 import Swal from "sweetalert2";
+import { toast } from "react-toastify";
+import { connect } from "../../../services/api";
 
-import icon_alerta from "../../media/icons_sup/icon_alerta.png";
-import icon_perigo from "../../media/icons_sup/icon_perigo.png";
 import LoadingScreen from "../../pages/subPages/components/LoadingScreen";
-import { IoIosArrowDown } from "react-icons/io";
-import { IoIosArrowUp } from "react-icons/io";
-import { IoAddCircle } from "react-icons/io5";
-import { BsTrash3Fill } from "react-icons/bs";
 import ModalSetorExame from "../../pages/subPages/components/Modal/ModalSetorExame";
 import ModalSetorProcesso from "../../pages/subPages/components/Modal/ModalSetorProcesso";
 import ModalProcessoRisco from "../../pages/subPages/components/Modal/ModalProcessoRisco";
 import ModalRiscoMedida from "../../pages/subPages/components/Modal/ModalRiscoMedidas";
-import { toast } from "react-toastify";
-import { connect } from "../../../services/api";
+
+import { IoIosArrowDown } from "react-icons/io";
+import { IoIosArrowUp } from "react-icons/io";
+import { IoAddCircle } from "react-icons/io5";
+import { BsTrash3Fill } from "react-icons/bs";
+import icon_alerta from "../../media/icons_sup/icon_alerta.png";
+import icon_perigo from "../../media/icons_sup/icon_perigo.png";
+import icon_processo from '../../media/menu/icon_processo.svg';
+import icon_risco from '../../media/menu/icon_risco.svg';
+import icon_exame from '../../media/menu/icon_exame.svg';
 
 function ProfileCompany({ companyId, empresas, contatos }) {
   const {
@@ -58,7 +62,16 @@ function ProfileCompany({ companyId, empresas, contatos }) {
   const [selectedProcessoId, setSelectedProcessoId] = useState(null);
   const [selectedRiscoId, setSelectedRiscoId] = useState(null);
   const [cnaes, setCnaes] = useState([]);
+<<<<<<< HEAD
   const [exames, setExames] = useState([]);
+=======
+
+  const [activeTab, setActiveTab] = useState(1);
+
+  const [exames, setExames] = useState([]);
+  const [filteredExames, setFilteredExames] = useState([]);
+
+>>>>>>> a4851ca1524e0d545f8d2899ee5928e26014bf4a
   const [showModalSetorProcesso, setShowModalSetorProcesso] = useState(false);
   const [showModalSetorExame, setShowModalSetorExame] = useState(false);
   const [showModalProcessoRisco, setShowModalProcessoRisco] = useState(false);
@@ -134,20 +147,17 @@ function ProfileCompany({ companyId, empresas, contatos }) {
     try {
       setLoading(true);
 
+<<<<<<< HEAD
       const filteredExames = await getSetoresExames(item)
       setExames(filteredExames)      
 
       
+=======
+>>>>>>> a4851ca1524e0d545f8d2899ee5928e26014bf4a
       const sector = setoresData.find((i) => i.id_setor === item);
       setSelectedSetor(sector);
-      if (sector) {
-        const offices = await fetchCargos();
-        const filteredCargos = offices.filter((i) => i.fk_setor_id === item);
-        const orderCargos = filteredCargos.sort(
-          (a, b) => b.id_cargo - a.id_cargo
-        );
-        setCargosData(orderCargos);
 
+      if (sector) {
         const setProc = await getSetoresProcessos();
         const proc = await getProcessos();
         const filterSetProc = setProc.filter(
@@ -205,18 +215,44 @@ function ProfileCompany({ companyId, empresas, contatos }) {
       setLoadingRisco(true);
       const procRisc = await getProcessosRiscos();
       const risc = await getRiscos();
-  
+
       // Filtrar os riscos apenas para o processo específico
       const filterProcRisco = procRisc.filter(
         (i) => i.fk_processo_id === idProcesso
       );
       const riscIds = filterProcRisco.map((i) => i.fk_risco_id);
 
+<<<<<<< HEAD
       const testeRisc =   procRisc.map(i => i.fk_risco_id);
   
    
       // Fazer a requisição POST usando fetch
       
+=======
+      const testeRisc = procRisc.map(i => i.fk_risco_id);
+
+      // Construir o corpo da requisição
+      const requestBody = {
+        setorId: selectedSetor.id_setor,
+        riscoIds: testeRisc
+      };
+
+      // Fazer a requisição POST usando fetch
+      const response = await fetch(`${connect}/setor_exame_from_riscos`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody),
+      });
+
+      if (response.ok) {
+        console.log('Exames vinculados ao setor com sucesso');
+      } else {
+        console.error('Falha ao vincular exames ao setor.');
+      }
+
+>>>>>>> a4851ca1524e0d545f8d2899ee5928e26014bf4a
       const filteredRiscos = risc.filter((i) => riscIds.includes(i.id_risco));
       const orderRiscos = filteredRiscos.sort((a, b) => b.id_risco - a.id_risco);
       setRiscosData(orderRiscos);
@@ -245,6 +281,34 @@ function ProfileCompany({ companyId, empresas, contatos }) {
       setLoadingMedida(false);
     } catch (error) {
       console.error(`Erro ao carregar medidas. Status: ${error}`);
+    }
+  };
+
+  const carregarExames = async () => {
+    try {
+      setLoading(true);
+      const exam = await getExames();
+      const setorExames = await getSetoresExames(selectedSetor.id_setor);
+      setExames(exam);
+      setFilteredExames(setorExames);
+      setLoading(false);
+    } catch (error) {
+      console.error(`Erro ao carregar exames. Status: ${error}`);
+    }
+  };
+
+  const carregarCargos = async () => {
+    try {
+      setLoading(true);
+      const offices = await fetchCargos();
+      const filteredCargos = offices.filter((i) => i.fk_setor_id === selectedSetor.id_setor);
+      const orderCargos = filteredCargos.sort(
+        (a, b) => b.id_cargo - a.id_cargo
+      );
+      setCargosData(orderCargos);
+      setLoading(false);
+    } catch (error) {
+      console.error(`Erro ao carregar cargos. Status: ${error}`);
     }
   };
 
@@ -344,8 +408,7 @@ function ProfileCompany({ companyId, empresas, contatos }) {
 
   const closeModalSetorExame = async () => {
     setShowModalSetorExame(false);
-    await carregarRiscos();
-    await carregarInformações(selectedSetor.id_setor);
+    await carregarExames();
   };
 
   const closeModalProcessoRisco = async () => {
@@ -485,9 +548,65 @@ function ProfileCompany({ companyId, empresas, contatos }) {
     }
   };
 
+  const handleDeleteExame = async (idExame) => {
+    try {
+      const result = await Swal.fire({
+        title: "Tem certeza?",
+        text: "Você está prestes a excluir este item!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Sim, exclua!",
+        cancelButtonText: "Cancelar",
+        reverseButtons: true,
+      });
+      if (result.isConfirmed) {
+        const queryParams = new URLSearchParams({ id_setor: selectedSetor.id_setor, id_exame: idExame }).toString();
+        const response = await fetch(
+          `${connect}/setor_exame/?${queryParams}`,
+          {
+            method: "DELETE",
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(
+            `Erro ao deletar vinculo entre exame e setor. Status: ${response.status}`
+          );
+        }
+
+        const responseData = await response.json();
+        toast.success(responseData.message);
+        carregarExames(selectedSetor.id_setor);
+      }
+    } catch (error) {
+      console.error(
+        `Erro ao deletar vinculo entre exame e setor. Status: ${error}`
+      );
+    }
+  };
+
+  const renderContent = async (tab) => {
+    switch (tab) {
+      case 1:
+        setActiveTab(1);
+        await carregarInformações(selectedSetor.id_setor);
+        break
+      case 2:
+        setActiveTab(2);
+        await carregarExames();
+        break;
+      case 3:
+        setActiveTab(3);
+        await carregarCargos();
+        break
+      default:
+        return null;
+    }
+  };
+
   if (!companyId) {
     return;
-  }
+  };
 
   return (
     <>
@@ -527,30 +646,34 @@ function ProfileCompany({ companyId, empresas, contatos }) {
 
         {/* Tab Unidades */}
         {unidades && (
-          <div className="pt-2 px-2">
-            <div className=" border-b border-gray-300">
-              <ul className="flex -mb-px">
-                {unidades.map((item) => (
-                  <li
-                    key={item.id_unidade}
-                    onClick={() => handleSelectUnidade(item.id_unidade)}
-                  >
-                    <div
-                      className={`inline-block py-3 px-4 border-b-2 border-transparent rounded-t-lg ${
-                        showUnidadeData.id_unidade === item.id_unidade
+          <>
+            <div className="pt-2 px-3 overflow-x-auto">
+              <div className="flex items-center gap-2 border-b border-gray-300">
+                <h1 className="font-medium text-gray-600">
+                  Unidades:
+                </h1>
+                <ul className="flex -mb-px">
+                  {unidades.map((item) => (
+                    <li
+                      key={item.id_unidade}
+                      onClick={() => handleSelectUnidade(item.id_unidade)}
+                    >
+                      <div
+                        className={`inline-block py-3 px-4 border-b-2 border-transparent rounded-t-lg ${showUnidadeData.id_unidade === item.id_unidade
                           ? "text-sky-600 bg-gray-100"
                           : "hover:bg-gray-100 hover:text-sky-600 hover:border-b-2 hover:border-sky-600 cursor-pointer"
-                      }`}
-                    >
-                      <p className="text-sm font-medium text-center text-gray-500 cursor-pointer">
-                        {item.nome_unidade}
-                      </p>
-                    </div>
-                  </li>
-                ))}
-              </ul>
+                          }`}
+                      >
+                        <p className="text-sm font-medium text-center text-gray-500 cursor-pointer">
+                          {item.nome_unidade}
+                        </p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
-          </div>
+          </>
         )}
 
         {/* Setores */}
@@ -595,9 +718,16 @@ function ProfileCompany({ companyId, empresas, contatos }) {
               <div className="w-full grid grid-cols-3">
                 {/* Lista de Setores */}
                 <div className="col-span-1">
-                  <h1 className="mb-1 ml-1 font-medium text-gray-600">
-                    Lista de Setores
-                  </h1>
+                  <div class="text-sm font-medium text-center text-gray-500 border-b border-gray-200">
+                    <ul class="flex">
+                      <li class="me-2">
+                        <div class={`ml-2 py-1 border-b-2 border-transparent`}>
+                          <p>Lista de Setores</p>
+                        </div>
+                      </li>
+                    </ul>
+                  </div>
+
                   <ul className="space-y-4">
                     {setoresData.map((item) => (
                       <li
@@ -606,11 +736,10 @@ function ProfileCompany({ companyId, empresas, contatos }) {
                         onClick={() => handleSelectSetor(item.id_setor)}
                       >
                         <div
-                          className={`bg-white px-4 py-2 ${
-                            showSetorData
-                              ? "rounded-l-md"
-                              : "rounded-md shadow hover:shadow-md"
-                          }`}
+                          className={`bg-white px-4 py-2 ${showSetorData
+                            ? "rounded-l-md"
+                            : "rounded-md shadow hover:shadow-md"
+                            }`}
                         >
                           <h2 className="text-sky-700 font-bold text-lg truncate">
                             {item.nome_setor}
@@ -629,422 +758,444 @@ function ProfileCompany({ companyId, empresas, contatos }) {
                 <div className="col-span-2">
                   {showSetorData && (
                     <>
-                      <h1 className="mb-1 ml-1 font-medium text-gray-600">
-                        Setor {selectedSetor.nome_setor}
-                      </h1>
+                      {/* Tab */}
+                      <div class="text-sm font-medium text-center text-gray-500 border-b border-gray-200">
+                        <ul class="flex">
+                          <li class="me-2" onClick={() => renderContent(1)}>
+                            <div class={`inline-block px-4 py-1 border-b-2 rounded-t-lg ${activeTab === 1 ? 'text-sky-700 border-sky-600' : 'hover:text-sky-700 hover:border-sky-600 border-transparent'}  cursor-pointer`}>
+                              <p className="cursor-pointer">Processos</p>
+                            </div>
+                          </li>
+                          <li class="me-2" onClick={() => renderContent(2)}>
+                            <div class={`inline-block px-4 py-1 border-b-2 rounded-t-lg ${activeTab === 2 ? 'text-sky-700 border-sky-600' : 'hover:text-sky-700 hover:border-sky-600 border-transparent'}  cursor-pointer`}>
+                              <p className="cursor-pointer">Exames</p>
+                            </div>
+                          </li>
+                          <li class="me-2" onClick={() => renderContent(3)}>
+                            <div class={`inline-block px-4 py-1 border-b-2 rounded-t-lg ${activeTab === 3 ? 'text-sky-700 border-sky-600' : 'hover:text-sky-700 hover:border-sky-600 border-transparent'}  cursor-pointer`}>
+                              <p className="cursor-pointer">Cargos</p>
+                            </div>
+                          </li>
+                        </ul>
+                      </div>
+
                       <div className="bg-white rounded-r-md px-4 py-2 relative">
                         {loading && <LoadingScreen />}
-                        <div className="">
+                        <div>
+
                           {/* Cargos */}
-                          {cargosData && (
-                            <div className="">
-                              <h1 className="mb-2">Cargos</h1>
-                              <ul className="gap-2 flex flex-wrap items-center">
-                                {cargosData.map((item) => (
-                                  <li key={item.id_cargo}>
-                                    <div
-                                      className={`bg-gray-50 rounded px-4 py-2`}
-                                    >
+                          {activeTab === 3 && cargosData && (
+                            <ul className="space-y-2">
+                              {cargosData.map((item) => (
+                                <li key={item.id_cargo}>
+                                  <div className="bg-gray-50 rounded px-4 py-2">
+                                    <div>
                                       <h2 className="text-sky-700 font-medium truncate hover:whitespace-normal">
                                         {item.nome_cargo}
                                       </h2>
                                     </div>
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                          )}
-                          <div className="my-2">
-                            <hr />
-                          </div>
-                          <div className="">
-                            <h2 className="mb-2">Exames</h2>
-                            <ul className="space-y-2 mb-2">
-                              {/* Adicionar Exame */}
-                              <li
-                                className="cursor-pointer"
-                                onClick={handleAdicionarExame}
-                              >
-                                <div className="bg-gray-50 rounded px-4 py-2 hover:bg-gray-100 hover:shadow">
-                                  <div className="flex justify-center items-center text-sky-700 font-bold text-center gap-1">
-                                    <IoAddCircle />
-                                    <p className="">Adicionar Exame</p>
-                                  </div>
-                                </div>
-                              </li>
-                              {/* Lista de Exames */}
-                              {exames && exames.map((item,i) => (
-                                <li key={i}>
-                                  <div className="bg-gray-50 rounded px-4 py-2">
-                                    <div>
-                                      <div className="flex justify-between items-center">
-                                        <p className="text-sm text-gray-700 font-light -mb-1">
-                                          Exame:
-                                        </p>
-                                        <div
-                                          className="text-sm text-red-600 hover:text-red-700 cursor-pointer"
-                                          onClick={() =>
-                                            handleDeleteProcesso(item.id_exame)
-                                          }
-                                        >
-                                          <BsTrash3Fill />
-                                        </div>
-                                      </div>
-                                      <h2 className="text-sky-700 font-medium truncate hover:whitespace-normal">
-                                        {item.nome_exame}
-                                      </h2>
+                                    <hr />
+                                    <div className="mt-1">
+                                      <p className="text-sm text-gray-700">
+                                        <span className="text-sm font-light text-gray-500 mr-1">Descrição:</span>{item.descricao}
+                                      </p>
                                     </div>
                                   </div>
                                 </li>
                               ))}
                             </ul>
-                          </div>
-                          <div className="my-2">
-                            <hr />
-                          </div>
+                          )}
+                          {/* Exames */}
+                          {activeTab === 2 && (
+                            <>
+                              <div className="">
+                                <ul className="space-y-2 mb-2">
+                                  {/* Adicionar Exame */}
+                                  <li
+                                    className="cursor-pointer"
+                                    onClick={handleAdicionarExame}
+                                  >
+                                    <div className="bg-gray-50 rounded px-4 py-2 hover:bg-gray-100 hover:shadow">
+                                      <div className="flex justify-center items-center text-sky-700 font-bold text-center gap-1">
+                                        <IoAddCircle />
+                                        <p className="">Adicionar Exame</p>
+                                      </div>
+                                    </div>
+                                  </li>
+                                  {/* Lista de Exames */}
+                                  {exames && filteredExames.map((item, i) => (
+                                    <li key={i}>
+                                      <div className="bg-gray-50 rounded px-4 py-2">
+                                        <div>
+                                          <div className="flex justify-between items-center">
+                                            <p className="text-sm text-gray-700 font-light -mb-1">
+                                              Exame:
+                                            </p>
+                                            <div
+                                              className="text-sm text-red-600 hover:text-red-700 cursor-pointer"
+                                              onClick={() =>
+                                                handleDeleteExame(item.id_exame)
+                                              }
+                                            >
+                                              <BsTrash3Fill />
+                                            </div>
+                                          </div>
+                                          <h2 className="text-sky-700 font-medium truncate hover:whitespace-normal">
+                                            {item.nome_exame}
+                                          </h2>
+                                        </div>
+                                      </div>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            </>
+                          )}
 
                           {/* Processos */}
-                          <div className="">
-                            <h2 className="mb-2">Processos</h2>
-                            <ul className="space-y-2 mb-2">
-                              {/* Adicionar Processos */}
-                              <li
-                                className="cursor-pointer"
-                                onClick={handleAdicionarProcesso}
-                              >
-                                <div
-                                  className={`bg-gray-50 rounded px-4 py-2 hover:bg-gray-100 hover:shadow`}
-                                >
-                                  <div className="flex justify-center items-center text-sky-700 font-bold text-center gap-1">
-                                    <IoAddCircle />
-                                    <p className="">Adicionar Processos</p>
-                                  </div>
-                                </div>
-                              </li>
-                              {/* Lista de Processos */}
-                              {processosData.map((item) => (
-                                <li key={item.id_processo}>
-                                  <div
-                                    className={`bg-gray-50 rounded px-4 py-2`}
+                          {activeTab === 1 && (
+                            <>
+                              <div className="">
+                                <ul className="space-y-2 mb-2">
+                                  {/* Adicionar Processos */}
+                                  <li
+                                    className="cursor-pointer"
+                                    onClick={handleAdicionarProcesso}
                                   >
-                                    <div>
-                                      <div className="flex justify-between items-center">
-                                        <p className="text-sm text-gray-700 font-light -mb-1">
-                                          Processo:
-                                        </p>
-                                        <div
-                                          className="text-sm text-red-600 hover:text-red-700 cursor-pointer"
-                                          onClick={() =>
-                                            handleDeleteProcesso(
-                                              item.id_processo
-                                            )
-                                          }
-                                        >
-                                          <BsTrash3Fill />
-                                        </div>
-                                      </div>
-                                      <h2 className="text-sky-700 font-medium truncate hover:whitespace-normal">
-                                        {item.nome_processo}
-                                      </h2>
-                                      <div>
-                                        <p className="text-sm text-gray-700 font-light">
-                                          Cnae's:
-                                        </p>
-                                        <div className="flex gap-2 mb-2">
-                                          {cnaes
-                                            .filter(
-                                              (cnae) =>
-                                                cnae.id_processo ===
-                                                item.id_processo
-                                            )
-                                            .map((cnae, i) => (
-                                              <div className="bg-white px-2 py-1 rounded">
-                                                <p
-                                                  key={i.id_cnae}
-                                                  className="text-sky-700 font-medium truncate hover:whitespace-normal"
-                                                >
-                                                  {cnae.subclasse_cnae}
-                                                </p>
-                                              </div>
-                                            ))}
-                                        </div>
+                                    <div
+                                      className={`bg-gray-50 rounded px-4 py-2 hover:bg-gray-100 hover:shadow`}
+                                    >
+                                      <div className="flex justify-center items-center text-sky-700 font-bold text-center gap-1">
+                                        <IoAddCircle />
+                                        <p className="">Adicionar Processos</p>
                                       </div>
                                     </div>
-                                    <div className="border-b border-sky-600"></div>
-                                    <div
-                                      className={`relative cursor-pointer rounded px-2 bg-white hover:shadow py-1 mt-1 ${
-                                        showRiscosProc &&
-                                        selectedProcessoId === item.id_processo
-                                          ? "shadow"
-                                          : ""
-                                      }`}
-                                    >
-                                      {loadingRisco && <LoadingScreen />}
+                                  </li>
+                                  {/* Lista de Processos */}
+                                  {processosData.map((item) => (
+                                    <li key={item.id_processo}>
                                       <div
-                                        className="flex items-center justify-between mt-1 mb-1"
-                                        onClick={() =>
-                                          handleClickProcesso(item.id_processo)
-                                        }
+                                        className={`bg-gray-50 rounded px-4 py-2`}
                                       >
-                                        <p className="text-sm">Riscos</p>
-                                        {/* Mostrar Riscos */}
-                                        <div className="flex gap-2 items-center">
-                                          {showRiscosProc &&
-                                          selectedProcessoId ===
-                                            item.id_processo ? (
-                                            <>
-                                              <IoIosArrowUp />
-                                            </>
-                                          ) : (
-                                            <>
-                                              <IoIosArrowDown />
-                                            </>
-                                          )}
-                                        </div>
-                                      </div>
-                                      <ul className="space-y-2 mb-2">
-                                        {/* Adicionar Riscos */}
-                                        {/* Lista de Riscos */}
-                                        {showRiscosProc &&
-                                          selectedProcessoId ===
-                                            item.id_processo && (
-                                            <>
-                                              <li
-                                                className="cursor-pointer"
-                                                onClick={() =>
-                                                  handleAdicionarRisco(item)
-                                                }
-                                              >
-                                                <div className="bg-white border rounded px-3 py-1 hover:shadow">
-                                                  <div className="flex justify-center items-center text-sky-700 font-bold gap-1">
-                                                    <IoAddCircle />
-                                                    <p>Adicionar Riscos</p>
-                                                  </div>
-                                                </div>
-                                              </li>
-                                              {riscosData.map((risco) => (
-                                                <div
-                                                  key={risco.id_risco}
-                                                  className="bg-white border rounded px-3 py-2 mb-4"
-                                                >
-                                                  <div className="grid grid-cols-3">
-                                                    <div className="col-span-2">
-                                                      <div>
-                                                        <p className="text-gray-600 font-thin text-xs -mb-1">
-                                                          Risco:
-                                                        </p>
-                                                        <p className="text-gray-600 font-bold text-lg">
-                                                          {risco.nome_risco}
-                                                        </p>
-                                                      </div>
-                                                    </div>
-                                                    <div className="col-span-1 flex justify-end items-center gap-2">
-                                                      <div className="text-end">
-                                                        <p className="text-xs font-thin -mb-1 text-left">
-                                                          E-social:
-                                                        </p>
-                                                        <p className="text-gray-600 font-bold text-lg">
-                                                          {risco.codigo_esocial_risco ===
-                                                          "N/A"
-                                                            ? "-"
-                                                            : risco.codigo_esocial_risco}
-                                                        </p>
-                                                      </div>
-                                                      <div
-                                                        className="text-sm text-red-600 hover:text-red-700 cursor-pointer"
-                                                        onClick={() =>
-                                                          handleDeleteRisco(
-                                                            risco.id_risco
-                                                          )
-                                                        }
-                                                      >
-                                                        <BsTrash3Fill />
-                                                      </div>
-                                                    </div>
-                                                  </div>
-                                                  <hr />
-                                                  <div className="grid grid-cols-4 gap-2 py-2 items-center">
-                                                    <div className="col-span-3">
-                                                      <div className="flex items-center gap-1">
-                                                        <p className="text-gray-600 text-sm">
-                                                          Grupo:
-                                                        </p>
-                                                        <p className="text-gray-600 font-bold text-sm">
-                                                          {risco.grupo_risco}
-                                                        </p>
-                                                      </div>
-                                                      <div className="flex items-center gap-1">
-                                                        <p className="text-gray-600 text-sm">
-                                                          Metodologia:
-                                                        </p>
-                                                        <p className="text-gray-600 font-bold text-sm">
-                                                          {
-                                                            risco.metodologia_risco
-                                                          }
-                                                        </p>
-                                                      </div>
-                                                    </div>
-                                                    <div className="inline-block space-y-1 mt-2 col-span-1">
-                                                      <div className="flex justify-center items-center gap-1">
-                                                        <img
-                                                          src={icon_alerta}
-                                                          className="h-4 w-4"
-                                                        />
-                                                        <p className="text-sm text-gray-500 truncate">
-                                                          NA:{" "}
-                                                          <span className="text-sm font-medium text-gray-700">
-                                                            {risco.nivel_acao_risco ===
-                                                            0
-                                                              ? "-"
-                                                              : risco.nivel_acao_risco}
-                                                          </span>
-                                                        </p>
-                                                      </div>
-                                                      <div className="flex justify-center items-center gap-1">
-                                                        <img
-                                                          src={icon_perigo}
-                                                          className="h-4 w-4"
-                                                        />
-                                                        <p className="text-sm text-gray-500 truncate">
-                                                          LT:{" "}
-                                                          <span className="text-sm font-medium text-gray-700">
-                                                            {risco.limite_tolerancia_risco ===
-                                                            0
-                                                              ? "-"
-                                                              : risco.limite_tolerancia_risco}
-                                                          </span>
-                                                        </p>
-                                                      </div>
-                                                    </div>
-                                                  </div>
-                                                  <hr />
-                                                  <div
-                                                    className={`relative cursor-pointer rounded px-2 bg-gray-100 hover:shadow py-1 mt-1 ${
-                                                      showMedidasRisk &&
-                                                      selectedRiscoId ===
-                                                        risco.id_risco
-                                                        ? ""
-                                                        : ""
-                                                    }`}
-                                                  >
-                                                    {loadingMedida && (
-                                                      <LoadingScreen />
-                                                    )}
-                                                    <div
-                                                      className="flex justify-between items-center text-sky-700 mb-1"
-                                                      onClick={() =>
-                                                        handleClickMedidas(
-                                                          risco.id_risco
-                                                        )
-                                                      }
+                                        <div>
+                                          <div className="flex justify-between items-center">
+                                            <p className="text-sm text-gray-700 font-light -mb-1">
+                                              Processo:
+                                            </p>
+                                            <div
+                                              className="text-sm text-red-600 hover:text-red-700 cursor-pointer"
+                                              onClick={() =>
+                                                handleDeleteProcesso(
+                                                  item.id_processo
+                                                )
+                                              }
+                                            >
+                                              <BsTrash3Fill />
+                                            </div>
+                                          </div>
+                                          <h2 className="text-sky-700 font-medium truncate hover:whitespace-normal">
+                                            {item.nome_processo}
+                                          </h2>
+                                          <div>
+                                            <p className="text-sm text-gray-700 font-light">
+                                              Cnae's:
+                                            </p>
+                                            <div className="flex gap-2 mb-2">
+                                              {cnaes
+                                                .filter(
+                                                  (cnae) =>
+                                                    cnae.id_processo ===
+                                                    item.id_processo
+                                                )
+                                                .map((cnae, i) => (
+                                                  <div key={i} className="bg-white px-2 py-1 rounded">
+                                                    <p
+                                                      key={i.id_cnae}
+                                                      className="text-sky-700 font-medium truncate hover:whitespace-normal"
                                                     >
-                                                      <h3 className="text-sm">
-                                                        Medidas
-                                                      </h3>
-                                                      <div className="flex items-center gap-2">
-                                                        {showMedidasRisk &&
-                                                        selectedRiscoId ===
-                                                          risco.id_risco ? (
-                                                          <>
-                                                            <IoIosArrowUp />
-                                                          </>
-                                                        ) : (
-                                                          <>
-                                                            <IoIosArrowDown />
-                                                          </>
-                                                        )}
+                                                      {cnae.subclasse_cnae}
+                                                    </p>
+                                                  </div>
+                                                ))}
+                                            </div>
+                                          </div>
+                                        </div>
+                                        <div className="border-b border-sky-600"></div>
+                                        <div
+                                          className={`relative cursor-pointer rounded px-2 bg-white hover:shadow py-1 mt-1 ${showRiscosProc &&
+                                            selectedProcessoId === item.id_processo
+                                            ? "shadow"
+                                            : ""
+                                            }`}
+                                        >
+                                          {loadingRisco && <LoadingScreen />}
+                                          <div
+                                            className="flex items-center justify-between mt-1 mb-1"
+                                            onClick={() =>
+                                              handleClickProcesso(item.id_processo)
+                                            }
+                                          >
+                                            <p className="text-sm">Riscos</p>
+                                            {/* Mostrar Riscos */}
+                                            <div className="flex gap-2 items-center">
+                                              {showRiscosProc &&
+                                                selectedProcessoId ===
+                                                item.id_processo ? (
+                                                <>
+                                                  <IoIosArrowUp />
+                                                </>
+                                              ) : (
+                                                <>
+                                                  <IoIosArrowDown />
+                                                </>
+                                              )}
+                                            </div>
+                                          </div>
+                                          <ul className="space-y-2 mb-2">
+                                            {/* Adicionar Riscos */}
+                                            {/* Lista de Riscos */}
+                                            {showRiscosProc &&
+                                              selectedProcessoId ===
+                                              item.id_processo && (
+                                                <>
+                                                  <li
+                                                    className="cursor-pointer"
+                                                    onClick={() =>
+                                                      handleAdicionarRisco(item)
+                                                    }
+                                                  >
+                                                    <div className="bg-white border rounded px-3 py-1 hover:shadow">
+                                                      <div className="flex justify-center items-center text-sky-700 font-bold gap-1">
+                                                        <IoAddCircle />
+                                                        <p>Adicionar Riscos</p>
                                                       </div>
                                                     </div>
-                                                    <ul className="space-y-2">
-                                                      {/* Adicionar Medidas */}
-                                                      {showMedidasRisk &&
-                                                        selectedRiscoId ===
-                                                          risco.id_risco && (
-                                                          <>
-                                                            <li
-                                                              className="cursor-pointer"
-                                                              onClick={() =>
-                                                                handleAdicionarMedida(
-                                                                  risco
-                                                                )
+                                                  </li>
+                                                  {riscosData.map((risco) => (
+                                                    <div
+                                                      key={risco.id_risco}
+                                                      className="bg-white border rounded px-3 py-2 mb-4"
+                                                    >
+                                                      <div className="grid grid-cols-3">
+                                                        <div className="col-span-2">
+                                                          <div>
+                                                            <p className="text-gray-600 font-thin text-xs -mb-1">
+                                                              Risco:
+                                                            </p>
+                                                            <p className="text-gray-600 font-bold text-lg">
+                                                              {risco.nome_risco}
+                                                            </p>
+                                                          </div>
+                                                        </div>
+                                                        <div className="col-span-1 flex justify-end items-center gap-2">
+                                                          <div className="text-end">
+                                                            <p className="text-xs font-thin -mb-1 text-left">
+                                                              E-social:
+                                                            </p>
+                                                            <p className="text-gray-600 font-bold text-lg">
+                                                              {risco.codigo_esocial_risco ===
+                                                                "N/A"
+                                                                ? "-"
+                                                                : risco.codigo_esocial_risco}
+                                                            </p>
+                                                          </div>
+                                                          <div
+                                                            className="text-sm text-red-600 hover:text-red-700 cursor-pointer"
+                                                            onClick={() =>
+                                                              handleDeleteRisco(
+                                                                risco.id_risco
+                                                              )
+                                                            }
+                                                          >
+                                                            <BsTrash3Fill />
+                                                          </div>
+                                                        </div>
+                                                      </div>
+                                                      <hr />
+                                                      <div className="grid grid-cols-4 gap-2 py-2 items-center">
+                                                        <div className="col-span-3">
+                                                          <div className="flex items-center gap-1">
+                                                            <p className="text-gray-600 text-sm">
+                                                              Grupo:
+                                                            </p>
+                                                            <p className="text-gray-600 font-bold text-sm">
+                                                              {risco.grupo_risco}
+                                                            </p>
+                                                          </div>
+                                                          <div className="flex items-center gap-1">
+                                                            <p className="text-gray-600 text-sm">
+                                                              Metodologia:
+                                                            </p>
+                                                            <p className="text-gray-600 font-bold text-sm">
+                                                              {
+                                                                risco.metodologia_risco
                                                               }
-                                                            >
-                                                              <div className="bg-white border rounded px-2 py-1 mb-2 hover:shadow">
-                                                                <div className="flex justify-center items-center text-sky-700 font-bold gap-1">
-                                                                  <IoAddCircle />
-                                                                  <p>
-                                                                    Adicionar
-                                                                    Medidas
-                                                                  </p>
-                                                                </div>
-                                                              </div>
-                                                            </li>
-                                                            {medidasData &&
-                                                            medidasData.length >
-                                                              0 ? (
+                                                            </p>
+                                                          </div>
+                                                        </div>
+                                                        <div className="inline-block space-y-1 mt-2 col-span-1">
+                                                          <div className="flex justify-center items-center gap-1">
+                                                            <img
+                                                              src={icon_alerta}
+                                                              className="h-4 w-4"
+                                                            />
+                                                            <p className="text-sm text-gray-500 truncate">
+                                                              NA:{" "}
+                                                              <span className="text-sm font-medium text-gray-700">
+                                                                {risco.nivel_acao_risco ===
+                                                                  0
+                                                                  ? "-"
+                                                                  : risco.nivel_acao_risco}
+                                                              </span>
+                                                            </p>
+                                                          </div>
+                                                          <div className="flex justify-center items-center gap-1">
+                                                            <img
+                                                              src={icon_perigo}
+                                                              className="h-4 w-4"
+                                                            />
+                                                            <p className="text-sm text-gray-500 truncate">
+                                                              LT:{" "}
+                                                              <span className="text-sm font-medium text-gray-700">
+                                                                {risco.limite_tolerancia_risco ===
+                                                                  0
+                                                                  ? "-"
+                                                                  : risco.limite_tolerancia_risco}
+                                                              </span>
+                                                            </p>
+                                                          </div>
+                                                        </div>
+                                                      </div>
+                                                      <hr />
+                                                      <div
+                                                        className={`relative cursor-pointer rounded px-2 bg-gray-100 hover:shadow py-1 mt-1 ${showMedidasRisk &&
+                                                          selectedRiscoId ===
+                                                          risco.id_risco
+                                                          ? ""
+                                                          : ""
+                                                          }`}
+                                                      >
+                                                        {loadingMedida && (
+                                                          <LoadingScreen />
+                                                        )}
+                                                        <div
+                                                          className="flex justify-between items-center text-sky-700 mb-1"
+                                                          onClick={() =>
+                                                            handleClickMedidas(
+                                                              risco.id_risco
+                                                            )
+                                                          }
+                                                        >
+                                                          <h3 className="text-sm">
+                                                            Medidas
+                                                          </h3>
+                                                          <div className="flex items-center gap-2">
+                                                            {showMedidasRisk &&
+                                                              selectedRiscoId ===
+                                                              risco.id_risco ? (
                                                               <>
-                                                                {medidasData.map(
-                                                                  (medida) => (
-                                                                    <li
-                                                                      key={
-                                                                        medida.id_medida
-                                                                      }
-                                                                    >
-                                                                      <div className="bg-white border rounded py-1 px-2">
-                                                                        <div className="grid grid-cols-4 items-center">
-                                                                          <div className="col-span-3">
-                                                                            <p className="text-sky-700 font-medium truncate">
-                                                                              {
-                                                                                medida.descricao_medida
-                                                                              }
-                                                                            </p>
-                                                                          </div>
-                                                                          <div className="col-span-1 flex justify-end pr-2 items-center gap-3">
-                                                                            <p className="text-sky-700 text-sm">
-                                                                              {typeMedida(
-                                                                                medida.grupo_medida
-                                                                              )}
-                                                                            </p>
-                                                                            <div
-                                                                              className="text-sm text-red-600 hover:text-red-700 cursor-pointer"
-                                                                              onClick={() =>
-                                                                                handleDeleteMedida(
-                                                                                  medida.id_medida
-                                                                                )
-                                                                              }
-                                                                            >
-                                                                              <BsTrash3Fill />
-                                                                            </div>
-                                                                          </div>
-                                                                        </div>
-                                                                      </div>
-                                                                    </li>
-                                                                  )
-                                                                )}
+                                                                <IoIosArrowUp />
                                                               </>
                                                             ) : (
-                                                              <li>
-                                                                <p className="text-gray-600 text-sm font-medium text-center">
-                                                                  Nenhuma medida
-                                                                  cadastrada.
-                                                                </p>
-                                                              </li>
+                                                              <>
+                                                                <IoIosArrowDown />
+                                                              </>
                                                             )}
-                                                          </>
-                                                        )}
-                                                    </ul>
-                                                  </div>
-                                                </div>
-                                              ))}
-                                            </>
-                                          )}
-                                      </ul>
-                                    </div>
-                                  </div>
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
+                                                          </div>
+                                                        </div>
+                                                        <ul className="space-y-2">
+                                                          {/* Adicionar Medidas */}
+                                                          {showMedidasRisk &&
+                                                            selectedRiscoId ===
+                                                            risco.id_risco && (
+                                                              <>
+                                                                <li
+                                                                  className="cursor-pointer"
+                                                                  onClick={() =>
+                                                                    handleAdicionarMedida(
+                                                                      risco
+                                                                    )
+                                                                  }
+                                                                >
+                                                                  <div className="bg-white border rounded px-2 py-1 mb-2 hover:shadow">
+                                                                    <div className="flex justify-center items-center text-sky-700 font-bold gap-1">
+                                                                      <IoAddCircle />
+                                                                      <p>
+                                                                        Adicionar
+                                                                        Medidas
+                                                                      </p>
+                                                                    </div>
+                                                                  </div>
+                                                                </li>
+                                                                {medidasData &&
+                                                                  medidasData.length >
+                                                                  0 ? (
+                                                                  <>
+                                                                    {medidasData.map(
+                                                                      (medida) => (
+                                                                        <li
+                                                                          key={
+                                                                            medida.id_medida
+                                                                          }
+                                                                        >
+                                                                          <div className="bg-white border rounded py-1 px-2">
+                                                                            <div className="grid grid-cols-4 items-center">
+                                                                              <div className="col-span-3">
+                                                                                <p className="text-sky-700 font-medium truncate">
+                                                                                  {
+                                                                                    medida.descricao_medida
+                                                                                  }
+                                                                                </p>
+                                                                              </div>
+                                                                              <div className="col-span-1 flex justify-end pr-2 items-center gap-3">
+                                                                                <p className="text-sky-700 text-sm">
+                                                                                  {typeMedida(
+                                                                                    medida.grupo_medida
+                                                                                  )}
+                                                                                </p>
+                                                                                <div
+                                                                                  className="text-sm text-red-600 hover:text-red-700 cursor-pointer"
+                                                                                  onClick={() =>
+                                                                                    handleDeleteMedida(
+                                                                                      medida.id_medida
+                                                                                    )
+                                                                                  }
+                                                                                >
+                                                                                  <BsTrash3Fill />
+                                                                                </div>
+                                                                              </div>
+                                                                            </div>
+                                                                          </div>
+                                                                        </li>
+                                                                      )
+                                                                    )}
+                                                                  </>
+                                                                ) : (
+                                                                  <li>
+                                                                    <p className="text-gray-600 text-sm font-medium text-center">
+                                                                      Nenhuma medida
+                                                                      cadastrada.
+                                                                    </p>
+                                                                  </li>
+                                                                )}
+                                                              </>
+                                                            )}
+                                                        </ul>
+                                                      </div>
+                                                    </div>
+                                                  ))}
+                                                </>
+                                              )}
+                                          </ul>
+                                        </div>
+                                      </div>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            </>
+                          )}
+
                         </div>
                       </div>
                     </>
