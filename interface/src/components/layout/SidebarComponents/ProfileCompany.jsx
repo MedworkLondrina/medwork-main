@@ -130,10 +130,12 @@ function ProfileCompany({ companyId, empresas, contatos }) {
       setSelectedSetor([]);
       setShowSetorData(true);
       setSetorSelecionado(idSetor);
+      setActiveTab(1);
       await handleAdicionarExameAutomaticamente();
       await carregarInformações(idSetor);
       setLoading(false);
     } else {
+      setActiveTab(1);
       setSetorSelecionado("");
       setShowSetorData(false);
     }
@@ -144,9 +146,9 @@ function ProfileCompany({ companyId, empresas, contatos }) {
       setLoading(true);
 
       const filteredExames = await getSetoresExames(item)
-      setExames(filteredExames)      
+      setExames(filteredExames)
 
-      
+
       const sector = setoresData.find((i) => i.id_setor === item);
       setSelectedSetor(sector);
 
@@ -177,15 +179,15 @@ function ProfileCompany({ companyId, empresas, contatos }) {
   };
 
   const handleAdicionarExameAutomaticamente = async () => {
-       // Construir o corpo da requisição
-       const procRisc = await getProcessosRiscos();
-       const testeRisc =   procRisc.map(i => i.fk_risco_id);
+    // Construir o corpo da requisição
+    const procRisc = await getProcessosRiscos();
+    const testeRisc = procRisc.map(i => i.fk_risco_id);
 
-       const requestBody = {
-        setorId: selectedSetor.id_setor,
-        riscoIds: testeRisc
-      };
-  
+    const requestBody = {
+      setorId: selectedSetor.id_setor,
+      riscoIds: testeRisc
+    };
+
     const response = await fetch(`${connect}/exames_setores_from_riscos`, {
       method: 'POST',
       headers: {
@@ -215,11 +217,11 @@ function ProfileCompany({ companyId, empresas, contatos }) {
       );
       const riscIds = filterProcRisco.map((i) => i.fk_risco_id);
 
-      const testeRisc =   procRisc.map(i => i.fk_risco_id);
-  
-   
+      const testeRisc = procRisc.map(i => i.fk_risco_id);
+
+
       // Fazer a requisição POST usando fetch
-      
+
       const filteredRiscos = risc.filter((i) => riscIds.includes(i.id_risco));
       const orderRiscos = filteredRiscos.sort((a, b) => b.id_risco - a.id_risco);
       setRiscosData(orderRiscos);
@@ -966,16 +968,6 @@ function ProfileCompany({ companyId, empresas, contatos }) {
                                                                 : risco.codigo_esocial_risco}
                                                             </p>
                                                           </div>
-                                                          <div
-                                                            className="text-sm text-red-600 hover:text-red-700 cursor-pointer"
-                                                            onClick={() =>
-                                                              handleDeleteRisco(
-                                                                risco.id_risco
-                                                              )
-                                                            }
-                                                          >
-                                                            <BsTrash3Fill />
-                                                          </div>
                                                         </div>
                                                       </div>
                                                       <hr />
@@ -1120,16 +1112,6 @@ function ProfileCompany({ companyId, empresas, contatos }) {
                                                                                     medida.grupo_medida
                                                                                   )}
                                                                                 </p>
-                                                                                <div
-                                                                                  className="text-sm text-red-600 hover:text-red-700 cursor-pointer"
-                                                                                  onClick={() =>
-                                                                                    handleDeleteMedida(
-                                                                                      medida.id_medida
-                                                                                    )
-                                                                                  }
-                                                                                >
-                                                                                  <BsTrash3Fill />
-                                                                                </div>
                                                                               </div>
                                                                             </div>
                                                                           </div>

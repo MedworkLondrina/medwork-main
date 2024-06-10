@@ -9,7 +9,6 @@ const ModalExame = ({ onCancel, isOpen, setorName, setorId, children }) => {
 
   const { getSetoresExames } = useAuth();
 
-  const [exames, setExames] = useState([]);
   const [examesFiltrados, setExamesFiltrados] = useState([]);
   const [showModal, setShowModal] = useState(false);
 
