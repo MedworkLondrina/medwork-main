@@ -1418,7 +1418,6 @@ router.put("/conclusoes/:id_conclusao", (req, res) => {
 });
 
 
-
 router.get("/exames_sem_vinculo/:setorId", (req, res, next) => {
   const setorId = req.params.setorId;
   const tenant = req.query.tenant_code;
@@ -1679,14 +1678,8 @@ router.post("/setor_exame/", (req, res, next) => {
 });
 
 
+
 router.post("/exames_setores_from_riscos/", (req, res) => {
-  const { setorId, riscoIds } = req.body;
-  if (!setorId || !Array.isArray(riscoIds) || riscoIds.length === 0) {
-    return res.status(400).json({ error: "setorId and riscoIds are required" });
-  }
-
-
-router.post("/exames_setores_from_riscos/", (req, res) => { 
   const { setorId, riscoIds } = req.body;
   if (!setorId || !Array.isArray(riscoIds) || riscoIds.length === 0) {
     return res.status(400).json({ error: "setorId and riscoIds are required" });
@@ -1708,7 +1701,6 @@ router.post("/exames_setores_from_riscos/", (req, res) => {
     INSERT DISTINCT INTO setor_exame (fk_exame_id, fk_setor_id, status)
     VALUES (?, ?, 1)
   `;
-
 
   pool.getConnection((err, con) => {
     if (err) return res.status(500).json(err);
@@ -1735,41 +1727,6 @@ router.post("/exames_setores_from_riscos/", (req, res) => {
           return new Promise((resolve, reject) => {
             con.query(checkExistenceQuery, [setorId, exameId], (err, result) => {
               if (err) return reject(err);
-
-
-              if (result.length === 0) {
-                con.query(insertExameSetorQuery, [exameId, setorId], (err, result) => {
-                  if (err) return reject(err);
-                  resolve(result);
-                });
-              } else {
-                resolve(null); // Já existe, não precisa inserir
-              }
-            });
-          });
-        });
-
-        Promise.all(insertPromises)
-          .then(results => {
-            con.commit(err => {
-              if (err) {
-                con.rollback(() => con.release());
-                return res.status(500).json(err);
-              }
-
-              con.release();
-              return res.status(200).json({ message: "Exames processed successfully", results });
-            });
-          })
-          .catch(err => {
-            con.rollback(() => con.release());
-            return res.status(500).json(err);
-          });
-      });
-    });
-  });
-});
-
 
               if (result.length === 0) {
                 con.query(insertExameSetorQuery, [exameId, setorId], (err, result) => {
@@ -1939,10 +1896,10 @@ router.get("/exames", (req, res, next) => {
 
       if (isGlobal) {
         // Se global é 1, incluímos a condição para fk_tenant_code ser null ou igual ao tenant
-        query = `SELECT * FROM exames WHERE fk_tenant_code = ? OR fk_tenant_code IS NULL`;
+        query = 'SELECT * FROM exames WHERE fk_tenant_code = ? OR fk_tenant_code IS NULL';
       } else {
         // Se global não é 1, apenas verificamos o fk_tenant_code igual ao tenant
-        query = `SELECT * FROM exames WHERE fk_tenant_code = ?`;
+        query = 'SELECT * FROM exames WHERE fk_tenant_code = ?';
       }
 
       // Executamos a consulta SQL apropriada
@@ -1977,7 +1934,7 @@ router.post("/exames", (req, res) => {
         return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
       }
 
-      return res.status(200).json(`Exame cadastrado com sucesso!`);
+      return res.status(200).json('Exame cadastrado com sucesso!');
     });
 
     con.release();
@@ -1989,7 +1946,7 @@ router.post("/exames", (req, res) => {
 
 //Tabela Risco Exame
 router.get("/risco_exame", (req, res) => {
-  const q = `SELECT * FROM risco_exame`;
+  const q = 'SELECT * FROM risco_exame';
 
   pool.getConnection((err, con) => {
     if (err) return next(err);
@@ -2020,17 +1977,13 @@ router.post("/risco_exame", (req, res) => {
         return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
       }
 
-      return res.status(200).json(`Exame vinculado com sucesso!`);
+      return res.status(200).json('Exame vinculado com sucesso!');
     });
 
     con.release();
   })
 
 });
-
-
-
-
 
 
 
