@@ -39,10 +39,10 @@ const ModalSearchExames = ({ onCancel, isOpen, children, setorId }) => {
   const handleItemClick = async (item) => {
     try {
       const userData = JSON.parse(localStorage.getItem("user"));
-    const tenant = userData.tenant_code;
-    const nome = userData.nome_usuario;
-    const queryParams = new URLSearchParams({ tenant_code: tenant, nome_usuario: nome }).toString();
-      const response = await fetch(`${connect}/setor_exame?${queryParams}`,  {
+      const tenant = userData.tenant_code;
+      const nome = userData.nome_usuario;
+      const queryParams = new URLSearchParams({ tenant_code: tenant, nome_usuario: nome }).toString();
+      const response = await fetch(`${connect}/setor_exame?${queryParams}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
