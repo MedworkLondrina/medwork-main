@@ -1419,30 +1419,59 @@ router.put("/conclusoes/:id_conclusao", (req, res) => {
 
 
 
-
-
-router.get("/exames_sem_vinculo/:setorId", (req, res) => {
+router.get("/exames_sem_vinculo/:setorId", (req, res, next) => {
   const setorId = req.params.setorId;
   const tenant = req.query.tenant_code;
-  const q = `
-    SELECT DISTINCT *
-    FROM exames
-    WHERE exames.id_exame NOT IN (
-      SELECT fk_exame_id
-      FROM setor_exame
-      WHERE fk_setor_id = ? 
-    ) AND fk_tenant_code = ?;
-  
-  `;
+  const queryGlobalCheck = 'SELECT global FROM tenant WHERE tenant_code = ?';
 
   pool.getConnection((err, con) => {
     if (err) return next(err);
 
-    con.query(q, [setorId, tenant], (err, data) => {
-      con.release(); // Ensure connection is released after the query
-      if (err) return res.status(500).json(err);
+    // Primeiro, verificamos o valor da coluna global
+    con.query(queryGlobalCheck, [tenant], (err, result) => {
+      if (err) {
+        con.release();
+        return res.status(500).json(err);
+      }
 
-      return res.status(200).json(data);
+      const isGlobal = result[0]?.global === 1;
+
+      let q;
+      let queryParams = [setorId];
+
+      if (isGlobal) {
+        // Se global é 1, incluímos a condição para fk_tenant_code ser null ou igual ao tenant
+        q = `
+          SELECT DISTINCT *
+          FROM exames
+          WHERE exames.id_exame NOT IN (
+            SELECT fk_exame_id
+            FROM setor_exame
+            WHERE status = 1 AND fk_setor_id = ?
+          ) AND (fk_tenant_code = ? OR fk_tenant_code IS NULL);
+        `;
+        queryParams.push(tenant);
+      } else {
+        // Se global não é 1, apenas verificamos o fk_tenant_code igual ao tenant
+        q = `
+          SELECT DISTINCT *
+          FROM exames
+          WHERE exames.id_exame NOT IN (
+            SELECT fk_exame_id
+            FROM setor_exame
+            WHERE status = 1 AND fk_setor_id = ?
+          ) AND fk_tenant_code = ?;
+        `;
+        queryParams.push(tenant);
+      }
+
+      // Executamos a consulta SQL apropriada
+      con.query(q, queryParams, (err, data) => {
+        con.release();
+        if (err) return res.status(500).json(err);
+
+        return res.status(200).json(data);
+      });
     });
   });
 });
@@ -1450,70 +1479,118 @@ router.get("/exames_sem_vinculo/:setorId", (req, res) => {
 router.get("/exames_por_risco/:risco_id", (req, res, next) => {
   const risco_id = req.params.risco_id;
   const tenant = req.query.tenant_code;
-  const query = `
-    SELECT e.*
-    FROM exames AS e
-    INNER JOIN risco_exame AS re ON e.id_exame = re.fk_exame_id
-    WHERE re.fk_risco_id = ? AND e.fk_tenant_code = ?
-  `;
+  const queryGlobalCheck = 'SELECT global FROM tenant WHERE tenant_code = ?';
 
   pool.getConnection((err, con) => {
     if (err) return next(err);
 
-    con.query(query, [risco_id, tenant], (err, results) => {
-      con.release(); // Ensure connection is released after the query
+    // Primeiro, verificamos o valor da coluna global
+    con.query(queryGlobalCheck, [tenant], (err, result) => {
       if (err) {
-        console.error("Erro ao buscar exames por risco:", err);
-        return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
+        con.release();
+        return res.status(500).json(err);
       }
 
-      return res.status(200).json(results);
+      const isGlobal = result[0]?.global === 1;
+
+      let query;
+      let queryParams = [risco_id];
+
+      if (isGlobal) {
+        // Se global é 1, incluímos a condição para fk_tenant_code ser null ou igual ao tenant
+        query = `
+          SELECT e.*
+          FROM exames AS e
+          INNER JOIN risco_exame AS re ON e.id_exame = re.fk_exame_id
+          WHERE re.fk_risco_id = ? AND (e.fk_tenant_code = ? OR e.fk_tenant_code IS NULL);
+        `;
+        queryParams.push(tenant);
+      } else {
+        // Se global não é 1, apenas verificamos o fk_tenant_code igual ao tenant
+        query = `
+          SELECT e.*
+          FROM exames AS e
+          INNER JOIN risco_exame AS re ON e.id_exame = re.fk_exame_id
+          WHERE re.fk_risco_id = ? AND e.fk_tenant_code = ?;
+        `;
+        queryParams.push(tenant);
+      }
+
+      // Executamos a consulta SQL apropriada
+      con.query(query, queryParams, (err, results) => {
+        con.release(); // Ensure connection is released after the query
+        if (err) {
+          console.error("Erro ao buscar exames por risco:", err);
+          return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
+        }
+
+        return res.status(200).json(results);
+      });
     });
   });
 });
 
 
+
 router.get("/setor_exame/:setorId", (req, res, next) => {
   const setorId = req.params.setorId;
   const tenant = req.query.tenant_code;
-  const q = `
-    SELECT exames.*
-    FROM setor_exame
-    INNER JOIN exames ON exames.id_exame = setor_exame.fk_exame_id AND exames.fk_tenant_code = ?
-    WHERE setor_exame.fk_setor_id = ?
-  `;
+  const queryGlobalCheck = 'SELECT global FROM tenant WHERE tenant_code = ?';
 
   pool.getConnection((err, con) => {
     if (err) return next(err);
 
-    con.query(q, [tenant, setorId], (err, data) => {
-      con.release(); // Ensure connection is released after the query
+    // Primeiro, verificamos o valor da coluna global
+    con.query(queryGlobalCheck, [tenant], (err, result) => {
       if (err) {
-        console.error("Erro ao buscar exames por setor:", err);
-        return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
+        con.release();
+        return res.status(500).json(err);
       }
 
-      return res.status(200).json(data);
+      const isGlobal = result[0]?.global === 1;
+
+      let query;
+      let queryParams = [setorId];
+
+      if (isGlobal) {
+        // Se global é 1, incluímos a condição para fk_tenant_code ser null ou igual ao tenant
+        query = `
+          SELECT exames.*
+          FROM setor_exame
+          INNER JOIN exames ON exames.id_exame = setor_exame.fk_exame_id
+          WHERE  setor_exame.status = 1 AND setor_exame.fk_setor_id = ? AND (exames.fk_tenant_code = ? OR exames.fk_tenant_code IS NULL);
+        `;
+        queryParams.push(tenant);
+      } else {
+        // Se global não é 1, apenas verificamos o fk_tenant_code igual ao tenant
+        query = `
+          SELECT exames.*
+          FROM setor_exame
+          INNER JOIN exames ON exames.id_exame = setor_exame.fk_exame_id
+          WHERE setor_exame.status = 1 AND  setor_exame.fk_setor_id = ? AND exames.fk_tenant_code = ?;
+        `;
+        queryParams.push(tenant);
+      }
+
+      // Executamos a consulta SQL apropriada
+      con.query(query, queryParams, (err, data) => {
+        con.release(); // Ensure connection is released after the query
+        if (err) {
+          console.error("Erro ao buscar exames por setor:", err);
+          return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
+        }
+
+        return res.status(200).json(data);
+      });
     });
   });
 });
 
 
 router.get("/risco_exames_nao_vinculados/:id_risco", (req, res) => {
-
   const idRisco = req.params.id_risco;
   const tenant = req.query.tenant_code;
-
-  // Consulta para obter os exames não vinculados ao id_risco
-  const getExamesNaoVinculadosQuery = `
-    SELECT *
-    FROM exames
-    WHERE id_exame NOT IN (
-      SELECT DISTINCT fk_exame_id
-      FROM risco_exame
-      WHERE fk_risco_id = ?
-    ) AND fk_tenant_code = ?
-  `;
+  const queryGlobalCheck = 'SELECT global FROM tenant WHERE tenant_code = ?';
 
   pool.getConnection((err, con) => {
     if (err) {
@@ -1521,24 +1598,65 @@ router.get("/risco_exames_nao_vinculados/:id_risco", (req, res) => {
       return res.status(500).json({ error: 'Error getting connection from pool' });
     }
 
-    con.query(getExamesNaoVinculadosQuery, [idRisco, tenant], (err, examesNaoVinculados) => {
-      con.release();
+    // Primeiro, verificamos o valor da coluna global
+    con.query(queryGlobalCheck, [tenant], (err, result) => {
       if (err) {
-        console.error('Error executing query', err);
-        return res.status(500).json({ error: 'Error executing query' });
+        con.release();
+        return res.status(500).json(err);
       }
 
-      return res.status(200).json({ examesNaoVinculados });
+      const isGlobal = result[0]?.global === 1;
+
+      let query;
+      let queryParams = [idRisco];
+
+      if (isGlobal) {
+        // Se global é 1, incluímos a condição para fk_tenant_code ser null ou igual ao tenant
+        query = `
+          SELECT *
+          FROM exames
+          WHERE id_exame NOT IN (
+            SELECT DISTINCT fk_exame_id
+            FROM risco_exame
+            WHERE fk_risco_id = ?
+          ) AND (fk_tenant_code = ? OR fk_tenant_code IS NULL);
+        `;
+        queryParams.push(tenant);
+      } else {
+        // Se global não é 1, apenas verificamos o fk_tenant_code igual ao tenant
+        query = `
+          SELECT *
+          FROM exames
+          WHERE id_exame NOT IN (
+            SELECT DISTINCT fk_exame_id
+            FROM risco_exame
+            WHERE fk_risco_id = ?
+          ) AND fk_tenant_code = ?;
+        `;
+        queryParams.push(tenant);
+      }
+
+      // Executamos a consulta SQL apropriada
+      con.query(query, queryParams, (err, examesNaoVinculados) => {
+        con.release();
+        if (err) {
+          console.error('Error executing query', err);
+          return res.status(500).json({ error: 'Error executing query' });
+        }
+
+        return res.status(200).json({ examesNaoVinculados });
+      });
     });
   });
 });
+
 
 
 router.post("/setor_exame/", (req, res, next) => {
   const setorId = req.body.setorId;
   const exameId = req.body.exameId;
   const q = `
-    INSERT IGNORE INTO setor_exame (fk_exame_id, fk_setor_id) VALUES (?, ?)
+    INSERT IGNORE INTO setor_exame (fk_exame_id, fk_setor_id, status) VALUES (?, ?, 1)
   `;
 
   pool.getConnection((err, con) => {
@@ -1563,17 +1681,86 @@ router.post("/setor_exame/", (req, res, next) => {
 
 
 router.post("/exames_setores_from_riscos/", (req, res) => { 
-    if (err) return next(err);
+  const { setorId, riscoIds } = req.body;
+  if (!setorId || !Array.isArray(riscoIds) || riscoIds.length === 0) {
+    return res.status(400).json({ error: "setorId and riscoIds are required" });
+  }
 
-    con.query(q, [exameId, setorId], (err, data) => {
-      if (err) return res.status(500).json(err);
+  const getExamesQuery = `
+    SELECT DISTINCT fk_exame_id
+    FROM risco_exame
+    WHERE fk_risco_id IN (?)
+  `;
 
-      return res.status(200).json(data);
+  const checkExistenceQuery = `
+    SELECT fk_exame_id
+    FROM setor_exame
+    WHERE  status = 1 AND fk_setor_id = ? AND fk_exame_id = ?
+  `;
+
+  const insertExameSetorQuery = `
+    INSERT DISTINCT INTO setor_exame (fk_exame_id, fk_setor_id, status)
+    VALUES (?, ?, 1)
+  `;
+
+  pool.getConnection((err, con) => {
+    if (err) return res.status(500).json(err);
+
+    con.beginTransaction(err => {
+      if (err) {
+        con.release();
+        return res.status(500).json(err);
+      }
+
+      con.query(getExamesQuery, [riscoIds], (err, examesData) => {
+        if (err) {
+          con.rollback(() => con.release());
+          return res.status(500).json(err);
+        }
+
+        const examesIds = examesData.map(row => row.fk_exame_id);
+        if (examesIds.length === 0) {
+          con.rollback(() => con.release());
+          return res.status(200).json({ message: "No exames found for the given riscos" });
+        }
+
+        const insertPromises = examesIds.map(exameId => {
+          return new Promise((resolve, reject) => {
+            con.query(checkExistenceQuery, [setorId, exameId], (err, result) => {
+              if (err) return reject(err);
+
+              if (result.length === 0) {
+                con.query(insertExameSetorQuery, [exameId, setorId], (err, result) => {
+                  if (err) return reject(err);
+                  resolve(result);
+                });
+              } else {
+                resolve(null); // Já existe, não precisa inserir
+              }
+            });
+          });
+        });
+
+        Promise.all(insertPromises)
+          .then(results => {
+            con.commit(err => {
+              if (err) {
+                con.rollback(() => con.release());
+                return res.status(500).json(err);
+              }
+
+              con.release();
+              return res.status(200).json({ message: "Exames processed successfully", results });
+            });
+          })
+          .catch(err => {
+            con.rollback(() => con.release());
+            return res.status(500).json(err);
+          });
+      });
     });
-
-    con.release();
   });
-
+});
 
 router.post("/setor_exame_from_riscos/", (req, res) => {
   const { setorId, riscoIds } = req.body;
@@ -1590,12 +1777,12 @@ router.post("/setor_exame_from_riscos/", (req, res) => {
   const checkExistenceQuery = `
     SELECT fk_exame_id
     FROM setor_exame
-    WHERE fk_setor_id = ? AND fk_exame_id = ?
+    WHERE status = 1 AND fk_setor_id = ? AND fk_exame_id = ?
   `;
 
   const insertExameSetorQuery = `
-    INSERT INTO setor_exame (fk_exame_id, fk_setor_id)
-    VALUES (?, ?)
+    INSERT INTO setor_exame (fk_exame_id, fk_setor_id, status)
+    VALUES (?, ?, 1)
   `;
 
   pool.getConnection((err, con) => {
@@ -1662,7 +1849,7 @@ router.delete("/setor_exame", (req, res) => {
   const id_setor = req.query.id_setor;
   const id_exame = req.query.id_exame;
 
-  const sql = "DELETE FROM setor_exame WHERE fk_setor_id = ? AND fk_exame_id = ?";
+  const sql = "UPDATE setor_exame SET status = 0 WHERE fk_setor_id = ? AND fk_exame_id = ?";
 
   pool.getConnection((err, con) => {
     if (err) {
@@ -1671,23 +1858,24 @@ router.delete("/setor_exame", (req, res) => {
     }
 
     con.query(sql, [id_setor, id_exame], (err, result) => {
+      con.release();
+
       if (err) {
-        console.error("Erro ao deletar o vínculo", err);
+        console.error("Erro ao atualizar o vínculo", err);
         return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
       }
 
-      return res.status(200).json({ message: "Vínculo excluido com sucesso" });
+      return res.status(200).json({ message: "Vínculo atualizado com sucesso" });
     });
-    con.release();
-
   });
 });
+
 
 
 // Tabela de Exames
 router.get("/exames", (req, res, next) => {
   const tenantCode = req.query.tenant_code;
-  const query = `SELECT * FROM exames WHERE fk_tenant_code = ?`;
+  const queryGlobalCheck = 'SELECT global FROM tenant WHERE tenant_code = ?';
 
   pool.getConnection((err, connection) => {
     if (err) {
@@ -1695,18 +1883,41 @@ router.get("/exames", (req, res, next) => {
       return next(err); // Propague o erro para o próximo middleware
     }
 
-    connection.query(query, [tenantCode], (err, results) => {
-      connection.release(); // Assegure-se de que a conexão seja liberada após a consulta
-
+    // Primeiro, verificamos o valor da coluna global
+    connection.query(queryGlobalCheck, [tenantCode], (err, result) => {
       if (err) {
-        console.error("Error executing query:", err);
-        return res.status(500).json({ error: "Database query failed" });
+        connection.release();
+        return res.status(500).json({ error: "Error checking global value" });
       }
 
-      return res.status(200).json(results);
+      const isGlobal = result[0]?.global === 1;
+
+      let query;
+      let queryParams = [tenantCode];
+
+      if (isGlobal) {
+        // Se global é 1, incluímos a condição para fk_tenant_code ser null ou igual ao tenant
+        query = `SELECT * FROM exames WHERE fk_tenant_code = ? OR fk_tenant_code IS NULL`;
+      } else {
+        // Se global não é 1, apenas verificamos o fk_tenant_code igual ao tenant
+        query = `SELECT * FROM exames WHERE fk_tenant_code = ?`;
+      }
+
+      // Executamos a consulta SQL apropriada
+      connection.query(query, queryParams, (err, results) => {
+        connection.release(); // Assegure-se de que a conexão seja liberada após a consulta
+
+        if (err) {
+          console.error("Error executing query:", err);
+          return res.status(500).json({ error: "Database query failed" });
+        }
+
+        return res.status(200).json(results);
+      });
     });
   });
 });
+
 
 
 
