@@ -10,7 +10,6 @@ import GridExames from './GridExames';
 import { IoInformationCircleSharp } from "react-icons/io5";
 
 function Exames() {
-
   const { getExames, loadSelectedCompanyFromLocalStorage } = useAuth(null);
 
   const [companyId, setCompanyId] = useState('');
@@ -20,36 +19,40 @@ function Exames() {
   const [visible, setVisible] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
 
-  useEffect(() => {
+
     const loadCompany = async () => {
       const company = await loadSelectedCompanyFromLocalStorage();
       setCompanyId(company?.id_empresa);
-    }
-
-    loadCompany();
-  }, []);
-
+    };
+useEffect(() => {
+  loadCompany();
+}, []);
   const fetchExames = async () => {
     const data = await getExames();
+    console.log(data)
     setExames(data);
-  }
+  };
 
   useEffect(() => {
-    fetchExames();
+    if (companyId) {
+      fetchExames();
+    }
   }, [companyId]);
 
-  const handleSearch = (searchTerm) => {
-    setSearchTerm(searchTerm);
-  }
-
   useEffect(() => {
-    const filtered = exames.filter((emp) => emp.nome_exame.toLowerCase().includes(searchTerm.toLowerCase()));
+    const filtered = exames.filter((emp) =>
+      emp.nome_exame.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    console.log(filtered)
     setFilteredExames(filtered);
   }, [searchTerm, exames]);
 
+  const handleSearch = (searchTerm) => {
+    setSearchTerm(searchTerm);
+  };
+
   return (
     <>
-
       {/* Popover */}
       <div className="flex w-full" onMouseLeave={() => setVisible(false)}>
         <div className="fixed z-50 m-2">
@@ -70,11 +73,10 @@ function Exames() {
         </div>
       </div>
 
-
       {/* Cabeçalho */}
-      <div className={`grid grid-cols-3 mb-1 mt-10`}>
+      <div className="grid grid-cols-3 mb-1 mt-10">
         {/* Botão para voltar */}
-        <div className="">
+        <div>
           <Link to="/cadastros">
             <Back />
           </Link>
@@ -84,17 +86,13 @@ function Exames() {
         </div>
         <div className="flex justify-end w-3/4 items-center">
           <div onMouseEnter={() => setVisible(true)}>
-            <IoInformationCircleSharp className='text-sky-700' />
+            <IoInformationCircleSharp className="text-sky-700" />
           </div>
         </div>
       </div>
 
-      {/* Formulaário */}
-      <FrmExames
-        exames={exames}
-        onEdit={onEdit}
-        getExames={fetchExames}
-      />
+      {/* Formulário */}
+      <FrmExames exames={exames} onEdit={onEdit} fetchExames={fetchExames} />
 
       {/* Barra de pesquisa */}
       <div className="flex justify-center w-full">
@@ -104,10 +102,7 @@ function Exames() {
       </div>
 
       {/* Tabela */}
-      <GridExames
-        exames={filteredExames}
-        onEdit={setOnEdit}
-      />
+      <GridExames exames={filteredExames} onEdit={setOnEdit} />
     </>
   );
 }

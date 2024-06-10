@@ -16,6 +16,7 @@ const ModalSearchExamesRiscos = ({ onCancel, isOpen, children, childId, atualiza
   const handleNaoVinculados = async () => {
     try {
       const naoVinculados = await getRiscosExamesSemVinculo(childId);
+      console.log(naoVinculados)
       setExamesNaoVinculados(naoVinculados);
       return naoVinculados;
     } catch (error) {

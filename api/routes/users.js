@@ -1416,13 +1416,27 @@ router.put("/conclusoes/:id_conclusao", (req, res) => {
   })
 
 });
+<<<<<<< HEAD
+router.get("/exames_sem_vinculo/:setorId", (req, res, next) => {
+=======
 
 
 
 
 router.get("/exames_sem_vinculo/:setorId", (req, res) => {
+>>>>>>> a4851ca1524e0d545f8d2899ee5928e26014bf4a
   const setorId = req.params.setorId;
+  const tenant = req.query.tenant_code;
   const q = `
+<<<<<<< HEAD
+    SELECT DISTINCT *
+    FROM exames
+    WHERE exames.id_exame NOT IN (
+      SELECT fk_exame_id
+      FROM setor_exame
+      WHERE fk_setor_id = ? 
+    ) AND fk_tenant_code = ?;
+=======
     SELECT *
     FROM exames
     WHERE exames.id_exame NOT IN (
@@ -1433,35 +1447,36 @@ router.get("/exames_sem_vinculo/:setorId", (req, res) => {
     WHERE fk_setor_id = ? 
 );
 
+>>>>>>> a4851ca1524e0d545f8d2899ee5928e26014bf4a
   `;
 
   pool.getConnection((err, con) => {
     if (err) return next(err);
 
-    con.query(q, [setorId], (err, data) => {
+    con.query(q, [setorId, tenant], (err, data) => {
+      con.release(); // Ensure connection is released after the query
       if (err) return res.status(500).json(err);
 
       return res.status(200).json(data);
     });
-
-    con.release();
   });
 });
 
 router.get("/exames_por_risco/:risco_id", (req, res, next) => {
   const risco_id = req.params.risco_id;
-
+  const tenant = req.query.tenant_code;
   const query = `
     SELECT e.*
     FROM exames AS e
     INNER JOIN risco_exame AS re ON e.id_exame = re.fk_exame_id
-    WHERE re.fk_risco_id = ?
+    WHERE re.fk_risco_id = ? AND e.fk_tenant_code = ?
   `;
 
   pool.getConnection((err, con) => {
     if (err) return next(err);
 
-    con.query(query, [risco_id], (err, results) => {
+    con.query(query, [risco_id, tenant], (err, results) => {
+      con.release(); // Ensure connection is released after the query
       if (err) {
         console.error("Erro ao buscar exames por risco:", err);
         return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
@@ -1469,25 +1484,39 @@ router.get("/exames_por_risco/:risco_id", (req, res, next) => {
 
       return res.status(200).json(results);
     });
-
-    con.release();
   });
 });
 
 
-router.get("/setor_exame/:setorId", (req, res) => {
+router.get("/setor_exame/:setorId", (req, res, next) => {
   const setorId = req.params.setorId;
+  const tenant = req.query.tenant_code;
   const q = `
-  SELECT exames.*
-  FROM setor_exame
-  INNER JOIN exames ON exames.id_exame = setor_exame.fk_exame_id
-  WHERE setor_exame.fk_setor_id = ?
-  
+    SELECT exames.*
+    FROM setor_exame
+    INNER JOIN exames ON exames.id_exame = setor_exame.fk_exame_id AND exames.fk_tenant_code = ?
+    WHERE setor_exame.fk_setor_id = ?
   `;
 
   pool.getConnection((err, con) => {
     if (err) return next(err);
 
+<<<<<<< HEAD
+    con.query(q, [tenant, setorId], (err, data) => {
+      con.release(); // Ensure connection is released after the query
+      if (err) {
+        console.error("Erro ao buscar exames por setor:", err);
+        return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
+      }
+
+      return res.status(200).json(data);
+    });
+  });
+});
+
+
+router.get("/risco_exames_nao_vinculados/:id_risco", (req, res) => {
+=======
     con.query(q, [setorId], (err, data) => {
       if (err) return res.status(500).json(err);
 
@@ -1499,30 +1528,33 @@ router.get("/setor_exame/:setorId", (req, res) => {
 });
 
 router.get("/risco_exame_nao_vinculados/:id_risco", (req, res) => {
+>>>>>>> a4851ca1524e0d545f8d2899ee5928e26014bf4a
   const idRisco = req.params.id_risco;
-
-  // Consulta para obter os fk_exame_id vinculados ao id_risco
-  const getExamesQuery = `
-    SELECT DISTINCT fk_exame_id
-    FROM risco_exame
-    WHERE fk_risco_id = ?
-  `;
+  const tenant = req.query.tenant_code;
 
   // Consulta para obter os exames não vinculados ao id_risco
   const getExamesNaoVinculadosQuery = `
     SELECT *
     FROM exames
     WHERE id_exame NOT IN (
-      ${getExamesQuery}
-    )
+      SELECT DISTINCT fk_exame_id
+      FROM risco_exame
+      WHERE fk_risco_id = ?
+    ) AND fk_tenant_code = ?
   `;
 
   pool.getConnection((err, con) => {
-    if (err) return res.status(500).json(err);
+    if (err) {
+      console.error('Error getting connection from pool', err);
+      return res.status(500).json({ error: 'Error getting connection from pool' });
+    }
 
-    con.query(getExamesNaoVinculadosQuery, [idRisco], (err, examesNaoVinculados) => {
+    con.query(getExamesNaoVinculadosQuery, [idRisco, tenant], (err, examesNaoVinculados) => {
       con.release();
-      if (err) return res.status(500).json(err);
+      if (err) {
+        console.error('Error executing query', err);
+        return res.status(500).json({ error: 'Error executing query' });
+      }
 
       return res.status(200).json({ examesNaoVinculados });
     });
@@ -1530,7 +1562,7 @@ router.get("/risco_exame_nao_vinculados/:id_risco", (req, res) => {
 });
 
 
-router.post("/setor_exame/", (req, res) => {
+router.post("/setor_exame/", (req, res, next) => {
   const setorId = req.body.setorId;
   const exameId = req.body.exameId;
   const q = `
@@ -1538,6 +1570,29 @@ router.post("/setor_exame/", (req, res) => {
   `;
 
   pool.getConnection((err, con) => {
+<<<<<<< HEAD
+    if (err) {
+      console.error("Error getting database connection:", err);
+      return next(err); // Propague o erro para o próximo middleware
+    }
+  
+    con.query(q, [exameId, setorId], (err, data) => {
+      con.release(); // Assegure-se de que a conexão seja liberada após a consulta
+
+      if (err) {
+        console.error("Error executing query:", err);
+        return res.status(500).json(err);
+      }
+  
+      return res.status(200).json(data);
+    });
+  });
+});
+
+
+
+router.post("/exames_setores_from_riscos/", (req, res) => { 
+=======
     if (err) return next(err);
 
     con.query(q, [exameId, setorId], (err, data) => {
@@ -1551,6 +1606,7 @@ router.post("/setor_exame/", (req, res) => {
 });
 
 router.post("/setor_exame_from_riscos/", (req, res) => {
+>>>>>>> a4851ca1524e0d545f8d2899ee5928e26014bf4a
   const { setorId, riscoIds } = req.body;
   if (!setorId || !Array.isArray(riscoIds) || riscoIds.length === 0) {
     return res.status(400).json({ error: "setorId and riscoIds are required" });
@@ -1659,23 +1715,31 @@ router.delete("/setor_exame", (req, res) => {
 });
 
 
-//Tabela de Exames
-router.get("/exames", (req, res) => {
-  const q = `SELECT * FROM exames`;
+// Tabela de Exames
+router.get("/exames", (req, res, next) => {
+  const tenantCode = req.query.tenant_code;
+  const query = `SELECT * FROM exames WHERE fk_tenant_code = ?`;
 
-  pool.getConnection((err, con) => {
-    if (err) return next(err);
+  pool.getConnection((err, connection) => {
+    if (err) {
+      console.error("Error getting database connection:", err);
+      return next(err); // Propague o erro para o próximo middleware
+    }
 
-    con.query(q, (err, data) => {
-      if (err) return res.status(500).json(err);
+    connection.query(query, [tenantCode], (err, results) => {
+      connection.release(); // Assegure-se de que a conexão seja liberada após a consulta
 
-      return res.status(200).json(data);
+      if (err) {
+        console.error("Error executing query:", err);
+        return res.status(500).json({ error: "Database query failed" });
+      }
+
+      return res.status(200).json(results);
     });
-
-    con.release();
-  })
-
+  });
 });
+
+
 
 router.post("/exames", (req, res) => {
   const data = req.body;

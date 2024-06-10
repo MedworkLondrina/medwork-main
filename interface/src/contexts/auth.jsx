@@ -612,7 +612,7 @@ export const AuthProvider = ({ children }) => {
       const code = await checkTenantCode();
       if (!code) return;
 
-      const queryParams = new URLSearchParams({ tenant_code: code }).toString();
+      const queryParams = new URLSearchParams({ tenent_code: code }).toString();
       const response = await fetch(`${connect}/usuarios?${queryParams}`);
 
       if (!response.ok) {
@@ -678,7 +678,10 @@ export const AuthProvider = ({ children }) => {
 
   const getExames = async () => {
     try {
-      const res = await fetch(`${connect}/exames`);
+      const code = await checkTenantCode();
+      if (!code) return;
+      const queryParams = new URLSearchParams({ tenant_code: code }).toString();
+      const res = await fetch(`${connect}/exames?${queryParams}`);
       const data = await res.json();
       return data
     } catch (error) {
@@ -688,7 +691,10 @@ export const AuthProvider = ({ children }) => {
 
   const getSetoresExames = async (setorId) => {
     try {
-      const res = await fetch(`${connect}/setor_exame/${setorId}`);
+      const code = await checkTenantCode();
+      if (!code) return;
+      const queryParams = new URLSearchParams({ tenant_code: code }).toString();
+      const res = await fetch(`${connect}/setor_exame/${setorId}?${queryParams}`);
       const data = await res.json();
       return data;
     } catch (error) {
@@ -699,18 +705,38 @@ export const AuthProvider = ({ children }) => {
 
   const getExamesSemVinculo = async (setorId) => {
     try {
-      const res = await fetch(`${connect}/exames_sem_vinculo/${setorId}`);
+      const code = await checkTenantCode();
+      if (!code) return;
+  
+      const queryParams = new URLSearchParams({ tenant_code: code }).toString();
+      const res = await fetch(`${connect}/exames_sem_vinculo/${setorId}?${queryParams}`);
+      
+      if (!res.ok) {
+        throw new Error(`Erro ao buscar exames! Status: ${res.status}`);
+      }
+  
       const data = await res.json();
       return data;
     } catch (error) {
-      console.error(`Erro ao buscar exames! Status: ${error}`);
+      console.error(`Erro ao buscar exames! ${error.message}`);
       throw error;
     }
   };
+<<<<<<< HEAD
+  
+  
+  const getRiscosExamesSemVinculo = async (riscoId) => {
+    try {
+      const code = await checkTenantCode();
+      if (!code) return;
+      const queryParams = new URLSearchParams({ tenant_code: code }).toString();
+      const res = await fetch(`${connect}/risco_exames_nao_vinculados/${riscoId}?${queryParams}`);
+=======
 
   const getRiscosExamesSemVinculo = async (riscoId) => {
     try {
       const res = await fetch(`${connect}/risco_exame_nao_vinculados/${riscoId}`);
+>>>>>>> a4851ca1524e0d545f8d2899ee5928e26014bf4a
       const data = await res.json();
       return data;
     } catch (error) {
@@ -721,7 +747,10 @@ export const AuthProvider = ({ children }) => {
 
   const getRiscosExamesComVinculo = async (riscoId) => {
     try {
-      const res = await fetch(`${connect}/exames_por_risco/${riscoId}`);
+      const code = await checkTenantCode();
+      if (!code) return;
+      const queryParams = new URLSearchParams({ tenant_code: code }).toString();
+      const res = await fetch(`${connect}/exames_por_risco/${riscoId}?${queryParams}`);
       const data = await res.json();
       return data;
     } catch (error) {
@@ -734,7 +763,7 @@ export const AuthProvider = ({ children }) => {
   const getTenant = async (tenant) => {
     try {
       const code = tenant;
-      const queryParams = new URLSearchParams({ tenent_code: code }).toString();
+      const queryParams = new URLSearchParams({ tenant_code: code }).toString();
 
       const response = await fetch(`${connect}/tenant?${queryParams}`)
 

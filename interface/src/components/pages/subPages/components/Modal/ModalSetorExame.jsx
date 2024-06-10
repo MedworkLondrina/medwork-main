@@ -40,7 +40,7 @@ const ModalExame = ({ onCancel, isOpen, setorName, setorId, children }) => {
         return;
       };
 
-      const response = await fetch(`${connect}/setores_Exames`, {
+      const response = await fetch(`${connect}/setor_exame`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -131,7 +131,7 @@ const ModalExame = ({ onCancel, isOpen, setorName, setorId, children }) => {
       <ModalSearchExames
         isOpen={showModal}
         onCancel={closeModal}
-        children={children}
+        children={examesFiltrados}
         setorName={setorName}
         setorId={setorId}
         onSetorSelect={selectedExame}
