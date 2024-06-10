@@ -62,16 +62,12 @@ function ProfileCompany({ companyId, empresas, contatos }) {
   const [selectedProcessoId, setSelectedProcessoId] = useState(null);
   const [selectedRiscoId, setSelectedRiscoId] = useState(null);
   const [cnaes, setCnaes] = useState([]);
-<<<<<<< HEAD
-  const [exames, setExames] = useState([]);
-=======
 
   const [activeTab, setActiveTab] = useState(1);
 
   const [exames, setExames] = useState([]);
   const [filteredExames, setFilteredExames] = useState([]);
 
->>>>>>> a4851ca1524e0d545f8d2899ee5928e26014bf4a
   const [showModalSetorProcesso, setShowModalSetorProcesso] = useState(false);
   const [showModalSetorExame, setShowModalSetorExame] = useState(false);
   const [showModalProcessoRisco, setShowModalProcessoRisco] = useState(false);
@@ -147,13 +143,10 @@ function ProfileCompany({ companyId, empresas, contatos }) {
     try {
       setLoading(true);
 
-<<<<<<< HEAD
       const filteredExames = await getSetoresExames(item)
       setExames(filteredExames)      
 
       
-=======
->>>>>>> a4851ca1524e0d545f8d2899ee5928e26014bf4a
       const sector = setoresData.find((i) => i.id_setor === item);
       setSelectedSetor(sector);
 
@@ -222,37 +215,11 @@ function ProfileCompany({ companyId, empresas, contatos }) {
       );
       const riscIds = filterProcRisco.map((i) => i.fk_risco_id);
 
-<<<<<<< HEAD
       const testeRisc =   procRisc.map(i => i.fk_risco_id);
   
    
       // Fazer a requisição POST usando fetch
       
-=======
-      const testeRisc = procRisc.map(i => i.fk_risco_id);
-
-      // Construir o corpo da requisição
-      const requestBody = {
-        setorId: selectedSetor.id_setor,
-        riscoIds: testeRisc
-      };
-
-      // Fazer a requisição POST usando fetch
-      const response = await fetch(`${connect}/setor_exame_from_riscos`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestBody),
-      });
-
-      if (response.ok) {
-        console.log('Exames vinculados ao setor com sucesso');
-      } else {
-        console.error('Falha ao vincular exames ao setor.');
-      }
-
->>>>>>> a4851ca1524e0d545f8d2899ee5928e26014bf4a
       const filteredRiscos = risc.filter((i) => riscIds.includes(i.id_risco));
       const orderRiscos = filteredRiscos.sort((a, b) => b.id_risco - a.id_risco);
       setRiscosData(orderRiscos);

@@ -1416,19 +1416,15 @@ router.put("/conclusoes/:id_conclusao", (req, res) => {
   })
 
 });
-<<<<<<< HEAD
-router.get("/exames_sem_vinculo/:setorId", (req, res, next) => {
-=======
+
 
 
 
 
 router.get("/exames_sem_vinculo/:setorId", (req, res) => {
->>>>>>> a4851ca1524e0d545f8d2899ee5928e26014bf4a
   const setorId = req.params.setorId;
   const tenant = req.query.tenant_code;
   const q = `
-<<<<<<< HEAD
     SELECT DISTINCT *
     FROM exames
     WHERE exames.id_exame NOT IN (
@@ -1436,18 +1432,7 @@ router.get("/exames_sem_vinculo/:setorId", (req, res) => {
       FROM setor_exame
       WHERE fk_setor_id = ? 
     ) AND fk_tenant_code = ?;
-=======
-    SELECT *
-    FROM exames
-    WHERE exames.id_exame NOT IN (
-    SELECT fk_exame_id
-
-    FROM setor_exame
-
-    WHERE fk_setor_id = ? 
-);
-
->>>>>>> a4851ca1524e0d545f8d2899ee5928e26014bf4a
+  
   `;
 
   pool.getConnection((err, con) => {
@@ -1501,7 +1486,6 @@ router.get("/setor_exame/:setorId", (req, res, next) => {
   pool.getConnection((err, con) => {
     if (err) return next(err);
 
-<<<<<<< HEAD
     con.query(q, [tenant, setorId], (err, data) => {
       con.release(); // Ensure connection is released after the query
       if (err) {
@@ -1516,19 +1500,7 @@ router.get("/setor_exame/:setorId", (req, res, next) => {
 
 
 router.get("/risco_exames_nao_vinculados/:id_risco", (req, res) => {
-=======
-    con.query(q, [setorId], (err, data) => {
-      if (err) return res.status(500).json(err);
 
-      return res.status(200).json(data);
-    });
-
-    con.release();
-  });
-});
-
-router.get("/risco_exame_nao_vinculados/:id_risco", (req, res) => {
->>>>>>> a4851ca1524e0d545f8d2899ee5928e26014bf4a
   const idRisco = req.params.id_risco;
   const tenant = req.query.tenant_code;
 
@@ -1570,7 +1542,6 @@ router.post("/setor_exame/", (req, res, next) => {
   `;
 
   pool.getConnection((err, con) => {
-<<<<<<< HEAD
     if (err) {
       console.error("Error getting database connection:", err);
       return next(err); // Propague o erro para o próximo middleware
@@ -1592,7 +1563,6 @@ router.post("/setor_exame/", (req, res, next) => {
 
 
 router.post("/exames_setores_from_riscos/", (req, res) => { 
-=======
     if (err) return next(err);
 
     con.query(q, [exameId, setorId], (err, data) => {
@@ -1603,10 +1573,9 @@ router.post("/exames_setores_from_riscos/", (req, res) => {
 
     con.release();
   });
-});
+
 
 router.post("/setor_exame_from_riscos/", (req, res) => {
->>>>>>> a4851ca1524e0d545f8d2899ee5928e26014bf4a
   const { setorId, riscoIds } = req.body;
   if (!setorId || !Array.isArray(riscoIds) || riscoIds.length === 0) {
     return res.status(400).json({ error: "setorId and riscoIds are required" });
