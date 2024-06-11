@@ -1,246 +1,280 @@
 import React, { useState } from "react";
+import { toast } from "react-toastify";
 import * as XLSX from "xlsx";
-import { saveAs } from "file-saver";
 import { connect } from "../../../../services/api";
 
 const ImportXlsx = () => {
   const [file, setFile] = useState(null);
-  const [allDataArray, setAllDataArray] = useState([]);
   const [groupedData, setGroupedData] = useState({});
   const [importSuccess, setImportSuccess] = useState(false);
+  const [contacts, setContacts] = useState({});
+  const [setorEdits, setSetorEdits] = useState({});
+  const [atualizouSetor, setAtualizouSetor] = useState(false);
 
   const handleOnChange = (e) => {
     const selectedFile = e.target.files[0];
-
     if (selectedFile) {
       setFile(selectedFile);
-      xlsxFileToArray(selectedFile);
+      processFile(selectedFile);
     }
-
     setImportSuccess(false);
   };
 
   const readFileAsync = (file) => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
-
-      reader.onload = (e) => {
-        resolve(e.target.result);
-      };
-
-      reader.onerror = (error) => {
-        reject(error);
-      };
-
+      reader.onload = (e) => resolve(e.target.result);
+      reader.onerror = (error) => reject(error);
       reader.readAsBinaryString(file);
     });
   };
 
-  const xlsxFileToArray = async (file) => {
+  const processFile = async (file) => {
+    // Função para calcular a idade a partir da data de nascimento
+    const calcularIdade = (dataNascimento) => {
+      const dataAtual = new Date();
+      const dataNascimentoLimpa = dataNascimento.trim(); // Remove espaços em branco
+      const partesData = dataNascimentoLimpa.split("/");
+      const diaNascimento = parseInt(partesData[0]);
+      const mesNascimento = parseInt(partesData[1]) - 1; // Mês começa do zero
+      const anoNascimento = parseInt(partesData[2]);
+      const idade = dataAtual.getFullYear() - anoNascimento;
+
+      // Verifica se já fez aniversário este ano
+      if (
+        dataAtual.getMonth() < mesNascimento ||
+        (dataAtual.getMonth() === mesNascimento &&
+          dataAtual.getDate() < diaNascimento)
+      ) {
+        return idade - 1;
+      }
+
+      return idade;
+    };
+
     try {
-      const empresa = localStorage.getItem("selectedCompanyData");
-      const empresaObj = JSON.parse(empresa);
-      const empresa_id = empresaObj.id_empresa;
+      const empresa = JSON.parse(localStorage.getItem("selectedCompanyData"));
+      const empresa_id = empresa.id_empresa;
 
       const data = await readFileAsync(file);
       const workbook = XLSX.read(data, { type: "binary" });
-      const sheetName = workbook.SheetNames[0];
-      const sheet = workbook.Sheets[sheetName];
+      const sheet = workbook.Sheets[workbook.SheetNames[0]];
       const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
 
       const headers = jsonData[0];
-      const rows = jsonData.slice(1);
+      const rows = jsonData.slice(2);
 
-      const contato_data = [];
-      const elaboradoresData = [];
-      const empresa_data = [];
-      const unidade_data = [];
-
-      const user = localStorage.getItem("user");
-      const userObj = JSON.parse(user);
-
-      const tenant = userObj.tenant_code;
+      const unidades = {};
 
       rows.forEach((row) => {
-        const usuario = {};
-        const elaborador = {};
-        const empresa = {};
-        const unidade = {};
+        const unidadeKey = row[1]; // Coluna 0: id_unidade
+        const setorNome = row[3]; // Coluna 3: nome_setor
 
-        // Colunas 1-5 para /usuarios
-        headers.slice(0, 4).forEach((header, index) => {
-          usuario[header] = row[index];
-        });
-        usuario.fk_empresa_id = empresa_id;
-        contato_data.push(usuario);
+        // Verifica se a unidade já foi criada, se não, cria
+        if (!unidades[unidadeKey]) {
+          unidades[unidadeKey] = {
+            nome_unidade: row[1],
+            cnpj_unidade: row[38],
+            cep_unidade: row[37],
+            endereco_unidade: row[33],
+            numero_unidade: row[66],
+            complemento: row[47],
+            bairro_unidade: row[34],
+            cidade_unidade: row[35],
+            uf_unidade: row[36],
+            fk_contato_id: 1,
+            fk_empresa_id: empresa_id,
+            ativo: 1,
+            setores: {},
+          };
+        }
 
-        // Colunas 6-10 para /elaboradores
-        headers.slice(5, 12).forEach((header, index) => {
-          elaborador[header] = row[index + 5];
-        });
-        elaborador.fk_tenant_code = tenant;
-        elaboradoresData.push(elaborador);
+        // Verifica se o setor já foi criado na unidade atual, se não, cria
+        if (
+          !Object.values(unidades[unidadeKey].setores).some(
+            (setor) => setor.nome_setor === setorNome
+          )
+        ) {
+          const setorKey = row[3]; // Coluna 3: id_setor
 
-        // Colunas 11-15 para /empresas
-        headers.slice(13, 22).forEach((header, index) => {
-          empresa[header] = row[index + 13];
-        });
-        empresa.fk_contato_id = 1;
-        empresa.fk_tenant_code = tenant;
-        empresa_data.push(empresa);
+          unidades[unidadeKey].setores[setorKey] = {
+            nome_setor: setorNome,
+            ambiente_setor: null,
+            observacao_setor: null,
+            fk_unidade_id: unidadeKey,
+            ativo: 1,
+            fk_empresa_id: empresa_id,
+            cargos: {},
+          };
+        }
 
-        // Colunas 16-20 para /unidades
-        headers.slice(22, 34).forEach((header, index) => {
-          unidade[header] = row[index + 22];
-        });
-        unidade.fk_contato_id = 1;
-        unidade.fk_empresa_id = empresa_id;
-        unidade_data.push(unidade);
+        // Adiciona o cargo ao setor existente com o mesmo nome
+        const setorKey = Object.keys(unidades[unidadeKey].setores).find(
+          (key) => unidades[unidadeKey].setores[key].nome_setor === setorNome
+        );
+
+        const cargoNome = row[5]; // Coluna 5: nome_cargo
+        const sexo = row[10]; // Coluna 10: Sexo
+        const dataNascimento = row[9]; // Coluna 9: Dt.Nascimento
+
+        const idadeFuncionario = calcularIdade(dataNascimento);
+        const menorDeIdade = idadeFuncionario < 18;
+
+        // Verifica se o cargo já existe no setor atual
+        if (unidades[unidadeKey].setores[setorKey].cargos[cargoNome]) {
+          // Se o cargo já existe, acumula as contagens de funcionários por sexo
+          if (sexo === "M") {
+            if (menorDeIdade) {
+              unidades[unidadeKey].setores[setorKey].cargos[cargoNome]
+                .func_masc--;
+              return;
+            }
+            unidades[unidadeKey].setores[setorKey].cargos[cargoNome]
+              .func_masc++;
+          } else if (sexo === "F") {
+            if (menorDeIdade) {
+              unidades[unidadeKey].setores[setorKey].cargos[cargoNome]
+                .func_fem--;
+              return;
+            }
+            unidades[unidadeKey].setores[setorKey].cargos[cargoNome].func_fem++;
+          }
+
+          if (menorDeIdade) {
+            unidades[unidadeKey].setores[setorKey].cargos[cargoNome]
+              .func_menor++;
+          }
+        } else {
+          // Se o cargo não existe, cria um novo com as contagens correspondentes
+          unidades[unidadeKey].setores[setorKey].cargos[cargoNome] = {
+            nome_cargo: cargoNome,
+            descricao: row[65],
+            func_masc: sexo === "M" ? 1 : 0,
+            func_fem: sexo === "F" ? 1 : 0,
+            func_menor: menorDeIdade ? 1 : 0,
+            fk_setor_id: setorKey,
+            ativo: 1,
+            fk_empresa_id: empresa_id,
+          };
+
+          // Após a inicialização, ajustar os contadores se o funcionário for menor de idade
+          if (menorDeIdade) {
+            if (sexo === "M") {
+              unidades[unidadeKey].setores[setorKey].cargos[cargoNome]
+                .func_masc--;
+            } else if (sexo === "F") {
+              unidades[unidadeKey].setores[setorKey].cargos[cargoNome]
+                .func_fem--;
+            }
+          }
+        }
       });
 
-      setAllDataArray(
-        rows.map((row) =>
-          Object.fromEntries(headers.map((header, i) => [header, row[i]]))
-        )
-      );
-      setGroupedData({
-        contato_data,
-        elaboradoresData,
-        empresa_data,
-        unidade_data,
+      const unidadeData = Object.values(unidades).map((unidade) => {
+        unidade.setores = Object.values(unidade.setores).map((setor) => {
+          setor.cargos = Object.values(setor.cargos);
+          return setor;
+        });
+        return unidade;
       });
+
+      setGroupedData({ unidadeData });
       setImportSuccess(true);
-
-      console.log("Dados Agrupados:");
-      console.log({
-        contato_data,
-        elaboradoresData,
-        empresa_data,
-        unidade_data,
-      });
-
-      const usuariosBlob = new Blob([JSON.stringify(contato_data, null, 2)], {
-        type: "application/json",
-      });
-      const elaboradoresBlob = new Blob(
-        [JSON.stringify(elaboradoresData, null, 2)],
-        { type: "application/json" }
-      );
-      const empresasBlob = new Blob([JSON.stringify(empresa_data, null, 2)], {
-        type: "application/json",
-      });
-
-      saveAs(usuariosBlob, "usuarios.json");
-      saveAs(elaboradoresBlob, "elaboradores.json");
-      saveAs(empresasBlob, "empresas.json");
     } catch (error) {
       console.error("Erro ao processar o arquivo:", error);
     }
   };
 
   const handleSendData = async () => {
+    console.log(groupedData);
+
     try {
-      const user = localStorage.getItem("user");
-      const userObj = JSON.parse(user);
-      const tenant = userObj.tenant_code;
-      const nome = userObj.nome_usuario;
-      const dataToSend = {
-        empresa_data: groupedData.empresa_data,
-        contato_data: groupedData.contato_data,
-      };
-      const unidadeToSend = {
-        unidade_data: groupedData.unidade_data,
-        contato_data: groupedData.contato_data,
-      };
-      const queryParams = new URLSearchParams({
-        tenant_code: tenant,
-        nome_usuario: nome,
-      }).toString();
-      console.log(JSON.stringify(groupedData.empresa_data));
-      // Enviar dados para /usuarios
-      // const usuariosResponse = await fetch(`${connect}/contatos?${queryParams}`, {
-      //   method: "POST",
-      //   headers: {
-      //     "Content-Type": "application/json",
-      //   },
-      //   body: JSON.stringify(groupedData.contato_data
-
-      //   ),
-      // });
-      // if (usuariosResponse.ok) {
-      //   console.log("Dados de usuários enviados com sucesso!");
-      // } else {
-      //   console.error("Erro ao enviar dados de usuários:", usuariosResponse.statusText);
-      // }
-
-      // Enviar dados para /elaboradores
-      const elaboradoresResponse = await fetch(
-        `${connect}/elaboradores?${queryParams}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(groupedData.elaboradoresData),
-        }
-      );
-      if (elaboradoresResponse.ok) {
-        console.log("Dados de elaboradores enviados com sucesso!");
-      } else {
-        console.error(
-          "Erro ao enviar dados de elaboradores:",
-          elaboradoresResponse.statusText
-        );
+      const userData = JSON.parse(localStorage.getItem("user"));
+      const empresa = JSON.parse(localStorage.getItem("selectedCompanyData"));
+      const empresa_id = empresa.id_empresa;
+      const tenant = userData.tenant_code;
+      const nome = userData.nome_usuario;
+      const queryParams = new URLSearchParams({ tenant_code: tenant, nome_usuario: nome, id_empresa: empresa_id }).toString();
+      const res = await fetch(`${connect}/unidade_import?${queryParams}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(groupedData),
+      });
+      if (!res.ok) {
+        throw new Error(`Erro ao inserir exame. Status: ${res.status}`);
       }
 
-      // Enviar dados para /empresas
-      const empresasResponse = await fetch(
-        `${connect}/empresas?${queryParams}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(dataToSend),
-        }
-      );
-      const responseData = await empresasResponse.json();
-      console.log("Resposta da rota '/empresas':", responseData);
+      const data = await res.json();
+      toast.success(data);
 
-      if (empresasResponse.ok) {
-        console.log("Dados de empresas enviados com sucesso!");
-      } else {
-        console.error(
-          "Erro ao enviar dados de empresas:",
-          responseData.error || empresasResponse.statusText
-        );
-      }
 
-      const unidadesResponse = await fetch(
-        `${connect}/unidades?${queryParams}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(unidadeToSend),
-        }
-      );
-      const responseData2 = await unidadesResponse.json();
-      console.log("Resposta da rota '/unidades':", responseData2);
-
-      if (unidadesResponse.ok) {
-        console.log("Dados de unidades enviados com sucesso!");
-      } else {
-        console.error(
-          "Erro ao enviar dados de unidades:",
-          responseData2.error || unidadesResponse.statusText
-        );
-      }
     } catch (error) {
       console.error("Erro ao enviar os dados:", error);
     }
   };
+
+  const handleSetorChange = (unidadeKey, setorKey, field, value) => {
+    setSetorEdits((prevEdits) => ({
+      ...prevEdits,
+      [unidadeKey]: {
+        ...prevEdits[unidadeKey],
+        [setorKey]: {
+          ...prevEdits[unidadeKey]?.[setorKey],
+          [field]: value,
+        },
+      },
+    }));
+  };
+  const handleUpdateSetores = () => {
+    const updatedGroupedData = { ...groupedData };
+    let allDescriptionsFilled = true;
+  
+    // Verifica se algum campo de ambiente_setor está vazio
+    Object.keys(setorEdits).forEach((unidadeKey) => {
+      Object.keys(setorEdits[unidadeKey]).forEach((setorKey) => {
+        const setorEdit = setorEdits[unidadeKey][setorKey];
+        if (!setorEdit.ambiente_setor || setorEdit.ambiente_setor.trim() === "") {
+          allDescriptionsFilled = false;
+          console.log('Campo de descrição do setor vazio');
+        }
+      });
+    });
+  
+    // Se algum campo estiver vazio, exibe mensagem de erro e retorna
+    if (!allDescriptionsFilled) {
+      toast.error('Todos os campos de descrição do setor devem estar preenchidos.');
+      return;
+    }
+  
+    // Atualiza os dados agrupados com as mudanças
+    Object.keys(setorEdits).forEach((unidadeKey) => {
+      Object.keys(setorEdits[unidadeKey]).forEach((setorKey) => {
+        const setor = updatedGroupedData.unidadeData
+          .find((unidade) => unidade.nome_unidade === unidadeKey)
+          .setores.find((setor) => setor.nome_setor === setorKey);
+        if (setor) {
+          Object.assign(setor, setorEdits[unidadeKey][setorKey]);
+        }
+      });
+    });
+  
+    // Verifica se todas as descrições de setores estão preenchidas após a atualização
+    const allDescriptionsFilledAfterUpdate = updatedGroupedData.unidadeData.every((unidade) => {
+      return unidade.setores.every((setor) => setor.ambiente_setor && setor.ambiente_setor.trim() !== "");
+    });
+  
+    // Se todas as descrições de setores estiverem preenchidas, define atualizouSetor como true
+    if (allDescriptionsFilledAfterUpdate) {
+      setAtualizouSetor(true);
+    } else {
+      setAtualizouSetor(false);
+    }
+  };
+  
+
+
 
   return (
     <>
@@ -265,7 +299,7 @@ const ImportXlsx = () => {
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth="2"
-                d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"
+                d="M13 13h3a3 3 0 0 0 3-3V4a3 3 0 0 0-3-3H4a3 3 0 0 0-3 3v6a3 3 0 0 0 3 3h3m3 0v3m0 0l-3-3m3 3 3-3"
               />
             </svg>
             <p className="mb-2 text-sm text-gray-500 dark:text-gray-400">
@@ -290,35 +324,84 @@ const ImportXlsx = () => {
           Dados importados com sucesso!
         </div>
       )}
-      <div className="relative overflow-x-auto sm:rounded-lg flex sm:justify-center">
-        {allDataArray && allDataArray.length > 0 && (
-          <table className="w-full xl:w-5/6 shadow-md text-sm m-8 text-left rtl:text-right text-gray-500">
-            <thead className="text-xs text-gray-700 uppercase bg-gray-50">
-              <tr>
-                {Object.keys(allDataArray[0]).map((header) => (
-                  <th scope="col" className="px-6 py-3" key={header}>
-                    {header}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {allDataArray.map((item, index) => (
-                <tr className="border-b" key={index}>
-                  {Object.values(item).map((value, subIndex) => (
-                    <td
-                      scope="row"
-                      className="px-6 py-4 text-gray-700 whitespace-pre-line"
-                      key={subIndex}
+
+      <div className="mx-auto mt-10">
+        <h4 className="font-semibold text-xl">Editar Setores</h4>
+        {groupedData.unidadeData &&
+          groupedData.unidadeData.map((unidade, unidadeIndex) => (
+            <div key={unidadeIndex} className="mb-6">
+              <h5 className="font-semibold text-lg">{unidade.nome_unidade}</h5>
+              {unidade.setores.map((setor, setorIndex) => (
+                <div
+                  key={setorIndex}
+                  className="mb-4 pl-4 border-l-2 border-gray-200"
+                >
+                  <h6 className="font-semibold text-md">{setor.nome_setor}</h6>
+                  <div className="mb-2">
+                    <label
+                      className="block text-gray-700 text-sm font-bold mb-2"
+                      htmlFor={`ambiente_${unidadeIndex}_${setorIndex}`}
                     >
-                      {value}
-                    </td>
-                  ))}
-                </tr>
+                      Descrição do Setor
+                    </label>
+                    <input
+                    placeholder="Descrição do Setor"
+                      id={`ambiente_${unidadeIndex}_${setorIndex}`}
+                      type="text"
+                      value={
+                        setorEdits[unidade.nome_unidade]?.[setor.nome_setor]
+                          ?.ambiente_setor || setor.ambiente_setor
+                      }
+                      onChange={(e) => {
+                        if (e.target.value.trim() !== "") {
+                          // Verifica se a descrição não está vazia
+                          handleSetorChange(
+                            unidade.nome_unidade,
+                            setor.nome_setor,
+                            "ambiente_setor",
+                            e.target.value
+                          );
+                        }
+                      }}
+                      className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                    />
+                  </div>
+                  <div className="mb-2">
+                    <label
+                      className="block text-gray-700 text-sm font-bold mb-2"
+                      htmlFor={`observacao_${unidadeIndex}_${setorIndex}`}
+                    >
+                      Observação do Setor
+                    </label>
+                    <input
+                      id={`observacao_${unidadeIndex}_${setorIndex}`}
+                      type="text"
+                      placeholder="Observação do Setor"
+                      value={
+                        setorEdits[unidade.nome_unidade]?.[setor.nome_setor]
+                          ?.observacao_setor || setor.observacao_setor
+                      }
+                      onChange={(e) =>
+                        handleSetorChange(
+                          unidade.nome_unidade,
+                          setor.nome_setor,
+                          "observacao_setor",
+                          e.target.value
+                        )
+                      }
+                      className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                    />
+                  </div>
+                </div>
               ))}
-            </tbody>
-          </table>
-        )}
+            </div>
+          ))}
+        <button
+          className="bg-sky-700 hover:bg-sky-800 text-white font-bold py-2 px-4 rounded mt-4"
+          onClick={handleUpdateSetores}
+        >
+          Atualizar Setores
+        </button>
       </div>
       <div
         style={{
@@ -329,8 +412,13 @@ const ImportXlsx = () => {
         }}
       >
         <button
-          className="bg-sky-700 hover:bg-sky-800 text-white font-bold py-2 px-4 rounded mt-4"
+          className={
+            !atualizouSetor
+              ? "bg-sky-200 hover:bg-sky-300 text-white font-bold py-2 px-4 rounded mt-4 opacity-50 cursor-not-allowed"
+              : "bg-sky-700 hover:bg-sky-800 text-white font-bold py-2 px-4 rounded mt-4"
+          }
           onClick={handleSendData}
+          disabled={!atualizouSetor}
         >
           Enviar
         </button>
