@@ -1172,8 +1172,7 @@ router.put("/processo_cnae/:id_processo_cnae", (req, res) => {
 
 
 
-//Tabela Processos
-//Get table
+//Tabela de CNAE
 router.get("/cnae", (req, res) => {
   const q = `SELECT * FROM cnae`;
   pool.getConnection((err, con) => {
@@ -1418,6 +1417,7 @@ router.put("/conclusoes/:id_conclusao", (req, res) => {
 });
 
 
+//Exames Vinculos
 router.get("/exames_sem_vinculo/:setorId", (req, res, next) => {
   const setorId = req.params.setorId;
   const tenant = req.query.tenant_code;
@@ -1529,8 +1529,6 @@ router.get("/exames_por_risco/:risco_id", (req, res, next) => {
   });
 });
 
-
-
 router.get("/setor_exame/:setorId", (req, res, next) => {
   const setorId = req.params.setorId;
   const tenant = req.query.tenant_code;
@@ -1584,7 +1582,6 @@ router.get("/setor_exame/:setorId", (req, res, next) => {
     });
   });
 });
-
 
 router.get("/risco_exames_nao_vinculados/:id_risco", (req, res) => {
   const idRisco = req.params.id_risco;
@@ -1649,8 +1646,6 @@ router.get("/risco_exames_nao_vinculados/:id_risco", (req, res) => {
   });
 });
 
-
-
 router.post("/setor_exame/", (req, res, next) => {
   const setorId = req.body.setorId;
   const exameId = req.body.exameId;
@@ -1677,8 +1672,6 @@ router.post("/setor_exame/", (req, res, next) => {
   });
 });
 
-
-
 router.post("/exames_setores_from_riscos/", (req, res) => {
   const { setorId, riscoIds } = req.body;
   if (!setorId || !Array.isArray(riscoIds) || riscoIds.length === 0) {
@@ -1694,11 +1687,11 @@ router.post("/exames_setores_from_riscos/", (req, res) => {
   const checkExistenceQuery = `
     SELECT fk_exame_id
     FROM setor_exame
-    WHERE  status = 1 AND fk_setor_id = ? AND fk_exame_id = ?
+    WHERE status = 1 AND fk_setor_id = ? AND fk_exame_id = ?
   `;
 
   const insertExameSetorQuery = `
-    INSERT DISTINCT INTO setor_exame (fk_exame_id, fk_setor_id, status)
+    INSERT INTO setor_exame (fk_exame_id, fk_setor_id, status)
     VALUES (?, ?, 1)
   `;
 
@@ -1734,7 +1727,7 @@ router.post("/exames_setores_from_riscos/", (req, res) => {
                   resolve(result);
                 });
               } else {
-                resolve(null); // Já existe, não precisa inserir
+                resolve(null);
               }
             });
           });
@@ -1917,9 +1910,6 @@ router.get("/exames", (req, res, next) => {
   });
 });
 
-
-
-
 router.post("/exames", (req, res) => {
   const data = req.body;
 
@@ -1986,56 +1976,6 @@ router.post("/risco_exame", (req, res) => {
 });
 
 
-
-router.put("/medidas/:id_medida", (req, res) => {
-  const id_medida = req.params.id_medida;
-  const nome = req.query.nome_usuario
-  const tenant = req.query.tenant_code
-  const {
-    descricao_medida,
-    grupo_medida,
-  } = req.body;
-  const data = req.body
-
-  const q = `
-    UPDATE medidas
-    SET descricao_medida = ?,
-    grupo_medida = ?
-    WHERE id_medida = ?
-    `;
-
-  const values = [
-    descricao_medida,
-    grupo_medida,
-    id_medida
-  ];
-
-  pool.getConnection((err, con) => {
-    if (err) return next(err);
-
-    con.query(q, values, (err) => {
-      if (err) {
-        console.error("Erro ao atualizar medida na tabela", err);
-        return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
-      }
-      const formatBody = (obj) => {
-        let formatted = '';
-        for (const key in obj) {
-          if (obj.hasOwnProperty(key)) {
-            formatted += `${key}: ${obj[key]}, `;
-          }
-        }
-        return formatted.slice(0, -2);
-      };
-      const bodyString = formatBody(data)
-      registrarLog('medidas', 'put', `Alterou Medida`, `${nome}`, tenant, new Date(), bodyString);
-      return res.status(200).json("Medida atualizado com sucesso!");
-    });
-
-    con.release();
-  })
-
-});
 
 //Medidas de Proteção
 //Tabela EPI's
@@ -2135,244 +2075,6 @@ router.put("/medidas/:id_medida", (req, res) => {
   })
 
 });
-
-
-//Tabela EPI's
-//Get table
-router.get("/medidas_epi", (req, res) => {
-  const queryParams = "MI";
-
-  getMedidasFromTabela(queryParams)
-    .then(data => {
-      return res.status(200).json(data);
-    })
-    .catch(error => {
-      return res.status(500).json(error);
-    });
-
-
-});
-
-//Add rows in table
-router.post("/medidas_epi", (req, res) => {
-  const data = req.body;
-
-  const q = "INSERT INTO medidas_epi SET ?"
-
-  pool.getConnection((err, con) => {
-    if (err) return next(err);
-
-    con.query(q, data, (err, result) => {
-      if (err) {
-        console.error("Erro ao inserir Medida na tabela", err);
-        return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
-      }
-
-      return res.status(200).json(`Medida cadastrado com sucesso!`);
-    });
-
-    con.release();
-  })
-
-});
-
-router.put("/medidas_epi/:id_medida", (req, res) => {
-  const id_medida = req.params.id_medida;
-  const {
-    nome_medida,
-    certificado_medida,
-    fator_reducao_medida,
-    vencimento_certificado_medida,
-    fabricante_medida,
-  } = req.body;
-
-  const q = `
-    UPDATE medidas_epi
-    SET nome_medida = ?,
-    certificado_medida = ?,
-    fator_reducao_medida = ?,
-    vencimento_certificado_medida = ?,
-    fabricante_medida = ?
-    WHERE id_medida = ?
-    `;
-
-  const values = [
-    nome_medida,
-    certificado_medida,
-    fator_reducao_medida,
-    vencimento_certificado_medida,
-    fabricante_medida,
-    id_medida
-  ];
-
-  pool.getConnection((err, con) => {
-    if (err) return next(err);
-
-    con.query(q, values, (err) => {
-      if (err) {
-        console.error("Erro ao atualizar medida na tabela", err);
-        return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
-      }
-
-      return res.status(200).json("Medida atualizado com sucesso!");
-    });
-
-    con.release();
-  })
-
-});
-
-
-//Medidas Adminitrativas
-//Get Table
-router.get("/medidas_adm", (req, res) => {
-  const q = `SELECT * FROM medidas_adm`;
-
-  pool.getConnection((err, con) => {
-    if (err) return next(err);
-
-    con.query(q, (err, data) => {
-      if (err) return res.status(500).json(err);
-
-      return res.status(200).json(data);
-    });
-
-    con.release();
-  })
-
-});
-
-//Add rows in table
-router.post("/medidas_adm", (req, res) => {
-  const data = req.body;
-  const nome = req.query.nome_usuario
-  const tenant = req.query.tenant_code
-  const q = "INSERT INTO medidas_adm SET ?"
-
-  pool.getConnection((err, con) => {
-    if (err) return next(err);
-
-    con.query(q, data, (err, result) => {
-      if (err) {
-        console.error("Erro ao inserir Medida na tabela", err);
-        return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
-      }
-      registrarLog('medidas', 'create', `Cadastrou Medida`, `${nome}`, tenant, new Date());
-
-      return res.status(200).json(`Medida cadastrado com sucesso!`);
-    });
-
-    con.release();
-  })
-
-});
-
-router.put("/medidas_adm/:id_medida_adm", (req, res) => {
-  const nome = req.query.nome_usuario
-  const tenant = req.query.tenant_code
-  const id_medida_adm = req.params.id_medida_adm;
-  const {
-    descricao_medida_adm,
-  } = req.body;
-
-  const q = `UPDATE medidas_adm SET descricao_medida_adm = ? WHERE id_medida_adm = ?`;
-
-  const values = [
-    descricao_medida_adm,
-    id_medida_adm,
-  ];
-
-  pool.getConnection((err, con) => {
-    if (err) return next(err);
-
-    con.query(q, values, (err) => {
-      if (err) {
-        console.error("Erro ao atualizar medida na tabela", err);
-        return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
-      }
-      registrarLog('medidas', 'put', `Alterou Medida`, `${nome}`, tenant, new Date());
-
-      return res.status(200).json("Medida atualizado com sucesso!");
-    });
-
-    con.release();
-  })
-
-});
-
-
-//Medidas EPC's
-//Get Table
-router.get("/medidas_epc", (req, res) => {
-  const q = `SELECT * FROM medidas_epc`;
-
-  pool.getConnection((err, con) => {
-    if (err) return next(err);
-
-    con.query(q, (err, data) => {
-      if (err) return res.status(500).json(err);
-
-      return res.status(200).json(data);
-    });
-
-    con.release();
-  })
-
-});
-
-//Add rows in table
-router.post("/medidas_epc", (req, res) => {
-  const data = req.body;
-
-  const q = "INSERT INTO medidas_epc SET ?"
-
-  pool.getConnection((err, con) => {
-    if (err) return next(err);
-
-    con.query(q, data, (err, result) => {
-      if (err) {
-        console.error("Erro ao inserir Medida na tabela", err);
-        return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
-      }
-
-      return res.status(200).json(`Medida cadastrado com sucesso!`);
-    });
-
-    con.release();
-  })
-
-});
-
-router.put("/medidas_epc/:id_medida", (req, res) => {
-  const id_medida = req.params.id_medida;
-  const {
-    descricao_medida
-  } = req.body;
-
-  const q = `UPDATE medidas_epc SET descricao_medida = ? WHERE id_medida = ?`;
-
-  const values = [
-    descricao_medida,
-    id_medida
-  ];
-
-  pool.getConnection((err, con) => {
-    if (err) return next(err);
-
-    con.query(q, values, (err) => {
-      if (err) {
-        console.error("Erro ao atualizar medida na tabela", err);
-        return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
-      }
-
-      return res.status(200).json("Medida atualizado com sucesso!");
-    });
-
-    con.release();
-  })
-
-});
-
 
 
 
@@ -2487,6 +2189,7 @@ router.put("/usuarios/:id_usuario", (req, res) => {
     con.release();
   });
 });
+
 router.put("/usuarios_email/:id_usuario/", (req, res) => {
   const id_usuario = req.params.id_usuario;
   const tenant = req.query.tenant_code;
@@ -2518,7 +2221,6 @@ router.put("/usuarios_email/:id_usuario/", (req, res) => {
     con.release();
   });
 });
-
 
 router.put("/usuarios/activate/:id_usuario", (req, res) => {
   const id_usuario = req.params.id_usuario;
@@ -2668,6 +2370,7 @@ router.put("/aparelhos/activate/:id_aparelho", (req, res) => {
 
   });
 });
+
 //Tabela de Versões do PDF
 //Get Table
 router.get("/laudo_version", (req, res) => {
