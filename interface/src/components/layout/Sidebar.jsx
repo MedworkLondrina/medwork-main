@@ -716,10 +716,20 @@ function Sidebar() {
                                 {/* Relatório por CNAE */}
                                 <li className="hover:bg-sky-100" onClick={() => setShowMenu(!showMenu)}>
                                   <div className={`flex items-center py-2 px-6`} onClick={openModalRelatorioCnae}>
-                                    <img src={icon_relatorio_cnae} alt="icon_relatorio_cnae" />
+                                    <img src={icon_laudo} alt="icon_relatorio_cnae" />
                                     <span className="ms-3 font-normal">Relatório por CNAE</span>
                                   </div>
                                 </li>
+
+                                {/* DIR */}
+                                <Link to="gerar_dir">
+                                  <li className="hover:bg-sky-100" onClick={() => setShowMenu(!showMenu)}>
+                                    <div className={`flex items-center py-2 px-6`}>
+                                      <img src={icon_laudo} alt="icon_relatorio_cnae" />
+                                      <span className="ms-3 font-normal">DIR - Inexistência de Riscos</span>
+                                    </div>
+                                  </li>
+                                </Link>
                               </ul>
                             </>
                           )}
