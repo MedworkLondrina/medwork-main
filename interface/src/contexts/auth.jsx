@@ -756,7 +756,7 @@ export const AuthProvider = ({ children }) => {
   const getTenant = async (tenant) => {
     try {
       const code = tenant;
-      const queryParams = new URLSearchParams({ tenent_code: code }).toString();
+      const queryParams = new URLSearchParams({ tenant_code: code }).toString();
 
       const response = await fetch(`${connect}/tenant?${queryParams}`)
 

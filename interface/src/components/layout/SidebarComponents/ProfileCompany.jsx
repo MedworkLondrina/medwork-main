@@ -131,8 +131,17 @@ function ProfileCompany({ companyId, empresas, contatos }) {
       setShowSetorData(true);
       setSetorSelecionado(idSetor);
       setActiveTab(1);
-      await handleAdicionarExameAutomaticamente();
+      
       await carregarInformações(idSetor);
+      
+      // Verifica se o setor possui riscos antes de adicionar exames automaticamente
+      const riscos = await getProcessosRiscos();
+      const setorRiscos = riscos.filter(risco => risco.fk_setor_id === idSetor);
+      
+      if (setorRiscos.length > 0) {
+        await handleAdicionarExameAutomaticamente();
+      }
+      
       setLoading(false);
     } else {
       setActiveTab(1);
@@ -179,31 +188,44 @@ function ProfileCompany({ companyId, empresas, contatos }) {
   };
 
   const handleAdicionarExameAutomaticamente = async () => {
-    // Construir o corpo da requisição
-    const procRisc = await getProcessosRiscos();
-    const testeRisc = procRisc.map(i => i.fk_risco_id);
+    try {
+      // Obter os processos de risco
+      const procRisc = await getProcessosRiscos();
+      
+     
+        // Mapear os IDs de risco
+        const testeRisc = procRisc.map(i => i.fk_risco_id);
+        
+        // Construir o corpo da requisição
+        const requestBody = {
+          setorId: selectedSetor.id_setor,
+          riscoIds: testeRisc
+        };
+  
 
-    const requestBody = {
-      setorId: selectedSetor.id_setor,
-      riscoIds: testeRisc
-    };
+  
+        // Fazer a requisição
+        const response = await fetch(`${connect}/exames_setores_from_riscos`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(requestBody),
+        });
+  
+        // Verificar a resposta
+        if (response.ok) {
+          carregarInformações(selectedSetor.id_setor);
+          console.log('Exames vinculados ao setor com sucesso');
+        } else {
+          console.error('Falha ao vincular exames ao setor.');
+        }
 
-    const response = await fetch(`${connect}/exames_setores_from_riscos`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(requestBody),
-    });
-
-    if (response.ok) {
-      carregarInformações(selectedSetor.id_setor)
-      console.log('Exames vinculados ao setor com sucesso');
-    } else {
-      console.error('Falha ao vincular exames ao setor.');
+    } catch (error) {
+      console.error('Erro ao adicionar exame automaticamente:', error);
     }
-
   };
+  
 
   const carregarRiscos = async (idProcesso, setorId) => {
     try {

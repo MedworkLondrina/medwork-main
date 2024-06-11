@@ -58,9 +58,8 @@ const ModalConclusaoLtcat = ({ onCancel, isOpen, riscoId, riscos, lip, ltcat, in
       if (!nome || !conclusao || !laudo) {
         return toast.info("Preencha todos os campos!");
       }
-      console.log(tipo, laudo)
 
-      if ((laudo === 'lip' || laudo === 'ambos') && !tipo) {
+      if (laudo === 'lip' || laudo === 'ambos' && !tipo) {
         return toast.info("Selecione o tipo da conclusão!");
       }
 
@@ -96,7 +95,6 @@ const ModalConclusaoLtcat = ({ onCancel, isOpen, riscoId, riscos, lip, ltcat, in
     } catch (error) {
       console.log("Erro ao adicionar conclusão", error)
     }
-    get();
     handleClear();
     setOnEdit(null);
   };
