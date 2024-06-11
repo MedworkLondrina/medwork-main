@@ -27,9 +27,11 @@ function FrmInventario({
   onEdit,
   companyId,
   setOnEdit,
-  getRiscosMedidas,
+  handleEdit,
+  getRiscosMedidas, riscosMedidas,
   getMedidas, medidas,
-  getGlobalSprm, globalSprm,
+  medidasAdm, medidasEpi, medidasEpc,
+  getGlobalSprm, setGlobalSprm, globalSprm,
   companyName,
   getInventario,
   aparelhos,
@@ -261,10 +263,11 @@ function FrmInventario({
 
   useEffect(() => {
     if (processoId && processosRiscos.length > 0 && riscos.length > 0) {
+      // Filtra os riscos associados ao processo selecionado
       const filteredProcessosRiscos = processosRiscos.filter((i) => i.fk_processo_id === processoId);
       const idsRiscos = filteredProcessosRiscos.map((item) => item.fk_risco_id);
-      const filtered = riscos.filter((i) => idsRiscos.includes(i.id_risco) && i.grupo_risco !== 'Inespecífico');
-      setFilteredRiscos(filtered);
+      const filtered = riscos.filter((i) => idsRiscos.includes(i.id_risco));
+      setFilteredRiscos(filtered); // Atualiza os riscos filtrados
     }
   }, [processoId, processosRiscos, riscos]);
 
@@ -434,7 +437,6 @@ function FrmInventario({
     setLip(false);
     setCheckMedicao(false);
     setIsVerify(false);
-    setOnEdit(null);
   };
 
   const setRiscosInput = (risco) => {
