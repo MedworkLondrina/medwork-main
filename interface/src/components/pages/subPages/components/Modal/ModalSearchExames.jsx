@@ -8,6 +8,7 @@ const ModalSearchExames = ({ onCancel, isOpen, children, setorId }) => {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [naoVinculados, setNaoVinculados] = useState([]);
+  const [exames, setExames] = useState([]);
   const { getExamesSemVinculo } = useAuth(null);
 
   const handleSearch = (term) => {
@@ -16,13 +17,17 @@ const ModalSearchExames = ({ onCancel, isOpen, children, setorId }) => {
 
   const handleNaovinculados = async () => {
     const naoVinculados = await getExamesSemVinculo(setorId);
-    console.log(naoVinculados)
     setNaoVinculados(naoVinculados)
   }
 
   useEffect(() => {
     handleNaovinculados();
-  }, [])
+  }, [isOpen, setorId]);
+
+  useEffect(() => {
+    const filtered = naoVinculados.filter((item) => item.nome_exame.toLowerCase().includes(searchTerm.toLowerCase()));
+    setExames(filtered);
+  }, [searchTerm, naoVinculados, isOpen, setorId]);
 
   const findTipo = (admissional, periodico, retorno, mudanca, demissional) => {
     const tipos = [];
@@ -96,7 +101,7 @@ const ModalSearchExames = ({ onCancel, isOpen, children, setorId }) => {
         <ul className='space-y-3 py-3'>
           {naoVinculados.length > 0 ? (
             <>
-              {naoVinculados.map((item, i) => (
+              {exames.map((item, i) => (
                 <li
                   key={i}
                   className="py-3 hover:bg-gray-100 hover:shadow-sm shadow-sm bg-gray-50 cursor-pointer px-4 rounded-md"
