@@ -98,19 +98,19 @@ function LaudoPgr() {
     handleGet();
   }, [companyId]);
 
- 
+
   useEffect(() => {
     try {
       // Filtrando o inventario pelo id da Empresa
-      if(companyId && !unidadeId && !setorId) {
+      if (companyId && !unidadeId && !setorId) {
         const inventarioFilter = inventario.filter((i) => i.fk_empresa_id === companyId);
         setFilteredInventario(inventarioFilter);
       }
-      if(companyId && unidadeId && !setorId) {
+      if (companyId && unidadeId && !setorId) {
         const inventarioFilter = inventario.filter((i) => i.fk_unidade_id === unidadeId);
         setFilteredInventario(inventarioFilter);
       }
-      if(companyId && unidadeId &&  setorId) {
+      if (companyId && unidadeId && setorId) {
         const inventarioFilter = inventario.filter((i) => i.fk_setor_id === setorId);
         setFilteredInventario(inventarioFilter);
       }
@@ -141,7 +141,7 @@ function LaudoPgr() {
   const closeModalSetor = () => setShowModalSetor(false);
   const closeModalElaborador = () => setShowModalElaborador(false);
 
-  
+
   const handleClear = () => {
     setGeneratedPdf(null);
     setPdfComponent(null);
@@ -165,7 +165,7 @@ function LaudoPgr() {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ companyId: companyId , unidadeId: unidadeId, setorId: setorId}),
+      body: JSON.stringify({ companyId: companyId, unidadeId: unidadeId, setorId: setorId }),
     });
 
     const data = await res.json();

@@ -33,7 +33,7 @@ const ImportXlsx = () => {
     // Função para calcular a idade a partir da data de nascimento
     const calcularIdade = (dataNascimento) => {
       if (!dataNascimento) {
-        return
+        return;
       }
       const dataAtual = new Date();
       const dataNascimentoLimpa = dataNascimento.trim(); // Remove espaços em branco
@@ -70,7 +70,7 @@ const ImportXlsx = () => {
       const unidades = {};
 
       rows.forEach((row) => {
-        const unidadeKey = row[1]; // Coluna 0: id_unidade
+        const unidadeKey = row[1]; // Coluna 1: id_unidade
         const setorNome = row[3]; // Coluna 3: nome_setor
 
         // Verifica se a unidade já foi criada, se não, cria
@@ -172,14 +172,19 @@ const ImportXlsx = () => {
         }
       });
 
-      const unidadeData = Object.values(unidades).map((unidade) => {
-        unidade.setores = Object.values(unidade.setores).map((setor) => {
-          setor.cargos = Object.values(setor.cargos);
-          return setor;
+      const unidadeData = Object.values(unidades)
+        .filter((unidade) => unidade.nome_unidade && unidade.cnpj_unidade)
+        .map((unidade) => {
+          unidade.setores = Object.values(unidade.setores)
+            .filter((setor) => setor.nome_setor)
+            .map((setor) => {
+              setor.cargos = Object.values(setor.cargos).filter((cargo) => cargo.nome_cargo);
+              return setor;
+            });
+          return unidade;
         });
-        return unidade;
-      });
 
+      console.log(unidadeData)
       setGroupedData({ unidadeData });
       setImportSuccess(true);
     } catch (error) {
@@ -332,7 +337,7 @@ const ImportXlsx = () => {
 
       {/* Editar Setores */}
       {importSuccess && (
-        <div className="w-5/6 mx-auto mt-10 rounded-md shadow-md border px-5 py-3">
+        <div className="w-5/6 mx-auto mt-10 mb-10 rounded-md shadow-md border px-5 py-3">
           <div className="w-full">
             <h4 className="font-bold text-3xl text-center text-sky-700 mb-2">Editar Setores</h4>
             {groupedData.unidadeData &&
