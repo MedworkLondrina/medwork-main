@@ -30,6 +30,8 @@ const ImportXlsx = () => {
   };
 
   const processFile = async (file) => {
+
+    
     // Função para calcular a idade a partir da data de nascimento
     const calcularIdade = (dataNascimento) => {
       if (!dataNascimento) {
@@ -179,8 +181,13 @@ const ImportXlsx = () => {
         });
         return unidade;
       });
+      console.log(unidadeData)
+      if (unidadeData.length === 1) {
+        setGroupedData({ unidadeData: unidadeData[0] });
+    } else {
+        setGroupedData({ unidadeData });
+    }
 
-      setGroupedData({ unidadeData });
       setImportSuccess(true);
     } catch (error) {
       console.error("Erro ao processar o arquivo:", error);
@@ -331,113 +338,102 @@ const ImportXlsx = () => {
       )}
 
       {/* Editar Setores */}
-      {importSuccess && (
-        <div className="w-5/6 mx-auto mt-10 rounded-md shadow-md border px-5 py-3">
-          <div className="w-full">
-            <h4 className="font-bold text-3xl text-center text-sky-700 mb-2">Editar Setores</h4>
-            {groupedData.unidadeData &&
-              groupedData.unidadeData.map((unidade, unidadeIndex) => (
-                // Unidades
-                <div key={unidadeIndex} className={`mb-6 py-2 px-4`}>
-                  {/* Titulo */}
-                  <div>
-                    <p className="text-gray-600 text-md">Unidade:</p>
-                    <h5 className="font-semibold text-lg -mt-1 text-sky-700">{unidade.nome_unidade}</h5>
-                  </div>
-                  {unidade.setores.map((setor, setorIndex) => (
-                    // Setores
-                    <div
-                      key={setorIndex}
-                      className="mb-2 border-b px-4 border-gray-400"
-                    >
-                      {/* Titulo Setor */}
-                      <div>
-                        <p className="text-gray-600 text-md">Setor:</p>
-                        <h5 className="font-semibold -mt-1 text-sky-700">{setor.nome_setor}</h5>
+     {/* Editar Setores */}
+     {importSuccess && (
+  <div className="w-5/6 mx-auto mt-10 rounded-md shadow-md border px-5 py-3">
+    <div className="w-full">
+      <h4 className="font-bold text-3xl text-center text-sky-700 mb-2">Editar Setores</h4>
+      {groupedData.unidadeData &&
+        groupedData.unidadeData.map((unidade, unidadeIndex) => {
+          // Verifica se a unidade possui nome
+          if (unidade.nome_unidade) {
+            return (
+              // Unidade
+              <div key={unidadeIndex} className="mb-6 py-2 px-4">
+                {/* Título da Unidade */}
+                <div>
+                  <p className="text-gray-600 text-md">Unidade:</p>
+                  <h5 className="font-semibold text-lg -mt-1 text-sky-700">{unidade.nome_unidade}</h5>
+                </div>
+                {/* Setores da Unidade */}
+                {unidade.setores.map((setor, setorIndex) => (
+                  // Setor
+                  <div key={setorIndex} className="mb-2 border-b px-4 border-gray-400">
+                    {/* Título do Setor */}
+                    <div>
+                      <p className="text-gray-600 text-md">Setor:</p>
+                      <h5 className="font-semibold -mt-1 text-sky-700">{setor.nome_setor}</h5>
+                    </div>
+                    {/* Inputs do Setor */}
+                    <div className="w-full flex items-center gap-4">
+                      {/* Descrição do Setor */}
+                      <div className="w-full md:w-1/2 px-3 md:px-0">
+                        <label htmlFor={`ambiente_${unidadeIndex}_${setorIndex}`} className="tracking-wide text-gray-700 text-xs font-bold mb-2">Descrição do Setor</label>
+                        <input
+                          type="text"
+                          id={`ambiente_${unidadeIndex}_${setorIndex}`}
+                          className="appearance-none block w-full bg-gray-100 rounded py-3 px-4 mb-3 mt-1 leading-tight focus:outline-none"
+                          placeholder="Descrição do Setor"
+                          value={
+                            setorEdits[unidade.nome_unidade]?.[setor.nome_setor]?.ambiente_setor || setor.ambiente_setor
+                          }
+                          onChange={(e) => {
+                            if (e.target.value.trim() !== "") {
+                              handleSetorChange(unidade.nome_unidade, setor.nome_setor, "ambiente_setor", e.target.value);
+                            }
+                          }}
+                        />
                       </div>
-
-                      {/* Inputs Setor */}
-                      <div className="w-full flex items-center gap-4">
-                        {/* Descrição do Setor */}
-                        <div className="w-full md:w-1/2 px-3 md:px-0">
-                          <label className="tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor={`ambiente_${unidadeIndex}_${setorIndex}`}>
-                            Descrição do Setor
-                          </label>
-                          <input
-                            className="appearence-none block w-full bg-gray-100 rounded py-3 px-4 mb-3 mt-1 leading-tight focus:outline-none"
-                            placeholder="Descrição do Setor"
-                            id={`ambiente_${unidadeIndex}_${setorIndex}`}
-                            type="text"
-                            value={
-                              setorEdits[unidade.nome_unidade]?.[setor.nome_setor]
-                                ?.ambiente_setor || setor.ambiente_setor
-                            }
-                            onChange={(e) => {
-                              if (e.target.value.trim() !== "") {
-                                handleSetorChange(
-                                  unidade.nome_unidade,
-                                  setor.nome_setor,
-                                  "ambiente_setor",
-                                  e.target.value
-                                );
-                              }
-                            }}
-                          />
-                        </div>
-
-                        {/* Observação do Setor */}
-                        <div className="w-full md:w-1/2 px-3 md:px-0">
-                          <label className="tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor={`ambiente_${unidadeIndex}_${setorIndex}`}>
-                            Observação do Setor
-                          </label>
-                          <input
-                            className="appearence-none block w-full bg-gray-100 rounded py-3 px-4 mb-3 mt-1 leading-tight focus:outline-none"
-                            id={`observacao_${unidadeIndex}_${setorIndex}`}
-                            type="text"
-                            placeholder="Observação do Setor"
-                            value={
-                              setorEdits[unidade.nome_unidade]?.[setor.nome_setor]
-                                ?.observacao_setor || setor.observacao_setor
-                            }
-                            onChange={(e) =>
-                              handleSetorChange(
-                                unidade.nome_unidade,
-                                setor.nome_setor,
-                                "observacao_setor",
-                                e.target.value
-                              )
-                            }
-                          />
-                        </div>
+                      {/* Observação do Setor */}
+                      <div className="w-full md:w-1/2 px-3 md:px-0">
+                        <label htmlFor={`observacao_${unidadeIndex}_${setorIndex}`} className="tracking-wide text-gray-700 text-xs font-bold mb-2">Observação do Setor</label>
+                        <input
+                          type="text"
+                          id={`observacao_${unidadeIndex}_${setorIndex}`}
+                          className="appearance-none block w-full bg-gray-100 rounded py-3 px-4 mb-3 mt-1 leading-tight focus:outline-none"
+                          placeholder="Observação do Setor"
+                          value={
+                            setorEdits[unidade.nome_unidade]?.[setor.nome_setor]?.observacao_setor || setor.observacao_setor
+                          }
+                          onChange={(e) => handleSetorChange(unidade.nome_unidade, setor.nome_setor, "observacao_setor", e.target.value)}
+                        />
                       </div>
                     </div>
-                  ))}
-                </div>
-              ))}
-            <div className="flex justify-end items-center gap-4">
-              {/* Atualizar Setores */}
-              <button
-                className="bg-blue-700 hover:bg-blue-800 text-white font-bold py-2 px-4 rounded mt-4"
-                onClick={handleUpdateSetores}
-              >
-                Atualizar Setores
-              </button>
+                  </div>
+                ))}
+              </div>
+            );
+          } else {
+            return null;
+          }
+        })}
+      {/* Botões de Ação */}
+      <div className="flex justify-end items-center gap-4">
+        {/* Botão Atualizar Setores */}
+        <button
+          className="bg-blue-700 hover:bg-blue-800 text-white font-bold py-2 px-4 rounded mt-4"
+          onClick={handleUpdateSetores}
+        >
+          Atualizar Setores
+        </button>
+        {/* Botão Enviar */}
+        <button
+          className={
+            !atualizouSetor
+              ? "bg-green-700 text-white font-bold py-2 px-4 rounded mt-4 opacity-60 cursor-not-allowed"
+              : "bg-green-700 hover:bg-green-800 text-white font-bold py-2 px-4 rounded mt-4"
+          }
+          onClick={handleSendData}
+          disabled={!atualizouSetor}
+        >
+          Enviar
+        </button>
+      </div>
+    </div>
+  </div>
+)}
 
-              {/* Enviar */}
-              <button
-                className={
-                  !atualizouSetor
-                    ? "bg-green-700 text-white font-bold py-2 px-4 rounded mt-4 opacity-60 cursor-not-allowed"
-                    : "bg-green-700 hover:bg-green-800 text-white font-bold py-2 px-4 rounded mt-4"
-                }
-                onClick={handleSendData}
-              >
-                Enviar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+
     </>
   );
 };
