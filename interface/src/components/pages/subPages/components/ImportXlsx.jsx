@@ -29,6 +29,15 @@ const ImportXlsx = () => {
     });
   };
 
+  const handleClear = () => {
+    setImportSuccess(false);
+    setAtualizouSetor(false);
+    setGroupedData({});
+    setSetorEdits({});
+    setContacts({});
+    setFile(null);
+  }
+
   const processFile = async (file) => {
     // Função para calcular a idade a partir da data de nascimento
     const calcularIdade = (dataNascimento) => {
@@ -215,7 +224,7 @@ const ImportXlsx = () => {
 
       const data = await res.json();
       toast.success(data);
-
+      handleClear();
 
     } catch (error) {
       console.error("Erro ao enviar os dados:", error);
@@ -280,7 +289,6 @@ const ImportXlsx = () => {
       setAtualizouSetor(false);
     }
   };
-
 
 
   return (
