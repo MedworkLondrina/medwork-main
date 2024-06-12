@@ -35,7 +35,7 @@ const ImportXlsx = () => {
     // Função para calcular a idade a partir da data de nascimento
     const calcularIdade = (dataNascimento) => {
       if (!dataNascimento) {
-        return
+        return;
       }
       const dataAtual = new Date();
       const dataNascimentoLimpa = dataNascimento.trim(); // Remove espaços em branco
@@ -72,7 +72,7 @@ const ImportXlsx = () => {
       const unidades = {};
 
       rows.forEach((row) => {
-        const unidadeKey = row[1]; // Coluna 0: id_unidade
+        const unidadeKey = row[1]; // Coluna 1: id_unidade
         const setorNome = row[3]; // Coluna 3: nome_setor
 
         // Verifica se a unidade já foi criada, se não, cria
@@ -174,19 +174,20 @@ const ImportXlsx = () => {
         }
       });
 
-      const unidadeData = Object.values(unidades).map((unidade) => {
-        unidade.setores = Object.values(unidade.setores).map((setor) => {
-          setor.cargos = Object.values(setor.cargos);
-          return setor;
+      const unidadeData = Object.values(unidades)
+        .filter((unidade) => unidade.nome_unidade && unidade.cnpj_unidade)
+        .map((unidade) => {
+          unidade.setores = Object.values(unidade.setores)
+            .filter((setor) => setor.nome_setor)
+            .map((setor) => {
+              setor.cargos = Object.values(setor.cargos).filter((cargo) => cargo.nome_cargo);
+              return setor;
+            });
+          return unidade;
         });
-        return unidade;
-      });
+
       console.log(unidadeData)
-      if (unidadeData.length === 1) {
-        setGroupedData({ unidadeData: unidadeData[0] });
-    } else {
-        setGroupedData({ unidadeData });
-    }
+      setGroupedData({ unidadeData });
 
       setImportSuccess(true);
     } catch (error) {
@@ -338,48 +339,81 @@ const ImportXlsx = () => {
       )}
 
       {/* Editar Setores */}
-     {/* Editar Setores */}
-     {importSuccess && (
-  <div className="w-5/6 mx-auto mt-10 rounded-md shadow-md border px-5 py-3">
-    <div className="w-full">
-      <h4 className="font-bold text-3xl text-center text-sky-700 mb-2">Editar Setores</h4>
-      {groupedData.unidadeData &&
-        groupedData.unidadeData.map((unidade, unidadeIndex) => {
-          // Verifica se a unidade possui nome
-          if (unidade.nome_unidade) {
-            return (
-              // Unidade
-              <div key={unidadeIndex} className="mb-6 py-2 px-4">
-                {/* Título da Unidade */}
-                <div>
-                  <p className="text-gray-600 text-md">Unidade:</p>
-                  <h5 className="font-semibold text-lg -mt-1 text-sky-700">{unidade.nome_unidade}</h5>
-                </div>
-                {/* Setores da Unidade */}
-                {unidade.setores.map((setor, setorIndex) => (
-                  // Setor
-                  <div key={setorIndex} className="mb-2 border-b px-4 border-gray-400">
-                    {/* Título do Setor */}
-                    <div>
-                      <p className="text-gray-600 text-md">Setor:</p>
-                      <h5 className="font-semibold -mt-1 text-sky-700">{setor.nome_setor}</h5>
-                    </div>
-                    {/* Inputs do Setor */}
-                    <div className="w-full flex items-center gap-4">
-                      {/* Descrição do Setor */}
-                      <div className="w-full md:w-1/2 px-3 md:px-0">
-                        <label htmlFor={`ambiente_${unidadeIndex}_${setorIndex}`} className="tracking-wide text-gray-700 text-xs font-bold mb-2">Descrição do Setor</label>
-                        <input
-                          type="text"
-                          id={`ambiente_${unidadeIndex}_${setorIndex}`}
-                          className="appearance-none block w-full bg-gray-100 rounded py-3 px-4 mb-3 mt-1 leading-tight focus:outline-none"
-                          placeholder="Descrição do Setor"
-                          value={
-                            setorEdits[unidade.nome_unidade]?.[setor.nome_setor]?.ambiente_setor || setor.ambiente_setor
-                          }
-                          onChange={(e) => {
-                            if (e.target.value.trim() !== "") {
-                              handleSetorChange(unidade.nome_unidade, setor.nome_setor, "ambiente_setor", e.target.value);
+      {importSuccess && (
+        <div className="w-5/6 mx-auto mt-10 mb-10 rounded-md shadow-md border px-5 py-3">
+          <div className="w-full">
+            <h4 className="font-bold text-3xl text-center text-sky-700 mb-2">Editar Setores</h4>
+            {groupedData.unidadeData &&
+              groupedData.unidadeData.map((unidade, unidadeIndex) => (
+                // Unidades
+                <div key={unidadeIndex} className={`mb-6 py-2 px-4`}>
+                  {/* Titulo */}
+                  <div>
+                    <p className="text-gray-600 text-md">Unidade:</p>
+                    <h5 className="font-semibold text-lg -mt-1 text-sky-700">{unidade.nome_unidade}</h5>
+                  </div>
+                  {unidade.setores.map((setor, setorIndex) => (
+                    // Setores
+                    <div
+                      key={setorIndex}
+                      className="mb-2 border-b px-4 border-gray-400"
+                    >
+                      {/* Titulo Setor */}
+                      <div>
+                        <p className="text-gray-600 text-md">Setor:</p>
+                        <h5 className="font-semibold -mt-1 text-sky-700">{setor.nome_setor}</h5>
+                      </div>
+
+                      {/* Inputs Setor */}
+                      <div className="w-full flex items-center gap-4">
+                        {/* Descrição do Setor */}
+                        <div className="w-full md:w-1/2 px-3 md:px-0">
+                          <label className="tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor={`ambiente_${unidadeIndex}_${setorIndex}`}>
+                            Descrição do Setor
+                          </label>
+                          <input
+                            className="appearence-none block w-full bg-gray-100 rounded py-3 px-4 mb-3 mt-1 leading-tight focus:outline-none"
+                            placeholder="Descrição do Setor"
+                            id={`ambiente_${unidadeIndex}_${setorIndex}`}
+                            type="text"
+                            value={
+                              setorEdits[unidade.nome_unidade]?.[setor.nome_setor]
+                                ?.ambiente_setor || setor.ambiente_setor
+                            }
+                            onChange={(e) => {
+                              if (e.target.value.trim() !== "") {
+                                handleSetorChange(
+                                  unidade.nome_unidade,
+                                  setor.nome_setor,
+                                  "ambiente_setor",
+                                  e.target.value
+                                );
+                              }
+                            }}
+                          />
+                        </div>
+
+                        {/* Observação do Setor */}
+                        <div className="w-full md:w-1/2 px-3 md:px-0">
+                          <label className="tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor={`ambiente_${unidadeIndex}_${setorIndex}`}>
+                            Observação do Setor
+                          </label>
+                          <input
+                            className="appearence-none block w-full bg-gray-100 rounded py-3 px-4 mb-3 mt-1 leading-tight focus:outline-none"
+                            id={`observacao_${unidadeIndex}_${setorIndex}`}
+                            type="text"
+                            placeholder="Observação do Setor"
+                            value={
+                              setorEdits[unidade.nome_unidade]?.[setor.nome_setor]
+                                ?.observacao_setor || setor.observacao_setor
+                            }
+                            onChange={(e) =>
+                              handleSetorChange(
+                                unidade.nome_unidade,
+                                setor.nome_setor,
+                                "observacao_setor",
+                                e.target.value
+                              )
                             }
                           }}
                         />
