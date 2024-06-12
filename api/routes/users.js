@@ -1415,135 +1415,148 @@ router.put("/conclusoes/:id_conclusao", (req, res) => {
   })
 
 });
+
 // Rota para cadastrar unidadesrouter.post("/unidade_import", async (req, res, next) => {
-  router.post("/unidade_import", async (req, res, next) => {
-    try {
-      const tenant = req.query.tenant_code;
-      const empresa_id = req.query.id_empresa;
-  
-      const queryEmpresa = 'SELECT fk_contato_id FROM empresas WHERE id_empresa = ?';
-  
-      pool.getConnection((err, con) => {
-        if (err) return next(err);
-  
-        con.query(queryEmpresa, [empresa_id], (err, result) => {
-          if (err) {
-            con.release();
-            return res.status(500).json(err);
-          }
-  
-          const fk_contato_id = result[0]?.fk_contato_id;
-          const unidades = req.body.unidadeData.filter(unidade => unidade.ativo === 1).map(unidade => ({
-            nome_unidade: unidade.nome_unidade,
-            cnpj_unidade: unidade.cnpj_unidade,
-            cep_unidade: unidade.cep_unidade,
-            endereco_unidade: unidade.endereco_unidade,
-            numero_unidade: unidade.numero_unidade,
-            bairro_unidade: unidade.bairro_unidade,
-            cidade_unidade: unidade.cidade_unidade,
-            uf_unidade: unidade.uf_unidade,
-            fk_contato_id: fk_contato_id,
+router.post("/unidade_import", async (req, res, next) => {
+  try {
+    const empresa_id = req.query.id_empresa;
+
+    const queryEmpresa = 'SELECT fk_contato_id FROM empresas WHERE id_empresa = ?';
+
+    pool.getConnection((err, con) => {
+      if (err) return next(err);
+
+      con.query(queryEmpresa, [empresa_id], (err, result) => {
+        if (err) {
+          con.release();
+          return res.status(500).json(err);
+        }
+
+        const fk_contato_id = result[0]?.fk_contato_id;
+        const unidades = req.body.unidadeData.filter(unidade => unidade.ativo === 1).map(unidade => ({
+          nome_unidade: unidade.nome_unidade,
+          cnpj_unidade: unidade.cnpj_unidade,
+          cep_unidade: unidade.cep_unidade,
+          endereco_unidade: unidade.endereco_unidade,
+          numero_unidade: unidade.numero_unidade,
+          bairro_unidade: unidade.bairro_unidade,
+          cidade_unidade: unidade.cidade_unidade,
+          uf_unidade: unidade.uf_unidade,
+          fk_contato_id: fk_contato_id,
+          fk_empresa_id: empresa_id,
+          ativo: unidade.ativo,
+          setores: unidade.setores.filter(setor => setor.ativo === 1).map(setor => ({
+            nome_setor: setor.nome_setor,
+            ambiente_setor: setor.ambiente_setor,
+            observacao_setor: setor.observacao_setor,
+            ativo: setor.ativo,
             fk_empresa_id: empresa_id,
-            ativo: unidade.ativo,
-            setores: unidade.setores.filter(setor => setor.ativo === 1).map(setor => ({
-              nome_setor: setor.nome_setor,
-              ambiente_setor: setor.ambiente_setor,
-              observacao_setor: setor.observacao_setor,
-              ativo: setor.ativo,
+            cargos: setor.cargos.filter(cargo => cargo.ativo === 1).map(cargo => ({
+              nome_cargo: cargo.nome_cargo,
+              descricao: cargo.descricao,
+              func_masc: cargo.func_masc,
+              func_fem: cargo.func_fem,
+              func_menor: cargo.func_menor,
+              ativo: cargo.ativo,
               fk_empresa_id: empresa_id,
-              cargos: setor.cargos.filter(cargo => cargo.ativo === 1).map(cargo => ({
-                nome_cargo: cargo.nome_cargo,
-                descricao: cargo.descricao,
-                func_masc: cargo.func_masc,
-                func_fem: cargo.func_fem,
-                func_menor: cargo.func_menor,
-                ativo: cargo.ativo,
-                fk_empresa_id: empresa_id,
-              }))
             }))
-          }));
-  
-          const inserirUnidade = (unidade) => {
-            return new Promise((resolve, reject) => {
-                const queryUnidade = `INSERT INTO unidades (nome_unidade, cnpj_unidade, cep_unidade, endereco_unidade, numero_unidade, bairro_unidade, cidade_unidade, uf_unidade, fk_contato_id, fk_empresa_id, ativo) SELECT ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? FROM dual WHERE NOT EXISTS (SELECT 1 FROM unidades WHERE nome_unidade = ? AND cnpj_unidade = ?)`;
-                const values = [
-                    unidade.nome_unidade, unidade.cnpj_unidade, unidade.cep_unidade, unidade.endereco_unidade, unidade.numero_unidade, unidade.bairro_unidade, unidade.cidade_unidade, unidade.uf_unidade, unidade.fk_contato_id, unidade.fk_empresa_id, unidade.ativo,
-                    unidade.nome_unidade, unidade.cnpj_unidade
-                ];
-        
-                con.query(queryUnidade, values, (err, result) => {
-                    if (err) {
-                        return reject(err);
-                    }
-                    resolve(result.insertId);
-                });
+          }))
+        }));
+
+        const inserirUnidade = (unidade) => {
+          return new Promise((resolve, reject) => {
+            const queryUnidade = `INSERT INTO unidades (nome_unidade, cnpj_unidade, cep_unidade, endereco_unidade, numero_unidade, bairro_unidade, cidade_unidade, uf_unidade, fk_contato_id, fk_empresa_id, ativo) SELECT ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? FROM dual WHERE NOT EXISTS (SELECT 1 FROM unidades WHERE nome_unidade = ? AND cnpj_unidade = ? AND fk_empresa_id = ?)`;
+            const values = [
+              unidade.nome_unidade, unidade.cnpj_unidade, unidade.cep_unidade, unidade.endereco_unidade, unidade.numero_unidade, unidade.bairro_unidade, unidade.cidade_unidade, unidade.uf_unidade, unidade.fk_contato_id, unidade.fk_empresa_id, unidade.ativo,
+              unidade.nome_unidade, unidade.cnpj_unidade, empresa_id
+            ];
+
+            con.query(queryUnidade, values, (err, result) => {
+              if (err) {
+                return reject(err);
+              }
+              resolve(result.insertId);
             });
+          });
         };
-        
+
         const inserirSetor = (setor, fk_unidade_id) => {
-            return new Promise((resolve, reject) => {
-                const querySetor = `INSERT INTO setores (nome_setor, ambiente_setor, observacao_setor, fk_unidade_id, ativo, fk_empresa_id) SELECT ?, ?, ?, ?, ?, ? FROM dual WHERE NOT EXISTS (SELECT 1 FROM setores WHERE nome_setor = ? AND fk_unidade_id = ?)`;
-                const values = [
-                    setor.nome_setor, setor.ambiente_setor, setor.observacao_setor, fk_unidade_id, setor.ativo, setor.fk_empresa_id,
-                    setor.nome_setor, fk_unidade_id
-                ];
-        
-                con.query(querySetor, values, (err, result) => {
-                    if (err) {
-                        return reject(err);
-                    }
-                    resolve(result.insertId);
-                });
+          return new Promise((resolve, reject) => {
+            const querySetor = `INSERT INTO setores (nome_setor, ambiente_setor, observacao_setor, fk_unidade_id, ativo, fk_empresa_id) SELECT ?, ?, ?, ?, ?, ? FROM dual WHERE NOT EXISTS (SELECT 1 FROM setores WHERE nome_setor = ? AND fk_unidade_id = ? AND fk_empresa_id = ?)`;
+            const values = [
+              setor.nome_setor, setor.ambiente_setor, setor.observacao_setor, fk_unidade_id, setor.ativo, setor.fk_empresa_id,
+              setor.nome_setor, fk_unidade_id, empresa_id
+            ];
+
+            con.query(querySetor, values, (err, result) => {
+              if (err) {
+                return reject(err);
+              }
+              resolve(result.insertId);
             });
+          });
         };
-        
+
         const inserirCargo = (cargo, fk_setor_id) => {
-            return new Promise((resolve, reject) => {
-                const queryCargo = `INSERT INTO cargos (nome_cargo, descricao, func_masc, func_fem, func_menor, fk_setor_id, ativo, fk_empresa_id) SELECT ?, ?, ?, ?, ?, ?, ?, ? FROM dual WHERE NOT EXISTS (SELECT 1 FROM cargos WHERE nome_cargo = ? AND fk_setor_id = ?)`;
-                const values = [
-                    cargo.nome_cargo, cargo.descricao, cargo.func_masc, cargo.func_fem, cargo.func_menor, fk_setor_id, cargo.ativo, cargo.fk_empresa_id,
-                    cargo.nome_cargo, fk_setor_id
-                ];
-        
-                con.query(queryCargo, values, (err) => {
-                    if (err) {
-                        return reject(err);
-                    }
-                    resolve();
-                });
+          return new Promise((resolve, reject) => {
+            const queryCargo = `INSERT INTO cargos (nome_cargo, descricao, func_masc, func_fem, func_menor, fk_setor_id, ativo, fk_empresa_id) SELECT ?, ?, ?, ?, ?, ?, ?, ? FROM dual WHERE NOT EXISTS (SELECT 1 FROM cargos WHERE nome_cargo = ? AND fk_setor_id = ? AND fk_empresa_id = ?)`;
+            const values = [
+              cargo.nome_cargo, cargo.descricao, cargo.func_masc, cargo.func_fem, cargo.func_menor, fk_setor_id, cargo.ativo, cargo.fk_empresa_id, cargo.nome_cargo, fk_setor_id, empresa_id
+            ];
+
+            con.query(queryCargo, values, (err) => {
+              if (err) {
+                return reject(err);
+              }
+              resolve();
             });
+          });
         };
-        
-  
-          (async () => {
-            try {
-              for (const unidade of unidades) {
-                const unidadeId = await inserirUnidade(unidade);
-                for (const setor of unidade.setores) {
-                  const setorId = await inserirSetor(setor, unidadeId);
-                  for (const cargo of setor.cargos) {
-                    await inserirCargo(cargo, setorId);
-                  }
+
+
+        (async () => {
+          try {
+            let unidadesAdicionadas = 0;
+            let setoresAdicionados = 0;
+            let cargosAdicionados = 0;
+
+            for (const unidade of unidades) {
+              const unidadeId = await inserirUnidade(unidade);
+              if (unidadeId) unidadesAdicionadas++;
+
+              for (const setor of unidade.setores) {
+                const setorId = await inserirSetor(setor, unidadeId);
+                if (setorId) setoresAdicionados++;
+
+                for (const cargo of setor.cargos) {
+                  await inserirCargo(cargo, setorId);
+                  cargosAdicionados++;
                 }
               }
-              con.release(); // Libera a conexão
-              res.status(200).send("Dados importados com sucesso");
-            } catch (error) {
-              con.release(); // Libera a conexão em caso de erro
-              console.error("Erro ao importar dados:", error);
-              res.status(500).json({ error: "Erro interno do servidor" });
             }
-          })();
-        });
+
+            if (unidadesAdicionadas === 0 && setoresAdicionados === 0 && cargosAdicionados === 0) {
+              res.status(200).json("Nenhum novo registro foi adicionado, os dados já existem");
+            } else {
+              con.release();
+              res.status(200).json("Dados importados com sucesso");
+            }
+          } catch (error) {
+            con.release();
+            console.error("Erro ao importar dados:", error);
+            res.status(500).json({ error: "Erro interno do servidor" });
+          }
+        })();
       });
-    } catch (error) {
-      console.error("Erro ao importar dados:", error);
-      res.status(500).json({ error: "Erro interno do servidor" });
-    }
-  });
-  
-  
-  
+    });
+  } catch (error) {
+    console.error("Erro ao importar dados:", error);
+    res.status(500).json({ error: "Erro interno do servidor" });
+  }
+});
+
+
+
 
 
 //Exames Vinculos
@@ -1787,7 +1800,7 @@ router.post("/setor_exame/", (req, res, next) => {
       console.error("Error getting database connection:", err);
       return next(err); // Propague o erro para o próximo middleware
     }
-  
+
     con.query(q, [exameId, setorId], (err, data) => {
       con.release(); // Assegure-se de que a conexão seja liberada após a consulta
 
@@ -1795,13 +1808,13 @@ router.post("/setor_exame/", (req, res, next) => {
         console.error("Error executing query:", err);
         return res.status(500).json(err);
       }
-  
+
       return res.status(200).json(data);
     });
   });
 });
 
-router.post("/exames_setores_from_riscos/", (req, res) => { 
+router.post("/exames_setores_from_riscos/", (req, res) => {
   const { setorId, riscoIds } = req.body;
   if (!setorId || !Array.isArray(riscoIds) || riscoIds.length === 0) {
     return res.status(400).json({ error: "setorId and riscoIds are required" });

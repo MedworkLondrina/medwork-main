@@ -36,6 +36,10 @@ const ImportXlsx = () => {
     setGroupedData({});
     setContacts({});
     setFile(null);
+    const fileInput = document.getElementById("dropzone-file");
+    if (fileInput) {
+      fileInput.value = "";
+    }
   }
 
   const processFile = async (file) => {
@@ -221,13 +225,18 @@ const ImportXlsx = () => {
         },
         body: JSON.stringify(groupedData),
       });
-      if (!res.ok) {
-        throw new Error(`Erro ao inserir exame. Status: ${res.status}`);
-      }
 
-      handleClear();
-      const data = await res.json();
-      toast.success(data);
+      if (res.ok) {
+        if (res.status === 201) {
+          toast.success("Dados inseridos com sucesso.");
+          handleClear();
+        } else if (res.status === 200) {
+          toast.warn("Os dados já estão cadastrados.");
+        }
+      } else {
+        toast.error("Erro ao inserir dados!");
+        throw new Error(`Erro ao inserir dados. Status: ${res.status}`);
+      }
 
     } catch (error) {
       console.error("Erro ao enviar os dados:", error);
@@ -251,22 +260,14 @@ const ImportXlsx = () => {
     const updatedGroupedData = { ...groupedData };
     let allDescriptionsFilled = true;
 
-    // Verifica se algum campo de ambiente_setor está vazio
     Object.keys(setorEdits).forEach((unidadeKey) => {
       Object.keys(setorEdits[unidadeKey]).forEach((setorKey) => {
         const setorEdit = setorEdits[unidadeKey][setorKey];
         if (!setorEdit.ambiente_setor || setorEdit.ambiente_setor.trim() === "") {
           allDescriptionsFilled = false;
-          console.log('Campo de descrição do setor vazio');
         }
       });
     });
-
-    // Se algum campo estiver vazio, exibe mensagem de erro e retorna
-    if (!allDescriptionsFilled) {
-      toast.error('Todos os campos de descrição do setor devem estar preenchidos.');
-      return;
-    }
 
     // Atualiza os dados agrupados com as mudanças
     Object.keys(setorEdits).forEach((unidadeKey) => {
@@ -280,15 +281,14 @@ const ImportXlsx = () => {
       });
     });
 
-    // Verifica se todas as descrições de setores estão preenchidas após a atualização
     const allDescriptionsFilledAfterUpdate = updatedGroupedData.unidadeData.every((unidade) => {
       return unidade.setores.every((setor) => setor.ambiente_setor && setor.ambiente_setor.trim() !== "");
     });
 
-    // Se todas as descrições de setores estiverem preenchidas, define atualizouSetor como true
     if (allDescriptionsFilledAfterUpdate) {
       setAtualizouSetor(true);
     } else {
+      toast.warn('Por favor, atualize as descrições dos setores antes de enviar os dados.');
       setAtualizouSetor(false);
     }
   };
@@ -434,18 +434,26 @@ const ImportXlsx = () => {
             <div className="flex justify-end items-center gap-4">
               {/* Atualizar Setores */}
               <button
-                className="bg-blue-700 hover:bg-blue-800 text-white font-bold py-2 px-4 rounded mt-4"
+                className="bg-blue-700 hover:bg-blue-800 text-white font-bold py-2 px-4 rounded"
                 onClick={handleUpdateSetores}
               >
                 Atualizar Setores
+              </button>
+
+              {/* Limpar */}
+              <button
+                className={"bg-red-700 hover:bg-red-800 text-white font-bold py-2 px-4 rounded"}
+                onClick={handleClear}
+              >
+                Limpar
               </button>
 
               {/* Enviar */}
               <button
                 className={
                   !atualizouSetor
-                    ? "bg-green-700 text-white font-bold py-2 px-4 rounded mt-4 opacity-60 cursor-not-allowed"
-                    : "bg-green-700 hover:bg-green-800 text-white font-bold py-2 px-4 rounded mt-4"
+                    ? "bg-green-700 text-white font-bold py-2 px-4 rounded opacity-60 cursor-not-allowed"
+                    : "bg-green-700 hover:bg-green-800 text-white font-bold py-2 px-4 rounded"
                 }
                 onClick={handleSendData}
               >
