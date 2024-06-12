@@ -30,10 +30,10 @@ const ImportXlsx = () => {
   };
 
   const handleClear = () => {
+    setSetorEdits({});
     setImportSuccess(false);
     setAtualizouSetor(false);
     setGroupedData({});
-    setSetorEdits({});
     setContacts({});
     setFile(null);
   }
@@ -202,7 +202,10 @@ const ImportXlsx = () => {
   };
 
   const handleSendData = async () => {
-    console.log(groupedData);
+
+    if (!atualizouSetor) {
+      return toast.warn("Por favor, atualize a descrição dos setores antes de enviar os dados.");
+    }
 
     try {
       const userData = JSON.parse(localStorage.getItem("user"));
@@ -222,9 +225,9 @@ const ImportXlsx = () => {
         throw new Error(`Erro ao inserir exame. Status: ${res.status}`);
       }
 
+      handleClear();
       const data = await res.json();
       toast.success(data);
-      handleClear();
 
     } catch (error) {
       console.error("Erro ao enviar os dados:", error);
@@ -338,20 +341,21 @@ const ImportXlsx = () => {
         </label>
       </div>
       {importSuccess && (
-        <div className="text-green-600 font-semibold text-center mb-4 mt-2">
-          Dados importados com sucesso!
-        </div>
+        <>
+          <p className="text-red-600 font-semibold text-center mb-4 mt-2">Para concluir a importação, adicione descrição aos setores no campo abaixo e clique em Enviar!</p>
+        </>
       )}
 
       {/* Editar Setores */}
       {importSuccess && (
-        <div className="w-5/6 mx-auto mt-10 mb-10 rounded-md shadow-md border px-5 py-3">
+        <div className="w-5/6 mx-auto mt-5 mb-10 rounded-md shadow-md border px-5 py-3">
           <div className="w-full">
-            <h4 className="font-bold text-3xl text-center text-sky-700 mb-2">Editar Setores</h4>
+            <h4 className="font-bold text-3xl text-center text-sky-700 mb-1">Editar Setores</h4>
+            <hr />
             {groupedData.unidadeData &&
               groupedData.unidadeData.map((unidade, unidadeIndex) => (
                 // Unidades
-                <div key={unidadeIndex} className={`mb-6 py-2 px-4`}>
+                <div key={unidadeIndex} className={`mb-6 py-2 px-4 mt-2`}>
                   {/* Titulo */}
                   <div>
                     <p className="text-gray-600 text-md">Unidade:</p>
