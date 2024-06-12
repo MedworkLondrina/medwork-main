@@ -7,25 +7,25 @@ import ModalSearchSetor from "../components/Modal/ModalSearchSetor";
 import ModalSearchUnidade from "../components/Modal/ModalSearchUnidade";
 import ModalSearchElaborador from "../components/Modal/ModalSearchElaborador";
 
-import icon_sair from '../../../media/icon_sair.svg'
-import icon_lupa from '../../../media/icon_lupa.svg'
+import icon_sair from '../../../media/icon_sair.svg';
+import icon_lupa from '../../../media/icon_lupa.svg';
 import { PDFDownloadLink, PDFViewer } from "@react-pdf/renderer";
 import { connect } from "../../../../services/api";
-import Back from '../../../layout/Back'
+import Back from '../../../layout/Back';
 import { Link } from "react-router-dom";
 import { IoInformationCircleSharp } from "react-icons/io5";
 import PcsmoGenerate from "../components/LaudoGenerate/PcmsoGenerate";
 
-
 function LaudoPgr() {
-
   const {
     loadSelectedCompanyFromLocalStorage,
-    getInventario, inventario,
+    getInventario,
+    inventario,
     fetchUnidades,
     fetchSetores,
     getGlobalSprm,
-    getPlano, plano,
+    getPlano,
+    plano,
     getTable,
   } = useAuth(null);
 
@@ -33,36 +33,27 @@ function LaudoPgr() {
   const [nameCompany, setNameCompany] = useState('');
   const [filteredInventario, setFilteredInventario] = useState([]);
   const [filteredPlano, setFilteredPlano] = useState([]);
-
   const [showModalUnidade, setShowModalUnidade] = useState(false);
   const [unidades, setUnidades] = useState([]);
   const [filteredUnidade, setFilteredUnidades] = useState([]);
   const [unidadeId, setUnidadeId] = useState('');
   const [nomeUnidade, setNomeUnidade] = useState('');
-
   const [showModalSetor, setShowModalSetor] = useState(false);
   const [setores, setSetores] = useState([]);
   const [filteredSetores, setFilteredSetores] = useState([]);
   const [setorId, setSetorId] = useState('');
   const [setorNome, setSetorNome] = useState('');
-
   const [showModalElaborador, setShowModalElaborador] = useState(false);
   const [elaboradores, setElaboradores] = useState([]);
   const [filteredElaborador, setFilteredElaborador] = useState([]);
   const [elaboradorId, setElaboradorId] = useState('');
   const [elaboradorNome, setElaboradorNome] = useState('');
-
   const [globalSprm, setGlobalSprm] = useState([]);
-
   const [pdfGrid, setPdfGrid] = useState(false);
-
   const [visible, setVisible] = useState(false);
   const [loading, setLoading] = useState(false);
-
-  // Form
   const [data, setData] = useState('');
   const [comentario, setComentario] = useState('');
-
   const [generatedPdf, setGeneratedPdf] = useState(null);
   const [pdfComponent, setPdfComponent] = useState(null);
 
@@ -96,28 +87,25 @@ function LaudoPgr() {
     handleGet();
   }, [companyId]);
 
- 
   useEffect(() => {
     try {
-      // Filtrando o inventario pelo id da Empresa
-      if(companyId && !unidadeId && !setorId) {
+      if (companyId && !unidadeId && !setorId) {
         const inventarioFilter = inventario.filter((i) => i.fk_empresa_id === companyId);
         setFilteredInventario(inventarioFilter);
       }
-      if(companyId && unidadeId && !setorId) {
+      if (companyId && unidadeId && !setorId) {
         const inventarioFilter = inventario.filter((i) => i.fk_unidade_id === unidadeId);
         setFilteredInventario(inventarioFilter);
       }
-      if(companyId && unidadeId &&  setorId) {
+      if (companyId && unidadeId && setorId) {
         const inventarioFilter = inventario.filter((i) => i.fk_setor_id === setorId);
         setFilteredInventario(inventarioFilter);
       }
-      // Filtrando o plano de ação pelo id da Empresa 
+
       const planoFilter = plano.filter((i) => i.fk_empresa_id === companyId);
       setFilteredPlano(planoFilter);
-
     } catch (error) {
-      toast.warn("Erro ao filtrar dados!")
+      toast.warn("Erro ao filtrar dados!");
       console.log("Erro ao filtrar dados!", error);
     }
   }, [companyId, inventario, plano, setorId, unidadeId]);
@@ -129,17 +117,13 @@ function LaudoPgr() {
     }
   }, [showModalSetor, unidadeId, setores]);
 
-  //Funções do Modal
-  //Função para abrir o Modal
   const openModalUnidade = () => setShowModalUnidade(true);
   const openModalSetor = () => setShowModalSetor(true);
   const openModalElaborador = () => setShowModalElaborador(true);
-  //Função para fechar o Modal
   const closeModalUnidade = () => setShowModalUnidade(false);
   const closeModalSetor = () => setShowModalSetor(false);
   const closeModalElaborador = () => setShowModalElaborador(false);
 
-  
   const handleClear = () => {
     setGeneratedPdf(null);
     setPdfComponent(null);
@@ -152,7 +136,6 @@ function LaudoPgr() {
   };
 
   const handleGerarRelatorio = async () => {
-
     if (!elaboradorId) {
       return toast.warn("Selecione um elaborador!");
     }
@@ -163,7 +146,7 @@ function LaudoPgr() {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ companyId: companyId , unidadeId: unidadeId, setorId: setorId}),
+      body: JSON.stringify({ companyId: companyId, unidadeId: unidadeId, setorId: setorId }),
     });
 
     const data = await res.json();
@@ -172,29 +155,80 @@ function LaudoPgr() {
 
     if (!data || !filterSprm || !filteredInventario.length > 0 || !filteredPlano.length > 0) {
       setLoading(false);
-      return toast.error("Erro ao gerar relatório!");
+      return toast.error("Erro ao gerar relatório!");
     }
 
     const resRelatorio = await pcsmoGenerate(data, filterSprm);
+    const assinatura = new FormData();
+    assinatura.append('operations', JSON.stringify({
+      query: `mutation CreateDocumentMutation($document: DocumentInput!, $signers: [SignerInput!]!, $file: Upload!) {
+        createDocument(document: $document, signers: $signers, file: $file) {
+          id
+          name
+          created_at
+          signatures {
+            public_id
+            name
+            email
+          }
+        }
+      }`,
+      variables: {
+        document: { name: "Contrato de teste" },
+        signers: [{
+          email: "email_do_signatario@exemplo.com",
+          action: "SIGN",
+          positions: [{
+            page: 1,
+            x: 40,
+            y: 750
+          }]
+        }],
+        file: null
+      }
+    }));
+    assinatura.append('map', JSON.stringify({ "file": ["variables.file"] }));
+    assinatura.append('file', resRelatorio);
+
+    const options = {
+      method: 'POST',
+      headers: {
+        'Authorization': 'b311e8e759e167bbc5ebd39dad02f2add52d80ab2e70ced4e58819624909f550',
+        ...assinatura.getHeaders()
+      },
+      body: assinatura
+    };
+
+    fetch('https://api.autentique.com.br/v2/graphql', options)
+      .then(response => response.json())
+      .then(responseData => {
+        console.log(JSON.stringify(responseData));
+      })
+      .catch(error => {
+        console.error('Erro:', error);
+      });
+
     setGeneratedPdf(resRelatorio);
     await handleDownloadPGR(resRelatorio);
     setLoading(false);
   };
+
   const pcsmoGenerate = async (dados, sprm) => {
     try {
-      return <PcsmoGenerate
-        inventario={filteredInventario}
-        plano={filteredPlano}
-        data={data}
-        dados={dados}
-        elaborador={filteredElaborador}
-        sprm={sprm}
-      />
+      return (
+        <PcsmoGenerate
+          inventario={filteredInventario}
+          plano={filteredPlano}
+          data={data}
+          dados={dados}
+          elaborador={filteredElaborador}
+          sprm={sprm}
+        />
+      );
     } catch (error) {
-      console.error("Erro ao gerar relatório!", error)
-      return toast.error("Erro ao gerar relatório!");
+      console.error("Erro ao gerar relatório!", error);
+      return toast.error("Erro ao gerar relatório!");
     }
-
   };
 
   const handleDownloadPGR = async (pgr) => {
