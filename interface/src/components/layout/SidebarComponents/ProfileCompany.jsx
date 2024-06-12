@@ -781,14 +781,14 @@ function ProfileCompany({ companyId, empresas, contatos }) {
                                 <li key={item.id_cargo}>
                                   <div className="bg-gray-50 rounded px-4 py-2">
                                     <div>
-                                      <h2 className="text-sky-700 font-medium truncate hover:whitespace-normal">
+                                      <h2 className="text-sky-700 text font-medium truncate hover:whitespace-normal">
                                         {item.nome_cargo}
                                       </h2>
                                     </div>
                                     <hr />
                                     <div className="mt-1">
-                                      <p className="text-sm text-gray-700">
-                                        <span className="text-sm font-light text-gray-500 mr-1">Descrição:</span>{item.descricao}
+                                      <p className="text-sm text-gray-700 text-justify">
+                                        <span className="text-sm font-light text-gray-500 text mr-1">Descrição:</span>{item.descricao}
                                       </p>
                                     </div>
                                   </div>
