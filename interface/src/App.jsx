@@ -68,7 +68,7 @@ function App() {
           <Route path='/cadastro_aparelhos' element={<PrivateRoute requiredPermission={2}><Aparelhos /></PrivateRoute>} />
           <Route path='/cadastro_elaboradores' element={<PrivateRoute requiredPermission={2}><Elaboradores /></PrivateRoute>} />
           <Route path='/cadastro_exames' element={<PrivateRoute requiredPermission={2}><Exames /></PrivateRoute>} />
-          <Route path='/importxlsx' element={<PrivateRoute requiredPermission={1}><ImportXlsx /></PrivateRoute>} />
+          <Route path='/importar_dados' element={<PrivateRoute requiredPermission={1}><ImportXlsx /></PrivateRoute>} />
           <Route path='/gerar_pgr' element={<PrivateRoute requiredPermission={2}><LaudoPgr /></PrivateRoute>} />
           <Route path='/gerar_ltcat' element={<PrivateRoute requiredPermission={2}><LaudoLtcat /></PrivateRoute>} />
           <Route path='/gerar_lip' element={<PrivateRoute requiredPermission={2}><LaudoLip /></PrivateRoute>} />

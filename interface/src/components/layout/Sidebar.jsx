@@ -615,7 +615,7 @@ function Sidebar() {
 
                             {/* Importar Dados */}
                             <Link to="/importar_dados" onClick={() => setShowMenu(!showMenu)}>
-                              <li className="opacity-25">
+                              <li className="hover:bg-sky-100">
                                 <div className={`flex items-center py-2 px-6`}>
                                   <img src={icon_import} alt="icon_import" />
                                   <span className="ms-3 font-normal">Importar Dados</span>
