@@ -1539,7 +1539,7 @@ router.post("/unidade_import", async (req, res, next) => {
               res.status(200).json("Nenhum novo registro foi adicionado, os dados já existem");
             } else {
               con.release();
-              res.status(200).json("Dados importados com sucesso");
+              res.status(201).json("Dados importados com sucesso");
             }
           } catch (error) {
             con.release();
