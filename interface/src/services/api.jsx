@@ -4,7 +4,7 @@ import { getStorage } from 'firebase/storage';
 
 // Conexão com o Banco
 export const connect = "https://medwork-dev-api.vercel.app";
-// export const connect = "http://localhost:8800";
+//export const connect = "http://localhost:8800";
 
 
 //FireBase Authentication

@@ -584,7 +584,7 @@ function LaudoPgr() {
                 className={`${loading ? 'bg-gray-200 hover:bg-gray-200 text-white cursor-not-allowed' : 'bg-green-600 hover:bg-green-700 text-white cursor-pointer'} py-2 px-8 font-bold text-lg rounded `}
                 onClick={handleGerarRelatorio}
               >
-                {loading ? 'Gerando PGR...' : 'Gerar PGR'}
+                {loading ? 'Gerando LTCAT...' : 'Gerar LTCAT'}
               </button>
             )}
 

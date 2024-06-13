@@ -605,7 +605,7 @@ function LtcatGenerate({ inventario, dados, data, user, elaborador, sprm}) {
   const HeaderPage = () => {
     return (
       <View style={ContainerStyles.headerContainer}>
-        <Text style={TextStyles.headerText}>PGR - Programa de Gerenciamento de Riscos - NR1</Text>
+        <Text style={TextStyles.headerText}>LTCAT - Laudo Técnico das Condições de Trabalho - NR1</Text>
         <Text style={TextStyles.littleText}>{dados.empresas[0].nome_empresa || ''} - Versão: </Text>
       </View>
     );
@@ -1379,17 +1379,9 @@ function LtcatGenerate({ inventario, dados, data, user, elaborador, sprm}) {
             <View style={[TableStyles.headerCell, { width: ' 10%' }]}>
               <Text style={[{ fontFamily: 'OpenSansBold', fontSize: 6, color: '#ffffff', textAlign: 'center' }]}>Medidas</Text>
             </View>
-            <View style={[TableStyles.headerCell, { width: ' 5%' }]}>
-              <Text style={[{ fontFamily: 'OpenSansBold', fontSize: 6, color: '#ffffff', textAlign: 'center' }]}>P</Text>
-            </View>
-            <View style={[TableStyles.headerCell, { width: ' 5%' }]}>
-              <Text style={[{ fontFamily: 'OpenSansBold', fontSize: 6, color: '#ffffff', textAlign: 'center' }]}>S</Text>
-            </View>
-            <View style={[TableStyles.headerCell, { width: ' 5%' }]}>
-              <Text style={[{ fontFamily: 'OpenSansBold', fontSize: 6, color: '#ffffff', textAlign: 'center' }]}>N</Text>
-            </View>
+
             <View style={[TableStyles.headerCell, { width: ' 10%' }]}>
-              <Text style={[{ fontFamily: 'OpenSansBold', fontSize: 6, color: '#ffffff', textAlign: 'center' }]}>Comentários</Text>
+              <Text style={[{ fontFamily: 'OpenSansBold', fontSize: 6, color: '#ffffff', textAlign: 'center' }]}>Conclusão</Text>
             </View>
           </View>
           {/* Body */}
@@ -1475,41 +1467,15 @@ function LtcatGenerate({ inventario, dados, data, user, elaborador, sprm}) {
                   {convertMedidas(item.medidas, item.fk_setor_id, item.fk_processo_id, item.fk_risco_id) || 'N/A'}
                 </Text>
               </View>
-              <View style={[TableStyles.contentRiskCell, { width: '5%' }]}>
-                <Text style={[RiskInventoryStyles.contentText, { textAlign: 'left', }]}>
-                  {item.probabilidade || '-'}
-                </Text>
-              </View>
-              <View style={[TableStyles.contentRiskCell, { width: '5%' }]}>
-                <Text style={[RiskInventoryStyles.contentText, { textAlign: 'left', }]}>
-                  {find(item.fk_risco_id, 'severidade') || '-'}
-                </Text>
-              </View>
-              <View style={[TableStyles.contentRiskCell, { width: '5%' }]}>
-                <Text style={[RiskInventoryStyles.contentText, { textAlign: 'left', }]}>
-                  {item.nivel || '-'}
-                </Text>
-              </View>
               <View style={[TableStyles.contentRiskCell, { width: '10%' }]}>
                 <Text style={[RiskInventoryStyles.contentText, { textAlign: 'left', }]}>
-                  {item.comentarios || '-'}
+                  {item.conclusao_ltcat || '-'}
                 </Text>
               </View>
             </View>
           ))}
         </View>
-        {/* Legenda */}
-        <View style={{ textAlign: 'right', paddingRight: 5 }}>
-          <Text style={TextStyles.legend}>
-            <Text style={TextStyles.legendBold}>PE:</Text> Pessoas Expostas -
-            <Text style={TextStyles.legendBold}> Freq:</Text> Frequência -
-            <Text style={TextStyles.legendBold}> LT</Text> Limite de Tolerância -
-            <Text style={TextStyles.legendBold}> P:</Text> Probabilidade -
-            <Text style={TextStyles.legendBold}> S:</Text> Severidade -
-            <Text style={TextStyles.legendBold}> N:</Text> Nível
-          </Text>
-        </View>
-
+       
         {/* Footer */}
         <FooterPage />
       </Page>

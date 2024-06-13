@@ -12,7 +12,7 @@ import formula_pt from '../../../../media/laudos/lip/formula_pt.png'
 import formula_pr from '../../../../media/laudos/lip/formula_pr.png'
 import formula_silica from '../../../../media/laudos/lip/formula_silica.png'
 
-function LipGenerate({inventario, dados, data, user, elaborador, sprm }) {
+function LipGenerate({inventario, dados, data, user, elaborador, sprm, laudo}) {
 
   const find = (item, tipo) => {
     try {
@@ -2678,186 +2678,189 @@ const CompanyStyles = StyleSheet.create({
 
         {/* Tabela do Inventário */}
         <View style={TableStyles.table}>
-          {/* Header */}
-          <View style={[TableStyles.headerTable, { justifyContent: 'center', alignItems: 'center', }]} fixed>
-            <View style={[TableStyles.headerCell, { width: ' 8%' }]}>
-              <Text style={[{ fontFamily: 'OpenSansBold', fontSize: 6, color: '#ffffff', textAlign: 'center' }]}>Data</Text>
-            </View>
-            <View style={[TableStyles.headerCell, { width: ' 8%' }]}>
-              <Text style={[{ fontFamily: 'OpenSansBold', fontSize: 6, color: '#ffffff', textAlign: 'center' }]}>Unidade</Text>
-            </View>
-            <View style={[TableStyles.headerCell, { width: ' 10%' }]}>
-              <Text style={[{ fontFamily: 'OpenSansBold', fontSize: 6, color: '#ffffff', textAlign: 'center' }]}>Setor</Text>
-            </View>
-            <View style={[TableStyles.headerCell, { width: ' 10%' }]}>
-              <Text style={[{ fontFamily: 'OpenSansBold', fontSize: 6, color: '#ffffff', textAlign: 'center' }]}>Processo</Text>
-            </View>
-            <View style={[TableStyles.headerCell, { width: ' 10%' }]}>
-              <Text style={[{ fontFamily: 'OpenSansBold', fontSize: 6, color: '#ffffff', textAlign: 'center' }]}>Risco</Text>
-            </View>
-            <View style={[TableStyles.headerCell, { width: ' 5%' }]}>
-              <Text style={[{ fontFamily: 'OpenSansBold', fontSize: 6, color: '#ffffff', textAlign: 'center' }]}>Tipo</Text>
-            </View>
-            <View style={[TableStyles.headerCell, { width: ' 12%' }]}>
-              <Text style={[{ fontFamily: 'OpenSansBold', fontSize: 6, color: '#ffffff', textAlign: 'center' }]}>Consequência</Text>
-            </View>
-            <View style={[TableStyles.headerCell, { width: ' 10%' }]}>
-              <Text style={[{ fontFamily: 'OpenSansBold', fontSize: 6, color: '#ffffff', textAlign: 'center' }]}>Fontes</Text>
-            </View>
-            <View style={[TableStyles.headerCell, { width: ' 5%' }]}>
-              <Text style={[{ fontFamily: 'OpenSansBold', fontSize: 6, color: '#ffffff', textAlign: 'center' }]}>PE</Text>
-            </View>
-            <View style={[TableStyles.headerCell, { width: ' 10%' }]}>
-              <Text style={[{ fontFamily: 'OpenSansBold', fontSize: 6, color: '#ffffff', textAlign: 'center' }]}>Avaliação</Text>
-            </View>
-            <View style={[TableStyles.headerCell, { width: ' 5%' }]}>
-              <Text style={[{ fontFamily: 'OpenSansBold', fontSize: 6, color: '#ffffff', textAlign: 'center' }]}>Freq</Text>
-            </View>
-            <View style={[TableStyles.headerCell, { width: ' 10%' }]}>
-              <Text style={[{ fontFamily: 'OpenSansBold', fontSize: 6, color: '#ffffff', textAlign: 'center' }]}>Medição</Text>
-            </View>
-            <View style={[TableStyles.headerCell, { width: ' 10%' }]}>
-              <Text style={[{ fontFamily: 'OpenSansBold', fontSize: 6, color: '#ffffff', textAlign: 'center' }]}>Aparelho</Text>
-            </View>
-            <View style={[TableStyles.headerCell, { width: ' 5%' }]}>
-              <Text style={[{ fontFamily: 'OpenSansBold', fontSize: 6, color: '#ffffff', textAlign: 'center' }]}>LT</Text>
-            </View>
-            <View style={[TableStyles.headerCell, { width: ' 10%' }]}>
-              <Text style={[{ fontFamily: 'OpenSansBold', fontSize: 6, color: '#ffffff', textAlign: 'center' }]}>Metodologia</Text>
-            </View>
-            <View style={[TableStyles.headerCell, { width: ' 10%' }]}>
-              <Text style={[{ fontFamily: 'OpenSansBold', fontSize: 6, color: '#ffffff', textAlign: 'center' }]}>Medidas</Text>
-            </View>
-            <View style={[TableStyles.headerCell, { width: ' 5%' }]}>
-              <Text style={[{ fontFamily: 'OpenSansBold', fontSize: 6, color: '#ffffff', textAlign: 'center' }]}>P</Text>
-            </View>
-            <View style={[TableStyles.headerCell, { width: ' 5%' }]}>
-              <Text style={[{ fontFamily: 'OpenSansBold', fontSize: 6, color: '#ffffff', textAlign: 'center' }]}>S</Text>
-            </View>
-            <View style={[TableStyles.headerCell, { width: ' 5%' }]}>
-              <Text style={[{ fontFamily: 'OpenSansBold', fontSize: 6, color: '#ffffff', textAlign: 'center' }]}>N</Text>
-            </View>
-            <View style={[TableStyles.headerCell, { width: ' 10%' }]}>
-              <Text style={[{ fontFamily: 'OpenSansBold', fontSize: 6, color: '#ffffff', textAlign: 'center' }]}>Comentários</Text>
-            </View>
-          </View>
-          {/* Body */}
-          {inventario.map((item, i) => (
-            <View key={i} style={TableStyles.contentRiskTable} wrap={false}>
-              <View style={[TableStyles.contentRiskCell, { width: '8%' }]}>
-                <Text style={[RiskInventoryStyles.contentText, { textAlign: 'center', }]}>
-                  {formatData(item.data_inventario) || 'N/A'}
-                </Text>
-              </View>
-              <View style={[TableStyles.contentRiskCell, { width: '8%' }]}>
-                <Text style={[RiskInventoryStyles.contentText, { textAlign: 'left', }]}>
-                  {find(item.fk_unidade_id, 'nome_unidade') || 'N/A'}
-                </Text>
-              </View>
-              <View style={[TableStyles.contentRiskCell, { width: '10%' }]}>
-                <Text style={[RiskInventoryStyles.contentText, { textAlign: 'left', }]}>
-                  {find(item.fk_setor_id, 'nome_setor')}
-                </Text>
-              </View>
-              <View style={[TableStyles.contentRiskCell, { width: '10%' }]}>
-                <Text style={[RiskInventoryStyles.contentText, { textAlign: 'left', }]}>
-                  {find(item.fk_processo_id, 'nome_processo')}
-                </Text>
-              </View>
-              <View style={[TableStyles.contentRiskCell, { width: '10%' }]}>
-                <Text style={[RiskInventoryStyles.contentText, { textAlign: 'left', }]}>
-                  {find(item.fk_risco_id, 'nome_risco') || 'N/A'}
-                </Text>
-              </View>
-              <View style={[TableStyles.contentRiskCell, { width: '5%' }]}>
-                <Text style={[RiskInventoryStyles.contentText, { textAlign: 'center', }]}>
-                  {getFirstLetter(find(item.fk_risco_id, 'grupo_risco')) || 'N/A'}
-                </Text>
-              </View>
-              <View style={[TableStyles.contentRiskCell, { width: '12%' }]}>
-                <Text style={[RiskInventoryStyles.contentText, { textAlign: 'left', }]}>
-                  {find(item.fk_risco_id, 'consequencia') || 'N/A'}
-                </Text>
-              </View>
-              <View style={[TableStyles.contentRiskCell, { width: '10%' }]}>
-                <Text style={[RiskInventoryStyles.contentText, { textAlign: 'left', }]}>
-                  {item.fontes || 'N/A'}
-                </Text>
-              </View>
-              <View style={[TableStyles.contentRiskCell, { width: '5%' }]}>
-                <Text style={[RiskInventoryStyles.contentText, { textAlign: 'center', }]}>
-                  {item.pessoas_expostas || 'N/A'}
-                </Text>
-              </View>
-              <View style={[TableStyles.contentRiskCell, { width: '10%' }]}>
-                <Text style={[RiskInventoryStyles.contentText, { textAlign: 'center', }]}>
-                  {find(item.fk_risco_id, 'avaliacao') || 'N/A'}
-                </Text>
-              </View>
-              <View style={[TableStyles.contentRiskCell, { width: '5%' }]}>
-                <Text style={[RiskInventoryStyles.contentText, { textAlign: 'left', }]}>
-                  {item.frequencia || '0'}
-                </Text>
-              </View>
-              <View style={[TableStyles.contentRiskCell, { width: '10%' }]}>
-                <Text style={[RiskInventoryStyles.contentText, { textAlign: 'center', }]}>
-                  {item.medicao + " " + find(item.fk_risco_id, 'unidade_medida') || '0'}
-                </Text>
-              </View>
-              <View style={[TableStyles.contentRiskCell, { width: '10%' }]}>
-                <Text style={[RiskInventoryStyles.contentText, { textAlign: 'left', }]}>
-                  {find(item.fk_aparelho_id, 'nome_aparelho') || 'N/A'}
-                </Text>
-              </View>
-              <View style={[TableStyles.contentRiskCell, { width: '5%' }]}>
-                <Text style={[RiskInventoryStyles.contentText, { textAlign: 'center', }]}>
-                  {find(item.fk_risco_id, 'limite_tolerancia') + " " + find(item.fk_risco_id, 'unidade_medida') || '0'}
-                </Text>
-              </View>
-              <View style={[TableStyles.contentRiskCell, { width: '10%' }]}>
-                <Text style={[RiskInventoryStyles.contentText, { textAlign: 'left', }]}>
-                  {find(item.fk_risco_id, 'metodologia') || 'N/A'}
-                </Text>
-              </View>
-              <View style={[TableStyles.contentRiskCell, { width: '10%' }]}>
-                <Text style={[RiskInventoryStyles.contentText, { textAlign: 'left', }]}>
-                  {convertMedidas(item.medidas, item.fk_setor_id, item.fk_processo_id, item.fk_risco_id) || 'N/A'}
-                </Text>
-              </View>
-              <View style={[TableStyles.contentRiskCell, { width: '5%' }]}>
-                <Text style={[RiskInventoryStyles.contentText, { textAlign: 'left', }]}>
-                  {item.probabilidade || '-'}
-                </Text>
-              </View>
-              <View style={[TableStyles.contentRiskCell, { width: '5%' }]}>
-                <Text style={[RiskInventoryStyles.contentText, { textAlign: 'left', }]}>
-                  {find(item.fk_risco_id, 'severidade') || '-'}
-                </Text>
-              </View>
-              <View style={[TableStyles.contentRiskCell, { width: '5%' }]}>
-                <Text style={[RiskInventoryStyles.contentText, { textAlign: 'left', }]}>
-                  {item.nivel || '-'}
-                </Text>
-              </View>
-              <View style={[TableStyles.contentRiskCell, { width: '10%' }]}>
-                <Text style={[RiskInventoryStyles.contentText, { textAlign: 'left', }]}>
-                  {item.comentarios || '-'}
-                </Text>
-              </View>
-            </View>
-          ))}
-        </View>
-        {/* Legenda */}
-        <View style={{ textAlign: 'right', paddingRight: 5 }}>
-          <Text style={TextStyles.legend}>
-            <Text style={TextStyles.legendBold}>PE:</Text> Pessoas Expostas -
-            <Text style={TextStyles.legendBold}> Freq:</Text> Frequência -
-            <Text style={TextStyles.legendBold}> LT</Text> Limite de Tolerância -
-            <Text style={TextStyles.legendBold}> P:</Text> Probabilidade -
-            <Text style={TextStyles.legendBold}> S:</Text> Severidade -
-            <Text style={TextStyles.legendBold}> N:</Text> Nível
+  {/* Header */}
+  <View style={[TableStyles.headerTable, { justifyContent: 'center', alignItems: 'center' }]} fixed>
+    <View style={[TableStyles.headerCell, { width: '8%' }]}>
+      <Text style={{ fontFamily: 'OpenSansBold', fontSize: 6, color: '#ffffff', textAlign: 'center' }}>Data</Text>
+    </View>
+    <View style={[TableStyles.headerCell, { width: '8%' }]}>
+      <Text style={{ fontFamily: 'OpenSansBold', fontSize: 6, color: '#ffffff', textAlign: 'center' }}>Unidade</Text>
+    </View>
+    <View style={[TableStyles.headerCell, { width: '10%' }]}>
+      <Text style={{ fontFamily: 'OpenSansBold', fontSize: 6, color: '#ffffff', textAlign: 'center' }}>Setor</Text>
+    </View>
+    <View style={[TableStyles.headerCell, { width: '10%' }]}>
+      <Text style={{ fontFamily: 'OpenSansBold', fontSize: 6, color: '#ffffff', textAlign: 'center' }}>Processo</Text>
+    </View>
+    <View style={[TableStyles.headerCell, { width: '10%' }]}>
+      <Text style={{ fontFamily: 'OpenSansBold', fontSize: 6, color: '#ffffff', textAlign: 'center' }}>Risco</Text>
+    </View>
+    <View style={[TableStyles.headerCell, { width: '5%' }]}>
+      <Text style={{ fontFamily: 'OpenSansBold', fontSize: 6, color: '#ffffff', textAlign: 'center' }}>Tipo</Text>
+    </View>
+    <View style={[TableStyles.headerCell, { width: '12%' }]}>
+      <Text style={{ fontFamily: 'OpenSansBold', fontSize: 6, color: '#ffffff', textAlign: 'center' }}>Consequência</Text>
+    </View>
+    <View style={[TableStyles.headerCell, { width: '10%' }]}>
+      <Text style={{ fontFamily: 'OpenSansBold', fontSize: 6, color: '#ffffff', textAlign: 'center' }}>Fontes</Text>
+    </View>
+    <View style={[TableStyles.headerCell, { width: '5%' }]}>
+      <Text style={{ fontFamily: 'OpenSansBold', fontSize: 6, color: '#ffffff', textAlign: 'center' }}>PE</Text>
+    </View>
+    <View style={[TableStyles.headerCell, { width: '10%' }]}>
+      <Text style={{ fontFamily: 'OpenSansBold', fontSize: 6, color: '#ffffff', textAlign: 'center' }}>Avaliação</Text>
+    </View>
+    <View style={[TableStyles.headerCell, { width: '5%' }]}>
+      <Text style={{ fontFamily: 'OpenSansBold', fontSize: 6, color: '#ffffff', textAlign: 'center' }}>Freq</Text>
+    </View>
+    <View style={[TableStyles.headerCell, { width: '10%' }]}>
+      <Text style={{ fontFamily: 'OpenSansBold', fontSize: 6, color: '#ffffff', textAlign: 'center' }}>Medição</Text>
+    </View>
+    <View style={[TableStyles.headerCell, { width: '10%' }]}>
+      <Text style={{ fontFamily: 'OpenSansBold', fontSize: 6, color: '#ffffff', textAlign: 'center' }}>Aparelho</Text>
+    </View>
+    <View style={[TableStyles.headerCell, { width: '5%' }]}>
+      <Text style={{ fontFamily: 'OpenSansBold', fontSize: 6, color: '#ffffff', textAlign: 'center' }}>LT</Text>
+    </View>
+    <View style={[TableStyles.headerCell, { width: '10%' }]}>
+      <Text style={{ fontFamily: 'OpenSansBold', fontSize: 6, color: '#ffffff', textAlign: 'center' }}>Metodologia</Text>
+    </View>
+    <View style={[TableStyles.headerCell, { width: '10%' }]}>
+      <Text style={{ fontFamily: 'OpenSansBold', fontSize: 6, color: '#ffffff', textAlign: 'center' }}>Medidas</Text>
+    </View>
+    
+    {laudo === "LIP" ? (
+      <>
+      <View style={[TableStyles.headerCell, { width: '10%' }]}>
+        <Text style={{ fontFamily: 'OpenSansBold', fontSize: 6, color: '#ffffff', textAlign: 'center' }}>Conc. LI</Text>
+      </View>
+      <View style={[TableStyles.headerCell, { width: '10%' }]}>
+        <Text style={{ fontFamily: 'OpenSansBold', fontSize: 6, color: '#ffffff', textAlign: 'center' }}>Conc. LP</Text>
+      </View>
+      </>
+    ) : (
+      <View style={[TableStyles.headerCell, { width: '10%' }]}>
+        <Text style={{ fontFamily: 'OpenSansBold', fontSize: 6, color: '#ffffff', textAlign: 'center' }}>Conclusao</Text>
+      </View>
+    )}
+  </View>
+  
+  {/* Body */}
+  {inventario.map((item, i) => (
+    <View key={i} style={TableStyles.contentRiskTable} wrap={false}>
+      <View style={[TableStyles.contentRiskCell, { width: '8%' }]}>
+        <Text style={[RiskInventoryStyles.contentText, { textAlign: 'center' }]}>
+          {formatData(item.data_inventario) || 'N/A'}
+        </Text>
+      </View>
+      <View style={[TableStyles.contentRiskCell, { width: '8%' }]}>
+        <Text style={[RiskInventoryStyles.contentText, { textAlign: 'left' }]}>
+          {find(item.fk_unidade_id, 'nome_unidade') || 'N/A'}
+        </Text>
+      </View>
+      <View style={[TableStyles.contentRiskCell, { width: '10%' }]}>
+        <Text style={[RiskInventoryStyles.contentText, { textAlign: 'left' }]}>
+          {find(item.fk_setor_id, 'nome_setor')}
+        </Text>
+      </View>
+      <View style={[TableStyles.contentRiskCell, { width: '10%' }]}>
+        <Text style={[RiskInventoryStyles.contentText, { textAlign: 'left' }]}>
+          {find(item.fk_processo_id, 'nome_processo')}
+        </Text>
+      </View>
+      <View style={[TableStyles.contentRiskCell, { width: '10%' }]}>
+        <Text style={[RiskInventoryStyles.contentText, { textAlign: 'left' }]}>
+          {find(item.fk_risco_id, 'nome_risco') || 'N/A'}
+        </Text>
+      </View>
+      <View style={[TableStyles.contentRiskCell, { width: '5%' }]}>
+        <Text style={[RiskInventoryStyles.contentText, { textAlign: 'center' }]}>
+          {getFirstLetter(find(item.fk_risco_id, 'grupo_risco')) || 'N/A'}
+        </Text>
+      </View>
+      <View style={[TableStyles.contentRiskCell, { width: '12%' }]}>
+        <Text style={[RiskInventoryStyles.contentText, { textAlign: 'left' }]}>
+          {find(item.fk_risco_id, 'consequencia') || 'N/A'}
+        </Text>
+      </View>
+      <View style={[TableStyles.contentRiskCell, { width: '10%' }]}>
+        <Text style={[RiskInventoryStyles.contentText, { textAlign: 'left' }]}>
+          {item.fontes || 'N/A'}
+        </Text>
+      </View>
+      <View style={[TableStyles.contentRiskCell, { width: '5%' }]}>
+        <Text style={[RiskInventoryStyles.contentText, { textAlign: 'center' }]}>
+          {item.pessoas_expostas || 'N/A'}
+        </Text>
+      </View>
+      <View style={[TableStyles.contentRiskCell, { width: '10%' }]}>
+        <Text style={[RiskInventoryStyles.contentText, { textAlign: 'center' }]}>
+          {find(item.fk_risco_id, 'avaliacao') || 'N/A'}
+        </Text>
+      </View>
+      <View style={[TableStyles.contentRiskCell, { width: '5%' }]}>
+        <Text style={[RiskInventoryStyles.contentText, { textAlign: 'left' }]}>
+          {item.frequencia || '0'}
+        </Text>
+      </View>
+      <View style={[TableStyles.contentRiskCell, { width: '10%' }]}>
+        <Text style={[RiskInventoryStyles.contentText, { textAlign: 'center' }]}>
+          {item.medicao + " " + find(item.fk_risco_id, 'unidade_medida') || '0'}
+        </Text>
+      </View>
+      <View style={[TableStyles.contentRiskCell, { width: '10%' }]}>
+        <Text style={[RiskInventoryStyles.contentText, { textAlign: 'left' }]}>
+          {find(item.fk_aparelho_id, 'nome_aparelho') || 'N/A'}
+        </Text>
+      </View>
+      <View style={[TableStyles.contentRiskCell, { width: '5%' }]}>
+        <Text style={[RiskInventoryStyles.contentText, { textAlign: 'center' }]}>
+          {find(item.fk_risco_id, 'limite_tolerancia') + " " + find(item.fk_risco_id, 'unidade_medida') || '0'}
+        </Text>
+      </View>
+      <View style={[TableStyles.contentRiskCell, { width: '10%' }]}>
+        <Text style={[RiskInventoryStyles.contentText, { textAlign: 'left' }]}>
+          {find(item.fk_risco_id, 'metodologia') || 'N/A'}
+        </Text>
+      </View>
+      <View style={[TableStyles.contentRiskCell, { width: '10%' }]}>
+        <Text style={[RiskInventoryStyles.contentText, { textAlign: 'left' }]}>
+          {convertMedidas(item.medidas, item.fk_setor_id, item.fk_processo_id, item.fk_risco_id) || 'N/A'}
+        </Text>
+      </View>
+      {laudo === "LI" && (
+        <View style={[TableStyles.contentRiskCell, { width: '10%' }]}>
+          <Text style={[RiskInventoryStyles.contentText, { textAlign: 'left' }]}>
+            {item.conclusao_li || '-'}
           </Text>
         </View>
+      )}
+      {laudo === "LP" && (
+        <View style={[TableStyles.contentRiskCell, { width: '10%' }]}>
+          <Text style={[RiskInventoryStyles.contentText, { textAlign: 'left' }]}>
+            {item.conclusao_lp || '-'}
+          </Text>
+        </View>
+      )}
+      {laudo === "LIP" && (
+        <>
+          <View style={[TableStyles.contentRiskCell, { width: '10%' }]}>
+            <Text style={[RiskInventoryStyles.contentText, { textAlign: 'left' }]}>
+              {item.conclusao_li || '-'}
+            </Text>
+          </View>
+          <View style={[TableStyles.contentRiskCell, { width: '10%' }]}>
+            <Text style={[RiskInventoryStyles.contentText, { textAlign: 'left' }]}>
+              {item.conclusao_lp || '-'}
+            </Text>
+          </View>
+        </>
+      )}
+    </View>
+  ))}
+</View>
+        {/* Legenda */}
+        
         {/* Footer */}
         <FooterPage />
       </Page>
