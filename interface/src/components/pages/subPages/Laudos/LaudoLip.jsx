@@ -205,7 +205,7 @@ function LaudoLip() {
     if (!elaboradorId) {
       return toast.warn("Selecione um elaborador!");
     }
-
+    console.log(laudo)
     setLoading(true);
     const res = await fetch(`${connect}/relatorio_pgr`, {
       method: 'POST',
@@ -237,6 +237,7 @@ function LaudoLip() {
         sprm = {sprm}
         elaborador={filteredElaborador}
         user={user}
+        laudo = {laudo}
       />
     );
   };
