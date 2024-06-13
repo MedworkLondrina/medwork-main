@@ -28,6 +28,7 @@ import LaudoLtcat from './components/pages/subPages/Laudos/LaudoLtcat';
 import LaudoLip from './components/pages/subPages/Laudos/LaudoLip';
 import LaudoPCMSO from './components/pages/subPages/Laudos/LaudoPCMSO';
 import Exames from './components/pages/subPages/exames/Exames';
+import Dir from './components/pages/subPages/Laudos/Dir';
 
 // Importando os Componentes
 import Navbar from './components/layout/Navbar';
@@ -73,6 +74,7 @@ function App() {
           <Route path='/gerar_ltcat' element={<PrivateRoute requiredPermission={2}><LaudoLtcat /></PrivateRoute>} />
           <Route path='/gerar_lip' element={<PrivateRoute requiredPermission={2}><LaudoLip /></PrivateRoute>} />
           <Route path='/gerar_pcmso' element={<PrivateRoute requiredPermission={2}><LaudoPCMSO /></PrivateRoute>} />
+          <Route path='/gerar_dir' element={<PrivateRoute requiredPermission={2}><Dir /></PrivateRoute>} />
           <Route path='/navbar' element={<Navbar />} />
           <Route path='/*' element={<Navigate to='/' />} />
         </Routes>
