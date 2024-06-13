@@ -670,7 +670,7 @@ function Sidebar() {
                           </div>
                           {showLaudosSubMenu && (
                             <>
-                              <ul className="space-y-2 font-medium cursor-pointer">
+                              <ul className="font-medium cursor-pointer">
                                 {/* PGR */}
                                 <Link to="/gerar_pgr" onClick={() => setShowMenu(!showMenu)}>
                                   <li className="hover:bg-sky-100">
@@ -687,7 +687,7 @@ function Sidebar() {
                                 <Link to="/gerar_ltcat" onClick={() => setShowMenu(!showMenu)}>
                                   <li className="hover:bg-sky-100">
                                     <div className={`flex items-center py-2 px-6`}>
-                                      <img src={icon_laudo} alt="icon_ltcat" />
+                                      <img src={icon_laudo} alt="icon_laudo" />
                                       <span className="ms-3 font-normal">LTCAT</span>
                                     </div>
                                   </li>
@@ -697,7 +697,7 @@ function Sidebar() {
                                 <Link to="/gerar_lip" onClick={() => setShowMenu(!showMenu)}>
                                   <li className="hover:bg-sky-100">
                                     <div className={`flex items-center py-2 px-6`}>
-                                      <img src={icon_laudo} alt="icon_lip" />
+                                      <img src={icon_laudo} alt="icon_laudo" />
                                       <span className="ms-3 font-normal">LIP</span>
                                     </div>
                                   </li>
@@ -707,8 +707,18 @@ function Sidebar() {
                                 <Link to="/gerar_pcmso" onClick={() => setShowMenu(!showMenu)}>
                                   <li className="hover:bg-sky-100">
                                     <div className={`flex items-center py-2 px-6`}>
-                                      <img src={icon_laudo} alt="icon_pcmso" />
+                                      <img src={icon_laudo} alt="icon_laudo" />
                                       <span className="ms-3 font-normal">PCMSO</span>
+                                    </div>
+                                  </li>
+                                </Link>
+
+                                {/* DIR */}
+                                <Link to="/gerar_dir" onClick={() => setShowMenu(!showMenu)}>
+                                  <li className="hover:bg-sky-100">
+                                    <div className={`flex items-center py-2 px-6`}>
+                                      <img src={icon_laudo} alt="icon_laudo" />
+                                      <span className="ms-3 font-normal">DIR</span>
                                     </div>
                                   </li>
                                 </Link>
@@ -716,7 +726,7 @@ function Sidebar() {
                                 {/* Relatório por CNAE */}
                                 <li className="hover:bg-sky-100" onClick={() => setShowMenu(!showMenu)}>
                                   <div className={`flex items-center py-2 px-6`} onClick={openModalRelatorioCnae}>
-                                    <img src={icon_relatorio_cnae} alt="icon_relatorio_cnae" />
+                                    <img src={icon_laudo} alt="icon_laudo" />
                                     <span className="ms-3 font-normal">Relatório por CNAE</span>
                                   </div>
                                 </li>
