@@ -172,14 +172,20 @@ function LaudoPgr() {
     const setoresMap = data.setores.map((i) => i.id_setor);
     const filterSprm = globalSprm.filter((i) => setoresMap.includes(i.fk_setor_id));
 
-    if (!data || !filterSprm || !filteredInventario.length > 0 || !filteredPlano.length > 0) {
+    if (!data) {
+      console.error("Erro ao gerar relatório, dados da empresa vazios!");
+      return toast.error("Erro ao gerar relatório!");
+    }
+
+    if (!filterSprm || !filteredPlano.length > 0) {
       setLoading(false);
-      console.log(data);
-      console.log(filterSprm);
-      console.log(filteredInventario);
-      console.log(filteredPlano);
       console.log("Erro ao gerar relatório, dados inválidos!");
       return toast.error("Erro ao gerar relatório, dados inválidos!");
+    }
+
+    if (!filteredInventario.length > 0) {
+      console.error("Erro ao gerar relatório, Inventário de Riscos vazio!");
+      return toast.error("Erro ao gerar relatório, Inventário de Riscos vazio!");
     }
 
     const resRelatorio = await pgrGenerate(data, filterSprm);
