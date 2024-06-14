@@ -9,6 +9,8 @@ import registrarLog from "../config/utils/logger.js";
 const router = express.Router();
 const SECRET = 'medworkldn';
 
+const token = 'af31d0c7-2460-476d-94ce-6624338c142cdaa60a74-4bff-4555-a893-99139059790a';
+
 // Tabela Tenant
 // Get table
 //Get table

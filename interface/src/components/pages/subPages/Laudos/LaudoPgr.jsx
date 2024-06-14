@@ -174,7 +174,8 @@ function LaudoPgr() {
 
     if (!data || !filterSprm || !filteredInventario.length > 0 || !filteredPlano.length > 0) {
       setLoading(false);
-      return toast.error("Erro ao gerar relatório!");
+      console.log("Erro ao gerar relatório, dados inválidos!");
+      return toast.error("Erro ao gerar relatório, dados inválidos!");
     }
 
     const resRelatorio = await pgrGenerate(data, filterSprm);

@@ -159,54 +159,6 @@ function LaudoPgr() {
     }
 
     const resRelatorio = await pcsmoGenerate(data, filterSprm);
-    const assinatura = new FormData();
-    assinatura.append('operations', JSON.stringify({
-      query: `mutation CreateDocumentMutation($document: DocumentInput!, $signers: [SignerInput!]!, $file: Upload!) {
-        createDocument(document: $document, signers: $signers, file: $file) {
-          id
-          name
-          created_at
-          signatures {
-            public_id
-            name
-            email
-          }
-        }
-      }`,
-      variables: {
-        document: { name: "Contrato de teste" },
-        signers: [{
-          email: "email_do_signatario@exemplo.com",
-          action: "SIGN",
-          positions: [{
-            page: 1,
-            x: 40,
-            y: 750
-          }]
-        }],
-        file: null
-      }
-    }));
-    assinatura.append('map', JSON.stringify({ "file": ["variables.file"] }));
-    assinatura.append('file', resRelatorio);
-
-    const options = {
-      method: 'POST',
-      headers: {
-        'Authorization': 'b311e8e759e167bbc5ebd39dad02f2add52d80ab2e70ced4e58819624909f550',
-        ...assinatura.getHeaders()
-      },
-      body: assinatura
-    };
-
-    fetch('https://api.autentique.com.br/v2/graphql', options)
-      .then(response => response.json())
-      .then(responseData => {
-        console.log(JSON.stringify(responseData));
-      })
-      .catch(error => {
-        console.error('Erro:', error);
-      });
 
     setGeneratedPdf(resRelatorio);
     await handleDownloadPGR(resRelatorio);
