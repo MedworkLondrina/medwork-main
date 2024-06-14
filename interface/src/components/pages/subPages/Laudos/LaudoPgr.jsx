@@ -174,6 +174,10 @@ function LaudoPgr() {
 
     if (!data || !filterSprm || !filteredInventario.length > 0 || !filteredPlano.length > 0) {
       setLoading(false);
+      console.log(data);
+      console.log(filterSprm);
+      console.log(filteredInventario);
+      console.log(filteredPlano);
       console.log("Erro ao gerar relatório, dados inválidos!");
       return toast.error("Erro ao gerar relatório, dados inválidos!");
     }
